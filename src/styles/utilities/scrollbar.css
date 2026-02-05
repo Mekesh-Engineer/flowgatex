@@ -1,0 +1,82 @@
+/* ============================================================================
+   Custom Scrollbar Styles
+   ============================================================================ */
+
+/* Webkit Browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+    transition: background var(--transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Thin Scrollbar Variant */
+.scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+/* Hide Scrollbar but keep functionality */
+.scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}
+
+/* Custom Scrollbar Colors */
+.scrollbar-primary::-webkit-scrollbar-thumb {
+    background: var(--primary);
+}
+
+.scrollbar-primary::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
+}
+
+/* Overlay Scrollbar (appears on hover) */
+.scrollbar-overlay {
+    overflow: auto;
+}
+
+.scrollbar-overlay::-webkit-scrollbar {
+    width: 0;
+    background: transparent;
+}
+
+.scrollbar-overlay:hover::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollbar-overlay::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.scrollbar-overlay:hover::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+}

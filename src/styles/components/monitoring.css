@@ -1,0 +1,335 @@
+/* ============================================================================
+   Tabs Component
+   ============================================================================ */
+
+.organizer-tabs {
+    display: flex;
+    gap: 0.25rem;
+    background: var(--bg-secondary);
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+}
+
+.organizer-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+}
+
+.organizer-tab:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+}
+
+.organizer-tab.active,
+.organizer-tab-active {
+    color: var(--text-primary);
+    background: var(--bg-card);
+    box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+/* ============================================================================
+   Alert Items
+   ============================================================================ */
+
+.alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    transition: all var(--transition-base);
+}
+
+.alert-item.critical {
+    background: rgba(239, 68, 68, 0.1);
+    border-left: 3px solid var(--status-error);
+}
+
+.alert-item.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 3px solid var(--status-warning);
+}
+
+.alert-item.info {
+    background: rgba(59, 130, 246, 0.1);
+    border-left: 3px solid #3b82f6;
+}
+
+.alert-item.success {
+    background: rgba(16, 185, 129, 0.1);
+    border-left: 3px solid var(--status-success);
+}
+
+.alert-icon {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.alert-content {
+    flex: 1;
+}
+
+.alert-message {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.alert-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.alert-event {
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+/* ============================================================================
+   Access Logs
+   ============================================================================ */
+
+.access-log-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-primary);
+    transition: background var(--transition-fast);
+}
+
+.access-log-item:hover {
+    background: var(--bg-hover);
+}
+
+.access-log-item:last-child {
+    border-bottom: none;
+}
+
+.access-log-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.access-log-icon.success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.access-log-icon.failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.access-log-icon.duplicate {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.access-log-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.access-log-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.access-log-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.5rem;
+}
+
+.access-log-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* ============================================================================
+   Crowd Monitoring
+   ============================================================================ */
+
+.crowd-zone {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    transition: all var(--transition-base);
+}
+
+.crowd-zone:hover {
+    border-color: var(--primary);
+}
+
+.crowd-zone.warning {
+    border-color: var(--status-warning);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.crowd-zone.critical {
+    border-color: var(--status-error);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    animation: criticalPulse 2s ease-in-out infinite;
+}
+
+.crowd-gauge {
+    position: relative;
+    width: 100%;
+    height: 0.5rem;
+    background: var(--bg-tertiary);
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.crowd-gauge-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width var(--transition-base);
+}
+
+.crowd-gauge-fill.low {
+    background: var(--status-success);
+}
+
+.crowd-gauge-fill.medium {
+    background: #3b82f6;
+}
+
+.crowd-gauge-fill.high {
+    background: var(--status-warning);
+}
+
+.crowd-gauge-fill.critical {
+    background: var(--status-error);
+}
+
+/* Crowd Gauge Cards */
+.crowd-gauge-card {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.gauge-card-content {
+    text-align: center;
+    z-index: 1;
+    width: 100%;
+}
+
+.gauge-card-title {
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.5rem;
+}
+
+.gauge-card-capacity {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.gauge-visual {
+    position: relative;
+    width: 8rem;
+    height: 4rem;
+    overflow: hidden;
+    margin: 0 auto 0.5rem;
+}
+
+.gauge-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8rem;
+    height: 8rem;
+    border-radius: 50%;
+    border: 12px solid var(--bg-secondary);
+}
+
+.gauge-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8rem;
+    height: 8rem;
+    border-radius: 50%;
+    border: 12px solid transparent;
+    border-top-color: currentColor;
+    transition: transform 1s ease-out;
+}
+
+.gauge-cover {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: var(--bg-card);
+}
+
+.gauge-value-container {
+    margin-top: -2rem;
+}
+
+.gauge-percentage {
+    font-size: 1.875rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+}
+
+.gauge-active-count {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.gauge-badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+/* Gauge Color Variants */
+.gauge-info {
+    color: #3b82f6;
+}
+
+.gauge-success {
+    color: var(--status-success);
+}
+
+.gauge-warning {
+    color: var(--status-warning);
+}
+
+.gauge-critical {
+    color: var(--status-error);
+}

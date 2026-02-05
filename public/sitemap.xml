@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
+  <url>
+    <loc>https://flowgatex.com/</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Main Pages -->
+  <url>
+    <loc>https://flowgatex.com/events</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/login</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/register</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Category Pages -->
+  <url>
+    <loc>https://flowgatex.com/events?category=music</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/events?category=sports</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/events?category=conference</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/events?category=workshop</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/events?category=exhibition</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/events?category=festival</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Dashboard Pages (require authentication) -->
+  <url>
+    <loc>https://flowgatex.com/dashboard</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/dashboard/bookings</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/dashboard/events</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Static/Info Pages -->
+  <url>
+    <loc>https://flowgatex.com/about</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/contact</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/privacy</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <url>
+    <loc>https://flowgatex.com/terms</loc>
+    <lastmod>2026-02-04</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- 
+    Note: Dynamic event pages should be added programmatically
+    Example: https://flowgatex.com/events/[event-id]
+    This can be automated using a script that fetches active events from the database
+  -->
+</urlset>

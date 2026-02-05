@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  
+  <!-- Viewport and Mobile Optimization -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <!-- Page Title -->
+  <title>FlowGateX - Enterprise Event Management Platform</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="FlowGateX - Enterprise-Grade Event Management Platform with IoT Integration and Real-time Analytics. Streamline event planning, ticketing, and attendee management." />
+  <meta name="keywords" content="event management, tickets, booking, IoT, real-time analytics, FlowGateX, event platform, ticket sales, event organizer, venue management" />
+  <meta name="author" content="FlowGateX Team" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://flowgatex.com/" />
+  
+  <!-- Theme Colors -->
+  <meta name="theme-color" content="#eb1616" />
+  <meta name="background-color" content="#0a0a0f" />
+  
+  <!-- Favicon and App Icons -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="mask-icon" href="/mask-icon.svg" color="#eb1616" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://flowgatex.com/" />
+  <meta property="og:site_name" content="FlowGateX" />
+  <meta property="og:title" content="FlowGateX - Enterprise Event Management Platform" />
+  <meta property="og:description" content="Enterprise-Grade Event Management Platform with IoT Integration and Real-time Analytics" />
+  <meta property="og:image" content="https://flowgatex.com/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="FlowGateX Event Management Platform" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:locale:alternate" content="en_GB" />
+  <meta property="og:locale:alternate" content="en_AU" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://flowgatex.com/" />
+  <meta name="twitter:title" content="FlowGateX - Enterprise Event Management Platform" />
+  <meta name="twitter:description" content="Enterprise-Grade Event Management Platform with IoT Integration and Real-time Analytics" />
+  <meta name="twitter:image" content="https://flowgatex.com/twitter-image.jpg" />
+  <meta name="twitter:image:alt" content="FlowGateX Event Management Platform" />
+  <meta name="twitter:creator" content="@flowgatex" />
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- Security Headers -->
+  <!-- Note: CSP is configured in vite.config.ts for development/production -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(self)" />
+
+  <!-- DNS Prefetch & Preconnect for Performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+
+  <!-- Google Fonts - Inter (Primary Font) -->
+  <!-- Note: Material Icons are imported via global.css to avoid duplication -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  </noscript>
+
+  <!-- Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "FlowGateX",
+    "applicationCategory": "BusinessApplication",
+    "description": "Enterprise-Grade Event Management Platform with IoT Integration and Real-time Analytics",
+    "operatingSystem": "Web",
+    "url": "https://flowgatex.com",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "250"
+    },
+    "applicationSubCategory": "Event Management Software",
+    "featureList": [
+      "Event Planning",
+      "Ticketing System",
+      "IoT Integration",
+      "Real-time Analytics",
+      "Attendee Management",
+      "Venue Management"
+    ]
+  }
+  </script>
+
+  <!-- Critical CSS Inline (Prevent FOUC) -->
+  <style>
+    /* Base styles - Match design system variables */
+    html {
+      background-color: #0a0a0a;
+      box-sizing: border-box;
+    }
+    
+    *, *::before, *::after {
+      box-sizing: inherit;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: #0a0a0a;
+      color: #fafafa;
+      line-height: 1.5;
+    }
+
+    #root {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Skip to main content link for accessibility */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: #eb1616;
+      color: white;
+      padding: 12px 16px;
+      text-decoration: none;
+      z-index: 10000;
+      font-weight: 600;
+      border-radius: 0 0 4px 0;
+      transition: top 0.2s ease-in-out;
+    }
+    
+    .skip-link:focus {
+      top: 0;
+      outline: 2px solid #ffffff;
+      outline-offset: 2px;
+    }
+
+    /* Loading spinner for initial load */
+    .app-loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #0a0a0a;
+      z-index: 9999;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .app-loading::after {
+      content: '';
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(235, 22, 22, 0.2);
+      border-top-color: #eb1616;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .app-loading-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Hide loading spinner when app is ready */
+    .app-ready .app-loading {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease-out;
+    }
+
+    /* Reduce motion for users who prefer it */
+    @media (prefers-reduced-motion: reduce) {
+      .app-loading::after {
+        animation-duration: 1.5s;
+      }
+      
+      .skip-link {
+        transition: none;
+      }
+    }
+
+    /* Noscript fallback styling */
+    .noscript-message {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #0a0a0a;
+      color: #fafafa;
+      font-family: Inter, sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .noscript-content {
+      max-width: 500px;
+    }
+
+    .noscript-content h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #eb1616;
+    }
+
+    .noscript-content p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Skip to main content for accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- App Root -->
+  <div id="root">
+    <!-- Loading indicator shown until React hydrates -->
+    <div class="app-loading" role="status" aria-live="polite" aria-label="Loading FlowGateX application">
+      <span class="app-loading-text">Loading FlowGateX...</span>
+    </div>
+  </div>
+
+  <!-- React App Entry Point (TypeScript) -->
+  <script type="module" src="src/main.tsx"></script>
+
+  <!-- Fallback for browsers without JavaScript -->
+  <noscript>
+    <div class="noscript-message">
+      <div class="noscript-content">
+        <h1>JavaScript Required</h1>
+        <p>
+          FlowGateX requires JavaScript to function properly. 
+          Please enable JavaScript in your browser settings to access the full event management platform.
+        </p>
+        <p style="margin-top: 1.5rem; font-size: 0.95rem;">
+          Need help? Contact our support team at <a href="mailto:support@flowgatex.com" style="color: #eb1616; text-decoration: none;">support@flowgatex.com</a>
+        </p>
+      </div>
+    </div>
+  </noscript>
+</body>
+
+</html>

@@ -1,0 +1,62 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return request.auth != null && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isValidFileSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+    
+    // User profile images
+    match /users/{userId}/profile/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        isOwner(userId) && 
+        isValidImageType() && 
+        isValidFileSize(2); // 2MB max
+    }
+    
+    // Event images
+    match /events/{eventId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && 
+        isValidImageType() && 
+        isValidFileSize(5); // 5MB max
+    }
+    
+    // Ticket QR codes
+    match /tickets/{ticketId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only through cloud functions
+    }
+    
+    // Documents (tickets, invoices)
+    match /documents/{userId}/{fileName} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow write: if false; // Only through cloud functions
+    }
+    
+    // Public assets
+    match /public/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

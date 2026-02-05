@@ -1,0 +1,464 @@
+/* ============================================================================
+   Card Components
+   ============================================================================ */
+
+/* Base Card */
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    transition: all var(--transition-base);
+}
+
+.card-hover:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 16px var(--shadow-primary);
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.card-title {
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Card Body */
+.card-body {
+    flex: 1;
+}
+
+/* Card Footer */
+.card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-primary);
+}
+
+/* Card Variants */
+.card-elevated {
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.card-interactive {
+    cursor: pointer;
+}
+
+.card-interactive:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px var(--shadow-primary);
+}
+
+/* ============================================================================
+   Organizer Card
+   ============================================================================ */
+
+.organizer-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+
+.organizer-card:hover {
+    border-color: rgba(235, 22, 22, 0.3);
+}
+
+.organizer-card-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.organizer-card-header h3 {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.organizer-card-header h3 .material-icons-outlined {
+    font-size: 1.25rem;
+    color: var(--primary);
+}
+
+.organizer-card-body {
+    padding: 1.25rem;
+}
+
+.organizer-card-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+}
+
+/* ============================================================================
+   Metric Card
+   ============================================================================ */
+
+.metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--brand-primary-light), var(--brand-primary));
+    opacity: 0;
+    transition: opacity var(--transition-base);
+}
+
+.metric-card:hover {
+    border-color: rgba(235, 22, 22, 0.3);
+    transform: translateY(-2px);
+}
+
+.metric-card:hover::before {
+    opacity: 1;
+}
+
+.metric-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.metric-card-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(235, 22, 22, 0.1);
+    color: var(--primary);
+}
+
+.metric-card-icon .material-icons-outlined {
+    font-size: 1.25rem;
+}
+
+.metric-card-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-card-value {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.metric-card-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.metric-card-trend.positive {
+    color: var(--status-success);
+}
+
+.metric-card-trend.negative {
+    color: var(--status-error);
+}
+
+.metric-card-trend .material-icons-outlined {
+    font-size: 1rem;
+}
+
+.metric-card-trend span {
+    color: var(--text-muted);
+}
+
+/* Metric Card Color Variants */
+.metric-card-primary .metric-card-icon {
+    background: rgba(235, 22, 22, 0.1);
+    color: var(--primary);
+}
+
+.metric-card-success .metric-card-icon {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--status-success);
+}
+
+.metric-card-warning .metric-card-icon {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--status-warning);
+}
+
+.metric-card-info .metric-card-icon {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+/* ============================================================================
+   Event Card
+   ============================================================================ */
+
+.event-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    transition: all var(--transition-base);
+}
+
+.event-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px var(--shadow-primary);
+}
+
+.event-card-image {
+    position: relative;
+    height: 10rem;
+    background: var(--bg-tertiary);
+    overflow: hidden;
+}
+
+.event-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-base);
+}
+
+.event-card:hover .event-card-image img {
+    transform: scale(1.05);
+}
+
+.event-card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+}
+
+.event-card-status {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.event-card-body {
+    padding: 1rem;
+}
+
+.event-card-title {
+    font-family: var(--font-heading);
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.event-card-date {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.event-card-stats {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-primary);
+}
+
+.event-card-stat {
+    flex: 1;
+    text-align: center;
+}
+
+.event-card-stat-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.event-card-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ============================================================================
+   Device Card (IoT)
+   ============================================================================ */
+
+.device-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all var(--transition-base);
+}
+
+.device-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px var(--shadow-primary);
+}
+
+.device-card.offline {
+    opacity: 0.6;
+}
+
+.device-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+}
+
+.device-card:hover .device-icon {
+    background: rgba(235, 22, 22, 0.1);
+    color: var(--primary);
+}
+
+.device-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.device-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.device-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.device-battery {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.device-battery.low {
+    color: var(--status-error);
+}
+
+.device-battery.medium {
+    color: var(--status-warning);
+}
+
+.device-battery.full {
+    color: var(--status-success);
+}
+
+/* ============================================================================
+   Add Event Card
+   ============================================================================ */
+
+.add-event-card {
+    border: 2px dashed var(--border-primary);
+    border-radius: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    min-height: 300px;
+}
+
+.add-event-card:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(235, 22, 22, 0.05);
+}
+
+.add-event-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+    transition: all var(--transition-base);
+}
+
+.add-event-card:hover .add-event-icon {
+    background: rgba(235, 22, 22, 0.15);
+}
+
+.add-event-icon .material-icons-outlined {
+    font-size: 1.5rem;
+}
+
+.add-event-card span:not(.material-icons-outlined) {
+    font-weight: 600;
+}
