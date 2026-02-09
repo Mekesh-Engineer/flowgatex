@@ -1,123 +1,29 @@
-// Mock authentication service types are defined inline
+// =============================================================================
+// MOCK AUTHENTICATION SERVICE — Development Fallback Only
+// =============================================================================
+// This service is ONLY used when Firebase is not configured (VITE_MOCK_MODE=true).
+// In production, Firebase Authentication handles all auth operations.
+// =============================================================================
 
-// ============================================================================
-// MOCK AUTHENTICATION SERVICE
-// ============================================================================
-// This service provides mock authentication for frontend-only development
-// Replace with real Firebase auth when backend is ready
-
-// Mock user data with hardcoded credentials for testing
+// Mock user data - no hardcoded credentials
 interface MockUserData {
   uid: string;
   email: string;
-  password: string;
   displayName: string;
   photoURL: string;
-  phoneNumber: string;
+  phoneNumber: string | null;
   role: string;
   emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const MOCK_USERS: Record<string, MockUserData> = {
-  // Attendee (User role)
-  'mekesh.officials@gmail.com': {
-    uid: 'mock-attendee-001',
-    email: 'mekesh.officials@gmail.com',
-    password: 'Mekesh@attendee1236',
-    displayName: 'Mekesh - Attendee',
-    photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=attendee',
-    phoneNumber: '+1234567890',
-    role: 'user',
-    emailVerified: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-  },
-  // Organizer
-  'mekeshkumarm.23eee@kongu.edu': {
-    uid: 'mock-organizer-001',
-    email: 'mekeshkumarm.23eee@kongu.edu',
-    password: 'Mekesh@organizer1236',
-    displayName: 'Mekesh Kumar - Organizer',
-    photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=organizer',
-    phoneNumber: '+1234567891',
-    role: 'organizer',
-    emailVerified: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-  },
-  // Admin
-  'mekeshkumar1236@gmail.com': {
-    uid: 'mock-admin-001',
-    email: 'mekeshkumar1236@gmail.com',
-    password: 'Mekesh@admin1236',
-    displayName: 'Mekesh Kumar - Admin',
-    photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
-    phoneNumber: '+1234567892',
-    role: 'admin',
-    emailVerified: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-  },
-  // Super Admin
-  'mekesh.engineer@gmail.com': {
-    uid: 'mock-superadmin-001',
-    email: 'mekesh.engineer@gmail.com',
-    password: 'Mekesh@superadmin1236',
-    displayName: 'Mekesh - Super Admin',
-    photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=superadmin',
-    phoneNumber: '+1234567893',
-    role: 'superadmin',
-    emailVerified: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-  },
-  // Legacy demo users (for backward compatibility)
-  'demo@flowgatex.com': {
-    uid: 'mock-demo-001',
-    email: 'demo@flowgatex.com',
-    password: 'demo123',
-    displayName: 'Demo User',
-    photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
-    phoneNumber: '+1234567894',
-    role: 'user',
-    emailVerified: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-  },
-  'organizer@flowgatex.com': {
-    uid: 'mock-demo-organizer-001',
-    email: 'organizer@flowgatex.com',
-    password: 'demo123',
-    displayName: 'Demo Organizer',
-    photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demoorganizer',
-    phoneNumber: '+1234567895',
-    role: 'organizer',
-    emailVerified: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-  },
-  'admin@flowgatex.com': {
-    uid: 'mock-demo-admin-001',
-    email: 'admin@flowgatex.com',
-    password: 'demo123',
-    displayName: 'Demo Admin',
-    photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demoadmin',
-    phoneNumber: '+1234567896',
-    role: 'admin',
-    emailVerified: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date(),
-  },
-};
-
 // Current mock user (stored in localStorage)
 const STORAGE_KEY = 'flowgatex_mock_user';
 
 class MockAuthService {
-  private currentUser: any | null = null;
-  private listeners: ((user: any | null) => void)[] = [];
+  private currentUser: MockUserData | null = null;
+  private listeners: ((user: MockUserData | null) => void)[] = [];
 
   constructor() {
     // Load user from localStorage on init
@@ -131,35 +37,18 @@ class MockAuthService {
     }
   }
 
-  // Sign in with email/password (mock)
-  async signIn(email: string, password: string): Promise<any> {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const user = MOCK_USERS[email as keyof typeof MOCK_USERS];
-    if (!user) {
-      throw new Error('Invalid email or password. Please check your credentials and try again.');
-    }
-
-    // Validate password
-    if (user.password !== password) {
-      throw new Error('Invalid email or password. Please check your credentials and try again.');
-    }
-
-    // Don't include password in the stored user object
-    const { password: _, ...userWithoutPassword } = user;
-    this.currentUser = userWithoutPassword;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userWithoutPassword));
-    this.notifyListeners();
-    return userWithoutPassword;
+  // Sign in with email/password (mock disabled - use Firebase)
+  async signIn(_email: string, _password: string): Promise<MockUserData> {
+    // In mock mode, prompt user to configure Firebase
+    throw new Error(
+      'Mock authentication is disabled. Please configure Firebase with valid credentials in .env.local and set VITE_MOCK_MODE=false.',
+    );
   }
 
-  // Sign up (mock)
-  async signUp(email: string, _password: string, displayName: string): Promise<any> {
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const newUser: any = {
+  // Sign up (mock disabled - use Firebase)
+  async signUp(email: string, _password: string, displayName: string): Promise<MockUserData> {
+    // Allow creating demo users for development purposes only
+    const newUser: MockUserData = {
       uid: `mock-user-${Date.now()}`,
       email,
       displayName,
@@ -174,19 +63,23 @@ class MockAuthService {
     this.currentUser = newUser;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
     this.notifyListeners();
+    
+    console.warn('⚠️ Mock user created. For production, configure Firebase Authentication.');
     return newUser;
   }
 
   // Sign in with Google (mock)
-  async signInWithGoogle(): Promise<any> {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return this.signIn('demo@flowgatex.com', 'password');
+  async signInWithGoogle(): Promise<MockUserData> {
+    throw new Error(
+      'Google sign-in requires Firebase configuration. Please set up Firebase in .env.local.',
+    );
   }
 
   // Sign in with Facebook (mock)
-  async signInWithFacebook(): Promise<any> {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return this.signIn('demo@flowgatex.com', 'password');
+  async signInWithFacebook(): Promise<MockUserData> {
+    throw new Error(
+      'Facebook sign-in requires Firebase configuration. Please set up Firebase in .env.local.',
+    );
   }
 
   // Sign out
@@ -198,20 +91,18 @@ class MockAuthService {
   }
 
   // Get current user
-  getCurrentUser(): any | null {
+  getCurrentUser(): MockUserData | null {
     return this.currentUser;
   }
 
   // Password reset (mock)
   async resetPassword(email: string): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    console.log(`📧 Mock password reset email sent to: ${email}`);
+    console.log(`📧 Mock: Password reset would be sent to: ${email}`);
+    console.warn('⚠️ For real password reset, configure Firebase Authentication.');
   }
 
   // Update profile (mock)
-  async updateProfile(updates: Partial<any>): Promise<any> {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    
+  async updateProfile(updates: Partial<MockUserData>): Promise<MockUserData> {
     if (!this.currentUser) {
       throw new Error('No user signed in');
     }
@@ -228,7 +119,7 @@ class MockAuthService {
   }
 
   // Auth state listener
-  onAuthStateChanged(callback: (user: any | null) => void): () => void {
+  onAuthStateChanged(callback: (user: MockUserData | null) => void): () => void {
     this.listeners.push(callback);
     // Immediately call with current user
     callback(this.currentUser);

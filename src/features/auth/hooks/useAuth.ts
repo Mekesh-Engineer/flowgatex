@@ -25,9 +25,9 @@ export function useAuth() {
               displayName: mockUser.displayName,
               photoURL: mockUser.photoURL,
               phoneNumber: mockUser.phoneNumber,
-              role: mockUser.role || UserRole.USER,
+              role: (mockUser.role as UserRole) || UserRole.USER,
               emailVerified: mockUser.emailVerified,
-              createdAt: mockUser.createdAt,
+              createdAt: mockUser.createdAt instanceof Date ? mockUser.createdAt.toISOString() : String(mockUser.createdAt),
             })
           );
         } else {

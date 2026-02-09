@@ -32,7 +32,6 @@ import RoleSelector from '@/features/auth/components/RoleSelector';
 import StepProgress from '@/features/auth/components/StepProgress';
 import PasswordMeter from '@/features/auth/components/PasswordMeter';
 import { isPasswordValid } from '@/features/auth/utils/passwordValidation';
-import OtpInput from '@/features/auth/components/OtpInput';
 import SocialButtons from '@/features/auth/components/SocialButtons';
 import ConfirmationScreen from '@/features/auth/components/ConfirmationScreen';
 import DateOfBirthPicker from '@/features/auth/components/DateOfBirthPicker';
@@ -49,8 +48,6 @@ import {
 } from '@/features/auth/types/registration.types';
 import {
   createUser,
-  sendOtp,
-  verifyOtp,
   validateAuthCode,
   signUpWithGoogle,
   signUpWithPhone,
@@ -58,9 +55,6 @@ import {
 import {
   trackRoleSelected,
   trackStepAdvanced,
-  trackOtpSent,
-  trackOtpResent,
-  trackOtpVerified,
   trackSignupSuccess,
   trackSignupFailure,
   trackSocialClick,
@@ -214,17 +208,8 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // OTP state — email
-  const [emailOtpVerified, setEmailOtpVerified] = useState(false);
-  const [emailOtpVerifying, setEmailOtpVerifying] = useState(false);
-  const [emailOtpError, setEmailOtpError] = useState('');
-  const [emailOtpSent, setEmailOtpSent] = useState(false);
-
-  // OTP state — phone
-  const [phoneOtpVerified, setPhoneOtpVerified] = useState(false);
-  const [phoneOtpVerifying, setPhoneOtpVerifying] = useState(false);
-  const [phoneOtpError, setPhoneOtpError] = useState('');
-  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  // Email verification happens after account creation via Firebase link
+  // No separate OTP flow needed
 
   // Auth code state
   const [authCodeValidated, setAuthCodeValidated] = useState(false);
@@ -351,8 +336,9 @@ export default function RegisterPage() {
   );
 
   // ---------------------------------------------------------------------------
-  // Step 2 → Step 3 (validate security fields, send email OTP)
+  // Step 2 → Step 3 (validate security fields)
   // ---------------------------------------------------------------------------
+  // Note: Email verification happens AFTER account creation (Firebase link)
 
   const handleStep2Next = useCallback(
     async (e: React.FormEvent) => {
@@ -367,117 +353,15 @@ export default function RegisterPage() {
       }
 
       setErrors({});
-      setLoading(true);
-
-      try {
-        // Send email OTP
-        if (!emailOtpVerified) {
-          await sendOtp({ target: formData.email.trim(), channel: 'email' });
-          setEmailOtpSent(true);
-          trackOtpSent(formData.email.trim());
-        }
-
-        // Send phone OTP if mobile provided
-        if (hasMobile && !phoneOtpVerified) {
-          const e164 = toE164(formData.countryCode, formData.mobile);
-          await sendOtp({ target: e164, channel: 'sms' });
-          setPhoneOtpSent(true);
-        }
-
-        goToStep(3);
-        trackStepAdvanced(3, role);
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const code = error.code as RegistrationErrorCode | undefined;
-        setErrors({
-          general:
-            code && ERROR_MESSAGE_MAP[code]
-              ? ERROR_MESSAGE_MAP[code]
-              : error.message || 'Something went wrong.',
-        });
-        trackSignupFailure(role, code ?? 'UNKNOWN');
-      } finally {
-        setLoading(false);
-      }
+      // Proceed directly to Step 3 (role-specific fields)
+      // Email verification link is sent AFTER account creation
+      goToStep(3);
+      trackStepAdvanced(3, role);
     },
-    [formData, role, emailOtpVerified, phoneOtpVerified, hasMobile, goToStep],
+    [formData, role, goToStep],
   );
 
-  // ---------------------------------------------------------------------------
-  // Step 3 — OTP & auth code handlers
-  // ---------------------------------------------------------------------------
-
-  const handleEmailOtpComplete = useCallback(
-    async (code: string) => {
-      setEmailOtpError('');
-      setEmailOtpVerifying(true);
-      try {
-        await verifyOtp({
-          target: formData.email.trim(),
-          channel: 'email',
-          code,
-        });
-        setEmailOtpVerified(true);
-        trackOtpVerified(formData.email.trim());
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const errCode = error.code as RegistrationErrorCode | undefined;
-        setEmailOtpError(
-          errCode && ERROR_MESSAGE_MAP[errCode]
-            ? ERROR_MESSAGE_MAP[errCode]
-            : error.message || 'Verification failed.',
-        );
-        setEmailOtpVerified(false);
-      } finally {
-        setEmailOtpVerifying(false);
-      }
-    },
-    [formData.email],
-  );
-
-  const handleEmailOtpResend = useCallback(async () => {
-    setEmailOtpError('');
-    try {
-      await sendOtp({ target: formData.email.trim(), channel: 'email' });
-      trackOtpResent(formData.email.trim(), 1);
-    } catch {
-      setEmailOtpError('Failed to resend code. Please try again.');
-    }
-  }, [formData.email]);
-
-  const handlePhoneOtpComplete = useCallback(
-    async (code: string) => {
-      setPhoneOtpError('');
-      setPhoneOtpVerifying(true);
-      const e164 = toE164(formData.countryCode, formData.mobile);
-      try {
-        await verifyOtp({ target: e164, channel: 'sms', code });
-        setPhoneOtpVerified(true);
-      } catch (err: unknown) {
-        const error = err as { code?: string; message?: string };
-        const errCode = error.code as RegistrationErrorCode | undefined;
-        setPhoneOtpError(
-          errCode && ERROR_MESSAGE_MAP[errCode]
-            ? ERROR_MESSAGE_MAP[errCode]
-            : error.message || 'Phone verification failed.',
-        );
-        setPhoneOtpVerified(false);
-      } finally {
-        setPhoneOtpVerifying(false);
-      }
-    },
-    [formData.countryCode, formData.mobile],
-  );
-
-  const handlePhoneOtpResend = useCallback(async () => {
-    setPhoneOtpError('');
-    try {
-      const e164 = toE164(formData.countryCode, formData.mobile);
-      await sendOtp({ target: e164, channel: 'sms' });
-    } catch {
-      setPhoneOtpError('Failed to resend code. Please try again.');
-    }
-  }, [formData.countryCode, formData.mobile]);
+  // Note: Email/Phone OTP handlers removed - verification happens via Firebase link after account creation
 
   const handleValidateAuthCode = useCallback(async () => {
     if (!formData.authorizationCode.trim()) return;
@@ -505,7 +389,8 @@ export default function RegisterPage() {
     }
   }, [formData.authorizationCode, role]);
 
-  // Step 3 "Next" — only if email OTP is verified (phone optional)
+  // Step 3 "Next" — validate role-specific fields, go to review
+  // Note: Email verification happens AFTER account creation via link
   const handleStep3Next = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -520,12 +405,7 @@ export default function RegisterPage() {
         return;
       }
 
-      if (!emailOtpVerified) {
-        setErrors({ general: 'Please verify your email before continuing.' });
-        return;
-      }
-
-      // Validate auth code if needed
+      // Validate auth code if needed (for organizer/admin roles)
       if (needsAuthCode && !authCodeValidated) {
         await handleValidateAuthCode();
         if (!authCodeValidated) return;
@@ -538,7 +418,6 @@ export default function RegisterPage() {
     [
       formData,
       role,
-      emailOtpVerified,
       needsAuthCode,
       authCodeValidated,
       handleValidateAuthCode,
@@ -646,9 +525,8 @@ export default function RegisterPage() {
   // ---------------------------------------------------------------------------
   // Can advance from step 3?
   // ---------------------------------------------------------------------------
-
-  const step3CanAdvance =
-    emailOtpVerified && (!needsAuthCode || authCodeValidated);
+  // Email verification happens after account creation, so we don't block on it
+  const step3CanAdvance = !needsAuthCode || authCodeValidated;
 
   // ---------------------------------------------------------------------------
   // Render
@@ -1264,7 +1142,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={goBack}
-                  disabled={emailOtpVerifying || phoneOtpVerifying}
+                  disabled={submitting}
                   className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   aria-label="Go back to security"
                 >
@@ -1468,7 +1346,7 @@ export default function RegisterPage() {
                     )}
                   </AnimatePresence>
 
-                  {/* Email OTP */}
+                  {/* Email Verification Notice */}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-base)] px-4 py-3">
                       <Mail
@@ -1479,62 +1357,24 @@ export default function RegisterPage() {
                       <span className="text-sm text-[var(--text-secondary)] truncate">
                         {formData.email}
                       </span>
-                      {emailOtpVerified && (
-                        <CheckCircle2
-                          size={16}
-                          className="ml-auto text-[var(--color-success)] shrink-0"
-                          aria-hidden="true"
-                        />
-                      )}
                     </div>
-
-                    {emailOtpSent && (
-                      <OtpInput
-                        onComplete={handleEmailOtpComplete}
-                        onResend={handleEmailOtpResend}
-                        verifying={emailOtpVerifying}
-                        verified={emailOtpVerified}
-                        error={emailOtpError}
-                        disabled={emailOtpVerified}
-                        label="Email Verification Code"
-                        description={`Enter the 6-digit code sent to ${formData.email}.`}
-                        successMessage="Email verified successfully!"
-                      />
-                    )}
+                    <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3">
+                      <p className="text-sm text-blue-400">
+                        <strong>📧 Email Verification:</strong> After you submit, we'll send a verification link to your email.
+                        Please click the link to activate your account.
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Phone OTP (if mobile provided) */}
-                  {hasMobile && phoneOtpSent && (
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-base)] px-4 py-3">
-                        <Mail
-                          size={16}
-                          className="text-[var(--color-primary)] shrink-0"
-                          aria-hidden="true"
-                        />
-                        <span className="text-sm text-[var(--text-secondary)] truncate">
-                          {formData.countryCode} {formData.mobile}
-                        </span>
-                        {phoneOtpVerified && (
-                          <CheckCircle2
-                            size={16}
-                            className="ml-auto text-[var(--color-success)] shrink-0"
-                            aria-hidden="true"
-                          />
-                        )}
-                      </div>
-
-                      <OtpInput
-                        onComplete={handlePhoneOtpComplete}
-                        onResend={handlePhoneOtpResend}
-                        verifying={phoneOtpVerifying}
-                        verified={phoneOtpVerified}
-                        error={phoneOtpError}
-                        disabled={phoneOtpVerified}
-                        label="Phone Verification Code"
-                        description={`Enter the 6-digit code sent to ${formData.countryCode} ${formData.mobile}.`}
-                        successMessage="Phone verified successfully!"
-                      />
+                  {/* Phone number display (if provided, no verification needed) */}
+                  {hasMobile && (
+                    <div className="flex items-center gap-2 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-base)] px-4 py-3">
+                      <span className="text-sm text-[var(--text-muted)]">
+                        📱 {formData.countryCode} {formData.mobile}
+                      </span>
+                      <span className="ml-auto text-xs text-[var(--text-muted)]">
+                        (Optional)
+                      </span>
                     </div>
                   )}
 
@@ -1648,8 +1488,8 @@ export default function RegisterPage() {
                     organization: formData.organization,
                     department: formData.department,
                     authorizationCode: formData.authorizationCode,
-                    emailVerified: emailOtpVerified,
-                    phoneVerified: phoneOtpVerified,
+                    emailVerified: false, // Will be verified via email link after registration
+                    phoneVerified: false, // Phone verification disabled
                   }}
                   onEditStep={handleEditStep}
                   disabled={submitting}
