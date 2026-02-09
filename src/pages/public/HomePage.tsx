@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import useAuth from '@/features/auth/hooks/useAuth';
 import { motion, Variants, useInView, AnimatePresence } from 'framer-motion';
 import { 
   Search, MapPin, Calendar, ArrowRight, Music, 
@@ -1313,6 +1314,7 @@ const ReviewCard = ({ data }: { data: ReviewData }) => {
 // =============================================================================
 
 const HeroSection = () => {
+  const { isAuthenticated } = useAuth();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const heroRef = useRef<HTMLElement>(null);
 
@@ -1439,7 +1441,7 @@ const HeroSection = () => {
             transition={{ delay: 0.4 }}
           >
             <Link 
-              to="/events" 
+              to={isAuthenticated ? "/dashboard" : "/events"} 
               className="group relative px-10 py-4 rounded-xl text-base font-bold text-white overflow-hidden shadow-2xl shadow-[var(--shadow-primary)] transition-all transform hover:-translate-y-1"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-focus)] group-hover:from-[var(--color-primary-focus)] group-hover:to-[var(--color-primary)] transition-all duration-300" />
@@ -1447,7 +1449,7 @@ const HeroSection = () => {
                 <span className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-primary)] bg-[length:200%_100%] animate-shimmer" />
               </span>
               <span className="relative flex items-center gap-2">
-                Explore Events
+                {isAuthenticated ? "Go to Dashboard" : "Explore Events"}
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
