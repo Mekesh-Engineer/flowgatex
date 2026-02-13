@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { getAuthInstance } from './firebase';
+import { logger } from '@/lib/logger';
 
 /**
  * API Error Codes as per API Documentation
@@ -65,7 +66,7 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error getting auth token:', error);
+      logger.error('Error getting auth token:', error);
     }
     return config;
   },
@@ -80,7 +81,7 @@ api.interceptors.response.use(
     // Extract rate limit information
     const rateLimitInfo = extractRateLimitInfo(response);
     if (rateLimitInfo && import.meta.env.VITE_ENABLE_DEBUG === 'true') {
-      console.debug('Rate Limit Info:', rateLimitInfo);
+      logger.debug('Rate Limit Info:', rateLimitInfo);
     }
     return response;
   },
@@ -113,7 +114,7 @@ api.interceptors.response.use(
       const errorData = error.response.data;
       
       if (import.meta.env.VITE_ENABLE_DEBUG === 'true') {
-        console.warn('Rate limit exceeded. Retry after:', retryAfter);
+        logger.warn('Rate limit exceeded. Retry after:', retryAfter);
       }
 
       // You can implement retry logic here if needed
@@ -130,7 +131,7 @@ api.interceptors.response.use(
       
       // Log errors in development
       if (import.meta.env.VITE_ENABLE_DEBUG === 'true') {
-        console.error('API Error:', {
+        logger.error('API Error:', {
           url: error.config?.url,
           method: error.config?.method,
           status: error.response?.status,

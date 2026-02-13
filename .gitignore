@@ -55,3 +55,8 @@ ui-debug.log
 # Stitch design files (keep in repo but exclude from build)
 stitch_organizer_dashboard_overview/
 *.zip
+
+# Large media assets (host on CDN instead)
+*.mp4
+*.mov
+*.avi

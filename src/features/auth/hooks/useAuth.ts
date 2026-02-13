@@ -2,132 +2,225 @@ import { useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { auth, db, firebaseEnabled } from '@/lib/firebase';
-import { mockAuthService } from '@/lib/mockAuth';
-import { useAppDispatch, useAppSelector } from '@/store/redux/hooks';
-import { setUser, clearUser, setLoading } from '@/store/redux/slices/authSlice';
+import { logger } from '@/lib/logger';
+import { useAuthStore } from '@/store/zustand/stores';
 import { UserRole } from '@/lib/constants';
 
 export function useAuth() {
-  const dispatch = useAppDispatch();
-  const { user, isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth);
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    setUser,
+    clearUser,
+    setLoading,
+    setError,
+  } = useAuthStore();
 
   // Keep a ref to the Firestore snapshot unsubscribe so we can clean it up
-  // when the auth state changes (e.g. user signs out) or component unmounts.
   const unsubUserDataRef = useRef<(() => void) | null>(null);
+  // Use refs for timeouts so we can reliably clean them up
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const authTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const forceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Use mock auth if Firebase is disabled
+    // Real Firebase only (no mock auth)
     if (!firebaseEnabled) {
-      const unsubscribe = mockAuthService.onAuthStateChanged((mockUser) => {
-        dispatch(setLoading(true));
-
-        if (mockUser) {
-          dispatch(
-            setUser({
-              uid: mockUser.uid,
-              email: mockUser.email,
-              displayName: mockUser.displayName,
-              photoURL: mockUser.photoURL,
-              phoneNumber: mockUser.phoneNumber,
-              role: (mockUser.role as UserRole) || UserRole.USER,
-              emailVerified: mockUser.emailVerified,
-              createdAt: mockUser.createdAt instanceof Date ? mockUser.createdAt.toISOString() : String(mockUser.createdAt),
-            })
-          );
-        } else {
-          dispatch(clearUser());
-        }
-      });
-
-      return () => unsubscribe();
+      logger.error('Firebase is not enabled. Check VITE_MOCK_MODE and Firebase credentials.');
+      setError('Firebase is not configured. Please connect Firebase to continue.');
+      clearUser();
+      setLoading(false);
+      return;
     }
 
-    // Use Firebase auth with real-time Firestore listener to solve race condition.
-    // When createUser writes the profile doc milliseconds after auth creation,
-    // onSnapshot fires immediately with the correct role instead of returning null.
-    const unsubscribe = onAuthStateChanged(auth!, (firebaseUser) => {
-      // Clean up any previous Firestore listener
+    if (!auth) {
+      logger.error('Firebase Auth is not initialized');
+      setError('Firebase Auth is not initialized. Please check Firebase setup.');
+      clearUser();
+      setLoading(false);
+      return;
+    }
+
+    // Fallback if auth state never resolves
+    authTimeoutRef.current = setTimeout(() => {
+      setError('Auth state timed out. Please refresh or check your connection.');
+      setLoading(false);
+    }, 10000);
+
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      // Clean up previous listeners/timeouts
       if (unsubUserDataRef.current) {
         unsubUserDataRef.current();
         unsubUserDataRef.current = null;
       }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+        authTimeoutRef.current = null;
+      }
+      if (forceTimeoutRef.current) {
+        clearTimeout(forceTimeoutRef.current);
+        forceTimeoutRef.current = null;
+      }
 
       if (firebaseUser) {
-        dispatch(setLoading(true));
+        setLoading(true);
+
+        // Fallback user object (Basic Auth Data)
+        const basicUser = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          phoneNumber: firebaseUser.phoneNumber,
+          role: UserRole.USER, // Default role until DB confirms otherwise
+          emailVerified: firebaseUser.emailVerified,
+          createdAt: new Date().toISOString(),
+        };
 
         if (!db) {
-          // Firestore not available — set basic user with default role
-          dispatch(
-            setUser({
-              uid: firebaseUser.uid,
-              email: firebaseUser.email,
-              displayName: firebaseUser.displayName,
-              photoURL: firebaseUser.photoURL,
-              phoneNumber: firebaseUser.phoneNumber,
-              role: UserRole.USER,
-              emailVerified: firebaseUser.emailVerified,
-            })
-          );
+          logger.warn('Firestore not configured. Using Firebase Auth data only.');
+          setUser(basicUser);
+          setLoading(false);
           return;
         }
 
-        // Start real-time listener on the user document.
-        // This solves the race condition: if the doc doesn't exist yet,
-        // onSnapshot waits and fires again the moment setDoc completes.
         const userRef = doc(db, 'users', firebaseUser.uid);
-        const unsubUserData = onSnapshot(
-          userRef,
-          (docSnap) => {
+        let hasDispatched = false;
+
+        // Safety Timeout: If Firestore completely hangs (network), finish loading after 7s
+        timeoutRef.current = setTimeout(() => {
+          if (!hasDispatched) {
+            logger.warn('User profile load timed out. Using basic auth data.');
+            setError('User profile load timed out. Using basic auth data.');
+            setUser(basicUser);
+            setLoading(false);
+            hasDispatched = true;
+          }
+        }, 7000);
+
+        // Extra fallback: forcibly clear loading after 10s regardless
+        forceTimeoutRef.current = setTimeout(() => {
+          if (!hasDispatched) {
+            logger.error('Forcibly ending loading state after 10s. Firestore listener did not respond.');
+            setError('User profile listener did not respond. Please retry.');
+            setLoading(false);
+            hasDispatched = true;
+          }
+        }, 10000);
+
+        let unsubUserData: (() => void) | null = null;
+        try {
+          unsubUserData = onSnapshot(
+            userRef,
+            (docSnap) => {
+            // Clear safety timeout on first successful response
+            if (timeoutRef.current) {
+              clearTimeout(timeoutRef.current);
+              timeoutRef.current = null;
+            }
+            if (forceTimeoutRef.current) {
+              clearTimeout(forceTimeoutRef.current);
+              forceTimeoutRef.current = null;
+            }
+
             if (docSnap.exists()) {
               const userData = docSnap.data();
-              dispatch(
-                setUser({
-                  uid: firebaseUser.uid,
-                  email: firebaseUser.email,
-                  displayName: firebaseUser.displayName || userData.displayName,
-                  photoURL: firebaseUser.photoURL || userData.photoURL,
-                  phoneNumber: firebaseUser.phoneNumber || userData.phoneNumber,
-                  role: (userData.role as UserRole) || UserRole.USER,
-                  emailVerified: firebaseUser.emailVerified,
-                  createdAt: userData.createdAt,
-                })
-              );
-            } else {
-              // Doc doesn't exist yet (middle of race condition)
-              // Set temporary basic state — onSnapshot will fire again when doc is created
-              dispatch(
-                setUser({
-                  uid: firebaseUser.uid,
-                  email: firebaseUser.email,
-                  displayName: firebaseUser.displayName,
-                  photoURL: firebaseUser.photoURL,
-                  phoneNumber: firebaseUser.phoneNumber,
-                  role: UserRole.USER,
-                  emailVerified: firebaseUser.emailVerified,
-                })
-              );
-            }
-          },
-          (error) => {
-            console.error('Error listening to user data:', error);
-            // Fallback: set user with default role
-            dispatch(
+
+              // Handle soft-deleted users
+              if (userData.isDeleted === true) {
+                logger.warn('User account is marked as deleted.');
+                clearUser();
+                setLoading(false);
+                hasDispatched = true;
+                return;
+              }
+
+              // Helper for timestamps
+              const toISO = (val: any): string | undefined => {
+                if (!val) return undefined;
+                if (typeof val.toDate === 'function') return val.toDate().toISOString();
+                if (typeof val === 'string') return val;
+                if (typeof val === 'number') return new Date(val).toISOString();
+                return undefined;
+              };
+
+              logger.log('User profile loaded from Firestore:', firebaseUser.uid);
+
               setUser({
                 uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                displayName: firebaseUser.displayName,
-                photoURL: firebaseUser.photoURL,
-                phoneNumber: firebaseUser.phoneNumber,
-                role: UserRole.USER,
+                email: firebaseUser.email || userData.email,
+                displayName: firebaseUser.displayName || userData.displayName,
+                firstName: userData.firstName || null,
+                lastName: userData.lastName || null,
+                photoURL: firebaseUser.photoURL || userData.photoURL,
+                phoneNumber: firebaseUser.phoneNumber || userData.phoneNumber,
+                role: (userData.role as UserRole) || UserRole.USER,
                 emailVerified: firebaseUser.emailVerified,
-              })
-            );
-          }
-        );
+                dob: userData.dob || null,
+                gender: userData.gender || null,
+                consents: userData.consents || {
+                  terms: false,
+                  marketing: false,
+                  whatsapp: false,
+                  liveLocation: false,
+                },
+                createdAt: toISO(userData.createdAt),
+                updatedAt: toISO(userData.updatedAt),
+              });
+            } else {
+              // If doc doesn't exist yet, load Basic User immediately.
+              logger.log('User profile not found in DB yet (using basic auth).');
+              setUser(basicUser);
+            }
 
-        unsubUserDataRef.current = unsubUserData;
+            // Ensure we stop the loading screen in both cases
+            setLoading(false);
+            hasDispatched = true;
+            },
+            (error) => {
+            if (timeoutRef.current) {
+              clearTimeout(timeoutRef.current);
+              timeoutRef.current = null;
+            }
+            if (forceTimeoutRef.current) {
+              clearTimeout(forceTimeoutRef.current);
+              forceTimeoutRef.current = null;
+            }
+            logger.error('Firestore listener error:', error);
+            setError('Failed to load user profile. Please check your permissions.');
+
+            // On permission error or network error, fallback to basic user
+            setUser(basicUser);
+            setLoading(false);
+            hasDispatched = true;
+            }
+          );
+          unsubUserDataRef.current = unsubUserData;
+        } catch (snapshotError) {
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+            timeoutRef.current = null;
+          }
+          if (forceTimeoutRef.current) {
+            clearTimeout(forceTimeoutRef.current);
+            forceTimeoutRef.current = null;
+          }
+          logger.error('Firestore listener failed to initialize:', snapshotError);
+          setError('Failed to initialize user profile listener. Please retry.');
+          setUser(basicUser);
+          setLoading(false);
+          hasDispatched = true;
+        }
       } else {
-        dispatch(clearUser());
+        // No user logged in
+        clearUser();
+        setLoading(false);
       }
     });
 
@@ -137,16 +230,29 @@ export function useAuth() {
         unsubUserDataRef.current();
         unsubUserDataRef.current = null;
       }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+        authTimeoutRef.current = null;
+      }
+      if (forceTimeoutRef.current) {
+        clearTimeout(forceTimeoutRef.current);
+        forceTimeoutRef.current = null;
+      }
     };
-  }, [dispatch]);
+  }, [setUser, clearUser, setLoading, setError]);
 
   return {
     user,
     isAuthenticated,
     isLoading,
     error,
-    isAdmin: user?.role === UserRole.ADMIN,
+    isAdmin: user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN,
     isOrganizer: user?.role === UserRole.ORGANIZER,
+    isSuperAdmin: user?.role === UserRole.SUPER_ADMIN,
   };
 }
 

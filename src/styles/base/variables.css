@@ -1,6 +1,7 @@
 /* =============================================================================
    ROOT VARIABLES (KEC Blue & Green Theme)
    Revised to match the KEC Logo while keeping Dark Mode logic intact.
+   Includes brand palette scales merged from tokens.css.
    ========================================================================== */
 :root {
     /* --- 1. Brand Hues --- */
@@ -10,6 +11,44 @@
     /* KEC Lime-Green (from 'K' and 'COLLEGE') */
     --hue-accent: 220;
     /* Deep Navy (from 'TRANSFORM YOURSELF') */
+
+    /* --- 1b. Brand Palette Scales (from tokens.css) --- */
+    --color-primary-50: #e6f7fc;
+    --color-primary-100: #cceff9;
+    --color-primary-200: #99dff3;
+    --color-primary-300: #66cfed;
+    --color-primary-400: #33bfe7;
+    --color-primary-500: #00a3db;
+    --color-primary-600: #0082af;
+    --color-primary-700: #006283;
+    --color-primary-800: #004157;
+    --color-primary-900: #00212c;
+
+    --color-secondary-50: #f5fce8;
+    --color-secondary-100: #ebf9d1;
+    --color-secondary-200: #d7f3a3;
+    --color-secondary-300: #c3ed75;
+    --color-secondary-400: #afe747;
+    --color-secondary-500: #a3d639;
+    --color-secondary-600: #82ab2e;
+    --color-secondary-700: #628022;
+    --color-secondary-800: #415517;
+    --color-secondary-900: #212b0b;
+
+    /* Surface colors (dark-theme surfaces) */
+    --color-surface-default: #12121a;
+    --color-surface-light: #1a1a24;
+    --color-surface-dark: #0a0a0f;
+
+    /* Legacy text/border aliases (kept for backward compat) */
+    --color-text-primary: #111827;
+    --color-text-secondary: #6b7280;
+    --color-border-subtle: #e5e7eb;
+
+    /* Glow shadows */
+    --shadow-glow: 0 0 20px rgba(0, 163, 219, 0.3);
+    --shadow-glow-lg: 0 0 40px rgba(0, 163, 219, 0.4);
+    --shadow-glow-secondary: 0 0 20px rgba(163, 214, 57, 0.3);
 
     /* --- 2. Color Primitives --- */
     /* Primary: The core Blue brand color */
@@ -420,4 +459,3 @@ html.light .border-gray-800,
 :root.light .border-gray-800 {
     border-color: #1f2937 !important;
 }
-

@@ -1,4 +1,5 @@
 import type { RazorpayOptions, RazorpayResponse, PaymentResult } from '../types/payment.types';
+import { logger } from '@/lib/logger';
 
 declare global {
   interface Window {
@@ -81,6 +82,6 @@ export const verifyPayment = async (
 ): Promise<boolean> => {
   // This should call your backend to verify the payment
   // For now, we'll return true
-  console.log('Verifying payment:', { paymentId, orderId, signature });
+  logger.log('Verifying payment:', { paymentId, orderId, signature });
   return true;
 };

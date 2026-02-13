@@ -285,1316 +285,261 @@ html.dark .dropdown-shadow {
         box-shadow 0.3s ease;
 }
 
-/* ============================================================================
-   Dashboard Shell Header (Preline-style)
-   ============================================================================ */
+/* =============================================================================
+   USER PROFILE & ACCOUNT DROPDOWN STYLES
+   ========================================================================== */
 
-/* --- Header Bar --- */
-.dash-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    flex-wrap: wrap;
-    z-index: 48;
-    width: 100%;
-    background: var(--bg-secondary);
-    font-size: 0.875rem;
-    padding: 0.625rem 0;
-}
-
-@media (min-width: 768px) {
-    .dash-header {
-        justify-content: flex-start;
-        flex-wrap: nowrap;
-    }
-}
-
-@media (min-width: 1024px) {
-    .dash-header {
-        z-index: 61;
-    }
-}
-
-.dash-header-nav {
-    padding: 0 1rem;
-    display: flex;
-    flex-basis: 100%;
-    align-items: center;
-    width: 100%;
-    margin: 0 auto;
-}
-
-@media (min-width: 640px) {
-    .dash-header-nav {
-        padding: 0 1.375rem;
-    }
-}
-
-.dash-header-content {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-}
-
-/* --- Header Item Groups --- */
-.dash-header-left {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
+/* Header Item Right */
+.dash-header-item-right {
     list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.dash-header-right {
     display: flex;
-    flex-direction: row;
     align-items: center;
     gap: 0.75rem;
-    margin-inline-start: auto;
-    list-style: none;
-    padding: 0;
 }
 
-/* --- Header Items with Separator --- */
-.dash-header-item,
-.dash-header-item-right {
-    display: inline-flex;
-    align-items: center;
-    position: relative;
-}
-
-.dash-header-item {
+/* User Info Display */
+.dash-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    margin-right: 0.75rem;
     gap: 0.25rem;
-    padding-inline-end: 0.375rem;
 }
 
-.dash-header-item-right {
-    gap: 0.375rem;
-    padding-inline-end: 0.75rem;
-}
-
-.dash-header-item:last-child,
-.dash-header-item-right:last-child {
-    padding-inline-end: 0;
-}
-
-.dash-header-item::after,
-.dash-header-item-right::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    inset-inline-end: 0;
-    display: inline-block;
-    width: 1px;
-    height: 0.875rem;
-    background: var(--border-primary);
-    border-radius: 9999px;
-    transform: translateY(-50%) rotate(12deg);
-}
-
-.dash-header-item:last-child::after,
-.dash-header-item-right:last-child::after {
+.dash-user-info.desktop-only {
     display: none;
 }
 
-/* --- Breadcrumb Styles --- */
-.dash-breadcrumb-link {
-    display: flex;
-    align-items: center;
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    text-decoration: none;
-    transition: color var(--transition-fast);
+@media (min-width: 1024px) {
+    .dash-user-info.desktop-only {
+        display: flex;
+    }
 }
 
-.dash-breadcrumb-link:hover,
-.dash-breadcrumb-link:focus-visible {
-    color: var(--primary);
-    outline: none;
-}
-
-.dash-breadcrumb-current {
-    display: inline-flex;
-    align-items: center;
+.dash-user-name {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 12rem;
+    line-height: 1.25;
 }
 
-.dash-breadcrumb-separator {
-    margin: 0 0.5rem;
-    color: var(--text-disabled);
-}
-
-.dash-header-item-right.desktop-only {
-    display: none;
-}
-
-@media (min-width: 1024px) {
-    .dash-header-item-right.desktop-only {
-        display: inline-flex;
-    }
-}
-
-/* --- Header Interactive Base (shared hover/focus for all header buttons/links) --- */
-.dash-sidebar-toggle,
-.dash-dropdown-trigger,
-.dash-dropdown-action,
-.dash-header-link,
-.dash-header-icon-btn,
-.dash-account-trigger,
-.dash-account-menu-item {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    transition: background var(--transition-fast), color var(--transition-fast);
-    color: var(--text-primary);
-    text-decoration: none;
-}
-
-.dash-sidebar-toggle:hover,
-.dash-dropdown-trigger:hover,
-.dash-dropdown-action:hover,
-.dash-header-link:hover,
-.dash-header-icon-btn:hover,
-.dash-account-trigger:hover,
-.dash-account-menu-item:hover {
-    background: var(--bg-hover);
-}
-
-.dash-sidebar-toggle:focus-visible,
-.dash-dropdown-trigger:focus-visible,
-.dash-dropdown-action:focus-visible,
-.dash-header-link:focus-visible,
-.dash-header-icon-btn:focus-visible,
-.dash-account-trigger:focus-visible,
-.dash-account-menu-item:focus-visible {
-    background: var(--bg-hover);
-    outline: none;
-}
-
-.dash-sidebar-toggle:disabled,
-.dash-dropdown-trigger:disabled,
-.dash-dropdown-action:disabled,
-.dash-account-menu-item:disabled {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-/* --- Sidebar Toggle (in header) --- */
-.dash-sidebar-toggle {
-    padding: 0.375rem;
-    width: 1.875rem;
-    height: 1.875rem;
+/* Role Badges */
+.dash-role-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
     font-size: 0.75rem;
-    border-radius: var(--radius-md);
-    border: 1px solid transparent;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    line-height: 1.25;
+    transition: all 0.2s ease;
 }
 
-/* --- Dropdown Trigger --- */
-.dash-dropdown-trigger {
-    padding: 0.25rem 0.5rem;
-    min-height: 2rem;
-    display: flex;
+.dash-role-badge.is-admin {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.dash-role-badge.is-organizer {
+    background: linear-gradient(135deg, rgba(163, 214, 57, 0.1), rgba(132, 204, 22, 0.1));
+    color: #84cc16;
+    border: 1px solid rgba(163, 214, 57, 0.2);
+}
+
+.dash-role-badge.is-user {
+    background: linear-gradient(135deg, rgba(0, 163, 219, 0.1), rgba(59, 130, 246, 0.1));
+    color: #00A3DB;
+    border: 1px solid rgba(0, 163, 219, 0.2);
+}
+
+/* Account Trigger Button */
+.dash-account-trigger {
+    display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
-    font-weight: 500;
-    font-size: 0.875rem;
-    border-radius: var(--radius-lg);
+    padding: 0.25rem;
+    border-radius: 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-/* --- Dropdown Panel --- */
+.dash-account-trigger:hover {
+    background: var(--bg-hover);
+    transform: scale(1.05);
+}
+
+.dash-account-trigger:focus-visible {
+    outline: 2px solid #00A3DB;
+    outline-offset: 2px;
+}
+
+/* Dropdown Panel */
 .dash-dropdown-panel {
     position: absolute;
-    top: 100%;
-    left: 0;
-    margin-top: 0.25rem;
-    width: 16.25rem;
+    top: calc(100% + 0.5rem);
+    min-width: 16rem;
     background: var(--bg-card);
-    border: 1px solid transparent;
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
-    z-index: 20;
-    transition: opacity 200ms ease, visibility 200ms ease, transform 200ms ease;
-    transform-origin: top left;
+    border: 1px solid var(--border-primary);
+    border-radius: 1rem;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
     opacity: 0;
     visibility: hidden;
-    transform: scale(0.95);
-    pointer-events: none;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 50;
+}
+
+.dash-dropdown-panel.is-right {
+    right: 0;
+}
+
+.dash-dropdown-panel.is-left {
+    left: 0;
+}
+
+.dash-dropdown-panel.is-wide {
+    min-width: 18rem;
 }
 
 .dash-dropdown-panel.is-open {
     opacity: 1;
     visibility: visible;
-    transform: scale(1);
-    pointer-events: auto;
+    transform: translateY(0);
 }
 
-.dash-dropdown-panel.is-right {
-    left: auto;
-    right: 0;
-    transform-origin: top right;
-}
-
-.dash-dropdown-panel.is-wide {
-    width: 15rem;
-}
-
-.dash-dropdown-inner {
-    padding: 0.25rem;
-}
-
-.dash-dropdown-heading {
-    display: block;
-    padding: 0.5rem 0.5rem 0.5rem 0.625rem;
-    font-size: 0.875rem;
-    color: var(--text-muted);
-}
-
-/* --- Dropdown Option (radio-style item) --- */
-.dash-dropdown-option {
-    padding: 0.5rem 0.625rem;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 0.75rem;
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    font-size: 0.8125rem;
-    color: var(--text-primary);
-    transition: background var(--transition-fast);
-}
-
-.dash-dropdown-option:hover,
-.dash-dropdown-option:focus-visible {
-    background: var(--bg-hover);
-    outline: none;
-}
-
-.dash-dropdown-option .option-check {
-    flex-shrink: 0;
-    width: 1rem;
-    height: 1rem;
-    transition: opacity var(--transition-fast);
-}
-
-.dash-dropdown-option .option-text {
-    flex: 1;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.dash-dropdown-option .option-avatar {
-    flex-shrink: 0;
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 9999px;
-    object-fit: cover;
-}
-
-/* --- Dropdown Divider --- */
-.dash-dropdown-divider {
-    padding: 0.25rem;
-    border-top: 1px solid var(--border-primary);
-}
-
-/* --- Dropdown Action --- */
-.dash-dropdown-action {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.625rem;
-    border-radius: var(--radius-lg);
-    font-size: 0.875rem;
-}
-
-/* --- Header Links (Docs, API) --- */
-.dash-header-link {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.5rem;
-    font-size: 0.875rem;
-    border-radius: var(--radius-lg);
-}
-
-/* --- Header Icon Button --- */
-.dash-header-icon-btn {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.375rem;
-    width: 2rem;
-    height: 2rem;
-    font-size: 0.875rem;
-    border-radius: 9999px;
-}
-
-.dash-header-icon-btn.desktop-only {
-    display: none;
-}
-
-@media (min-width: 1024px) {
-    .dash-header-icon-btn.desktop-only {
-        display: flex;
-    }
-}
-
-/* --- Ask AI Button (header desktop) --- */
-.dash-ask-ai-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.5rem 0.625rem;
-    font-weight: 500;
-    font-size: 0.75rem;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border-radius: var(--radius-lg);
-    border: none;
-    cursor: pointer;
-    transition: color var(--transition-fast);
-}
-
-.dash-ask-ai-btn:hover,
-.dash-ask-ai-btn:focus-visible {
-    color: var(--primary);
-    outline: none;
-}
-
-.dash-ask-ai-btn:disabled {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
-.dash-ask-ai-btn .ai-icon {
-    color: var(--primary);
-    flex-shrink: 0;
-    width: 1rem;
-    height: 1rem;
-}
-
-/* --- Account Trigger (avatar button) --- */
-.dash-account-trigger {
-    padding: 0.125rem;
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    gap: 0.75rem;
-    text-align: start;
-    border-radius: 9999px;
-}
-
-.dash-account-trigger img {
-    flex-shrink: 0;
-    width: 1.75rem;
-    height: 1.75rem;
-    border-radius: 9999px;
-}
-
-/* --- Account Dropdown Sections --- */
+/* Account Info Section */
 .dash-account-info {
-    padding: 0.5rem 0.875rem;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
 }
 
 .dash-account-name {
-    font-weight: 500;
+    font-size: 0.875rem;
+    font-weight: 600;
     color: var(--text-primary);
+    line-height: 1.25;
 }
 
 .dash-account-email {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
+    line-height: 1.25;
+    margin-top: 0.25rem;
 }
 
-.dash-account-upgrade {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.375rem;
-    margin-top: 0.375rem;
-    padding: 0.5rem 0.625rem;
+/* Theme Row */
+.dash-theme-row {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.dash-theme-label {
+    font-size: 0.875rem;
     font-weight: 500;
-    font-size: 0.8125rem;
-    background: var(--text-primary);
-    color: var(--bg-primary);
-    border-radius: var(--radius-lg);
+    color: var(--text-secondary);
+}
+
+.dash-theme-group {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: var(--bg-secondary);
+    border-radius: 0.5rem;
+}
+
+.dash-theme-btn {
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+    background: transparent;
     border: none;
+    color: var(--text-muted);
     cursor: pointer;
-    text-decoration: none;
-    transition: opacity var(--transition-fast);
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.dash-account-upgrade:hover,
-.dash-account-upgrade:focus-visible {
-    opacity: 0.9;
-    outline: none;
+.dash-theme-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
 }
 
-.dash-account-upgrade:disabled {
-    opacity: 0.5;
-    pointer-events: none;
+.dash-theme-btn.is-active {
+    background: linear-gradient(135deg, rgba(0, 163, 219, 0.1), rgba(59, 130, 246, 0.1));
+    color: #00A3DB;
 }
 
-/* --- Account Menu Item --- */
+.dash-theme-btn.is-active-dark {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(79, 70, 229, 0.1));
+    color: #6366f1;
+}
+
+/* Dropdown Divider */
+.dash-dropdown-divider {
+    padding: 0.5rem 0;
+}
+
+/* Account Menu Items */
 .dash-account-menu-item {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    border-radius: var(--radius-lg);
+    padding: 0.75rem 1rem;
     font-size: 0.875rem;
-}
-
-/* --- Theme Toggle --- */
-.dash-theme-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-top: 1px solid var(--border-primary);
-}
-
-.dash-theme-label {
-    flex: 1;
-    cursor: pointer;
-    font-size: 0.875rem;
-    color: var(--text-primary);
-}
-
-.dash-theme-group {
-    padding: 0.125rem;
-    display: inline-flex;
-    cursor: pointer;
-    background: var(--bg-tertiary);
-    border-radius: 9999px;
-}
-
-.dash-theme-btn {
-    width: 1.75rem;
-    height: 1.75rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 9999px;
-    color: var(--text-primary);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.dash-theme-btn.is-active {
-    background: var(--bg-card);
-    box-shadow: var(--shadow-sm);
-}
-
-.dash-theme-btn.is-active-dark {
-    background: var(--text-primary);
-    color: var(--bg-primary);
-    box-shadow: var(--shadow-sm);
-}
-
-/* =============================================================================
-   Enhanced Header Height for 15.5" Desktop
-   ============================================================================= */
-
-@media (min-width: 1024px) {
-    .dash-header {
-        padding: 0.875rem 0;
-    }
-}
-
-/* =============================================================================
-   Search Bar Styles
-   ============================================================================= */
-
-.dash-search-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    min-width: 14rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    transition: all var(--transition-fast);
-}
-
-.dash-search-bar:focus-within {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--color-primary-faint);
-}
-
-.dash-search-input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    outline: none;
-    font-size: 0.875rem;
-    color: var(--text-primary);
-}
-
-.dash-search-input::placeholder {
-    color: var(--text-muted);
-}
-
-.dash-search-icon {
-    color: var(--text-muted);
-    flex-shrink: 0;
-}
-
-.dash-search-shortcut {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.125rem;
-    padding: 0.125rem 0.375rem;
-    font-size: 0.6875rem;
-    font-family: var(--font-mono);
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-sm);
-    color: var(--text-muted);
-}
-
-/* =============================================================================
-   Notification Dropdown Styles
-   ============================================================================= */
-
-.notification-trigger {
-    position: relative;
-}
-
-.notification-badge {
-    position: absolute;
-    top: -0.25rem;
-    right: -0.25rem;
-    min-width: 1rem;
-    height: 1rem;
-    padding: 0 0.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.625rem;
-    font-weight: 600;
-    background: var(--status-error);
-    color: white;
-    border-radius: 9999px;
-    border: 2px solid var(--bg-secondary);
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.1);
-    }
-}
-
-.notification-dropdown-panel {
-    position: absolute;
-    top: calc(100% + 0.5rem);
-    right: 0;
-    width: 22rem;
-    max-height: 32rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-lg);
-    z-index: var(--z-dropdown);
-    overflow: hidden;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateY(-0.5rem) scale(0.95);
-    transform-origin: top right;
-    transition: all 200ms ease;
-}
-
-.notification-dropdown-panel.is-open {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-}
-
-.notification-dropdown-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-primary);
-}
-
-.notification-dropdown-title {
-    font-weight: 600;
-    font-size: 1rem;
-    color: var(--text-primary);
-}
-
-.notification-unread-count {
-    font-size: 0.75rem;
-    color: var(--primary);
-    font-weight: 500;
-}
-
-.notification-dropdown-actions {
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-primary);
-}
-
-.notification-action-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.375rem 0.625rem;
-    font-size: 0.75rem;
-    font-weight: 500;
-    background: var(--bg-card);
     color: var(--text-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all 0.2s ease;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    border: none;
+    background: transparent;
 }
 
-.notification-action-btn:hover:not(:disabled) {
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-.notification-action-btn.is-danger:hover:not(:disabled) {
-    border-color: var(--status-error);
-    color: var(--status-error);
-}
-
-.notification-action-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.notification-list {
-    max-height: 20rem;
-    overflow-y: auto;
-}
-
-.notification-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-primary);
-    cursor: pointer;
-    transition: background var(--transition-fast);
-}
-
-.notification-item:last-child {
-    border-bottom: none;
-}
-
-.notification-item:hover {
+.dash-account-menu-item:hover {
     background: var(--bg-hover);
-}
-
-.notification-item.is-unread {
-    background: var(--color-primary-faint);
-}
-
-.notification-item.is-unread:hover {
-    background: var(--bg-hover);
-}
-
-.notification-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    background: var(--bg-tertiary);
-    border-radius: var(--radius-md);
-    flex-shrink: 0;
-}
-
-.notification-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.notification-title {
-    font-weight: 500;
-    font-size: 0.875rem;
     color: var(--text-primary);
-    margin-bottom: 0.25rem;
+    padding-left: 1.25rem;
 }
 
-.notification-message {
-    font-size: 0.8125rem;
+.dash-account-menu-item svg {
     color: var(--text-muted);
-    line-height: 1.4;
-    margin-bottom: 0.375rem;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
+    transition: color 0.2s ease;
+}
+
+.dash-account-menu-item:hover svg {
+    color: #00A3DB;
+}
+
+/* Screen reader only utility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
     overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
 }
 
-.notification-time {
-    font-size: 0.6875rem;
-    color: var(--text-disabled);
+/* Dark mode adjustments for user profile */
+:root.dark .dash-account-trigger,
+html.dark .dash-account-trigger {
+    background: hsla(220, 40%, 10%, 0.8);
 }
 
-.notification-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    background: var(--primary);
-    border-radius: 50%;
-    flex-shrink: 0;
-    margin-top: 0.375rem;
+:root.dark .dash-dropdown-panel,
+html.dark .dash-dropdown-panel {
+    background: hsla(220, 40%, 8%, 0.95);
+    backdrop-filter: blur(20px);
 }
 
-/* Notification Icon Type Variants */
-.notification-icon.is-primary {
-    background: var(--primary-light);
-    color: var(--primary);
-}
-
-.notification-icon.is-success {
-    background: var(--status-success-light);
-    color: var(--status-success);
-}
-
-.notification-icon.is-warning {
-    background: var(--status-warning-light);
-    color: var(--status-warning);
-}
-
-.notification-icon.is-info {
-    background: var(--status-info-light);
-    color: var(--status-info);
-}
-
-.notification-icon.is-muted {
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
-}
-
-.notification-dropdown-container {
-    position: relative;
-}
-
-.notification-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 3rem 1rem;
-    text-align: center;
-    color: var(--text-muted);
-}
-
-.notification-empty-icon {
-    color: var(--text-disabled);
-}
-
-.notification-empty p {
-    margin-top: 0.75rem;
-    font-size: 0.875rem;
-}
-
-.notification-dropdown-footer {
-    padding: 0.75rem 1.25rem;
-    border-top: 1px solid var(--border-primary);
-    text-align: center;
-}
-
-.notification-view-all {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--primary);
-    text-decoration: none;
-    transition: color var(--transition-fast);
-}
-
-.notification-view-all:hover {
-    color: var(--primary-hover);
-}
-
-/* =============================================================================
-   Role Badge Styles
-   ============================================================================= */
-
-.dash-role-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.125rem 0.5rem;
-    font-size: 0.625rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-radius: var(--radius-full);
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
-}
-
-.dash-role-badge.is-admin {
-    background: hsla(0, 84%, 60%, 0.15);
-    color: var(--status-error);
-}
-
-.dash-role-badge.is-organizer {
-    background: hsla(195, 100%, 43%, 0.15);
-    color: var(--primary);
-}
-
-.dash-role-badge.is-user {
-    background: hsla(142, 71%, 45%, 0.15);
-    color: var(--status-success);
-}
-
-/* =============================================================================
-   Role-Specific Header Feature Buttons
-   ============================================================================= */
-
-.dash-feature-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    text-decoration: none;
-}
-
-.dash-feature-btn:hover {
-    background: var(--bg-hover);
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-.dash-feature-btn.is-primary {
-    background: var(--primary);
-    color: var(--text-inverse);
-    border-color: var(--primary);
-}
-
-.dash-feature-btn.is-primary:hover {
-    background: var(--primary-hover);
-    border-color: var(--primary-hover);
-    color: var(--text-inverse);
-}
-
-/* Cart Button */
-.dash-cart-btn {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.dash-cart-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-.dash-cart-badge {
-    position: absolute;
-    top: -0.25rem;
-    right: -0.25rem;
-    min-width: 1rem;
-    height: 1rem;
-    padding: 0 0.25rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.625rem;
-    font-weight: 600;
-    background: var(--primary);
-    color: white;
-    border-radius: 9999px;
-    border: 2px solid var(--bg-secondary);
-}
-
-/* Calendar Button */
-.dash-calendar-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.dash-calendar-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-/* =============================================================================
-   User Profile Display Enhancement
-   ============================================================================= */
-
-.dash-user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-right: 0.5rem;
-}
-
-.dash-user-name {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    line-height: 1.2;
-}
-
-.dash-user-role {
-    font-size: 0.6875rem;
-    color: var(--text-muted);
-}
-
-/* =============================================================================
-   Responsive Visibility Classes & Mobile Adaptations
-   ============================================================================= */
-
-/* --- Mobile-Only Visibility --- */
-.mobile-only {
-    display: flex !important;
-}
-
-@media (min-width: 768px) {
-    .mobile-only {
-        display: none !important;
-    }
-}
-
-/* --- Tablet-Up Visibility --- */
-.tablet-up {
-    display: none !important;
-}
-
-@media (min-width: 768px) {
-    .tablet-up {
-        display: flex !important;
-    }
-}
-
-/* --- Desktop-Only Visibility (already defined, but enhanced) --- */
-.desktop-only {
-    display: none !important;
-}
-
-@media (min-width: 1024px) {
-    .desktop-only {
-        display: flex !important;
-    }
-}
-
-/* --- Mobile Search Icon Button --- */
-.dash-search-icon-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: none;
-    border-radius: var(--radius-full);
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.dash-search-icon-btn:hover,
-.dash-search-icon-btn:focus-visible {
-    background: var(--bg-hover);
-    color: var(--primary);
-    outline: none;
-}
-
-@media (min-width: 1024px) {
-    .dash-search-icon-btn {
-        display: none;
-    }
-}
-
-/* --- Enhanced Search Bar for Desktop --- */
-@media (min-width: 1024px) {
-    .dash-search-bar {
-        display: flex;
-    }
-}
-
-@media (max-width: 1023px) {
-    .dash-search-bar {
-        display: none;
-    }
-}
-
-/* --- Mobile Header Icon Buttons (Cart, Calendar) --- */
-.dash-header-icon-btn-mobile {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: none;
-    border-radius: var(--radius-full);
-    background: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.dash-header-icon-btn-mobile:hover,
-.dash-header-icon-btn-mobile:focus-visible {
-    background: var(--bg-hover);
-    color: var(--primary);
-    outline: none;
-}
-
-/* Badge for mobile icon buttons */
-.dash-icon-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    min-width: 1rem;
-    height: 1rem;
-    padding: 0 0.25rem;
-    font-size: 0.625rem;
-    font-weight: 600;
-    color: var(--text-inverse);
-    background: var(--primary);
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* --- Mobile Profile Container --- */
-.dash-profile-mobile {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.dash-profile-avatar {
-    width: 2rem;
-    height: 2rem;
-    border-radius: var(--radius-full);
-    border: 2px solid var(--border-primary);
-    object-fit: cover;
-}
-
-.dash-profile-avatar-lg {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: var(--radius-full);
-    border: 2px solid var(--border-primary);
-    object-fit: cover;
-}
-
-/* --- Mobile Breadcrumb Layout --- */
-.dash-breadcrumb-row {
-    display: none;
-}
-
-@media (max-width: 767px) {
-    .dash-breadcrumb-row {
-        display: flex;
-        width: 100%;
-        padding: 0.5rem 1rem;
-        background: var(--bg-secondary);
-        border-bottom: 1px solid var(--border-primary);
-        overflow-x: auto;
-    }
-
-    .dash-breadcrumb-row::-webkit-scrollbar {
-        display: none;
-    }
-
-    /* Hide breadcrumbs in header on mobile */
-    .dash-header-item.breadcrumb-desktop {
-        display: none;
-    }
-}
-
-/* --- Role Badge Responsive Size --- */
-@media (max-width: 767px) {
-    .dash-role-badge {
-        font-size: 0.5625rem;
-        padding: 0.0625rem 0.375rem;
-    }
-}
-
-/* --- Feature Buttons Responsive --- */
-@media (max-width: 1023px) {
-    .dash-feature-btn {
-        display: none;
-    }
-}
-
-/* --- Header Right Section Mobile Layout --- */
-@media (max-width: 767px) {
-    .dash-header-right {
-        gap: 0.25rem;
-    }
-
-    .dash-header-item-right {
-        padding: 0;
-    }
-
-    .dash-header-item-right::after {
-        display: none;
-    }
-}
-
-/* --- Mobile User Info (shown in dropdown) --- */
-.dash-user-info-mobile {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.125rem;
-    padding: 0.5rem 0;
-}
-
-.dash-user-info-mobile .dash-user-name {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.dash-user-info-mobile .dash-user-role {
-    font-size: 0.6875rem;
-    color: var(--text-muted);
-}
-
-/* --- Cart/Calendar Button Enhanced Mobile Styles --- */
-.dash-cart-btn-mobile,
-.dash-calendar-btn-mobile {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    width: 2.25rem;
-    height: 2.25rem;
-    border: none;
-    border-radius: var(--radius-full);
-    background: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.dash-cart-btn-mobile:hover,
-.dash-cart-btn-mobile:focus-visible,
-.dash-calendar-btn-mobile:hover,
-.dash-calendar-btn-mobile:focus-visible {
-    background: var(--bg-hover);
-    color: var(--primary);
-    outline: none;
-}
-
-/* --- Notification Dropdown Responsive --- */
-@media (max-width: 480px) {
-    .notification-dropdown-panel {
-        width: calc(100vw - 1rem);
-        right: -0.5rem;
-    }
-}
-
-/* --- Account Dropdown Responsive --- */
-@media (max-width: 767px) {
-    .dash-dropdown-panel.is-right.is-wide {
-        width: calc(100vw - 2rem);
-        right: -0.5rem;
-    }
-}
-
-/* --- Header Height Enhancement for 15.5" Desktops --- */
-@media (min-width: 1366px) {
-    .dash-header {
-        height: auto;
-        min-height: 4rem;
-        padding: 0.75rem 1.5rem;
-    }
-
-    .dash-search-bar {
-        width: 18rem;
-    }
-
-    .dash-search-input {
-        padding: 0;
-    }
-
-    .dash-feature-btn {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-    }
-
-    .dash-cart-btn,
-    .dash-calendar-btn {
-        width: 2.5rem;
-        height: 2.5rem;
-    }
-
-    .dash-user-name {
-        font-size: 0.875rem;
-    }
-
-    .dash-role-badge {
-        font-size: 0.6875rem;
-        padding: 0.1875rem 0.5rem;
-    }
-}
-
-/* --- Print Styles --- */
-@media print {
-
-    .dash-header,
-    .dash-sidebar {
-        display: none;
-    }
+:root.dark .dash-account-trigger:hover,
+html.dark .dash-account-trigger:hover {
+    background: hsla(220, 40%, 12%, 0.9);
 }

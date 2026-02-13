@@ -1,42 +1,38 @@
-import { Navigate, useLocation } from 'react-router-dom';
 import { ReactNode } from 'react';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import { Navigate, useLocation } from 'react-router-dom';
+import useAuth from '@/features/auth/hooks/useAuth';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 // =============================================================================
 // PROTECTED ROUTE COMPONENT
 // =============================================================================
-// Wraps routes that require authentication
-// Redirects to login page if user is not authenticated
-// Preserves the original destination in location state for post-login redirect
-//
-// Usage:
-//   <ProtectedRoute>
-//     <UserDashboard />
-//   </ProtectedRoute>
-// =============================================================================
+// Wraps routes that require authentication.
+// - Shows loading spinner while Auth state is being determined.
+// - Redirects to login page if user is not authenticated.
+// - Preserves the original destination (location state) for post-login redirect.
 
 interface ProtectedRouteProps {
   children: ReactNode;
   redirectTo?: string;
 }
 
-function ProtectedRoute({ children, redirectTo = '/login' }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children, redirectTo = '/login' }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while checking authentication status
+  // 1. Loading State: Wait for Auth check to complete
+  // The 'isLoading' flag is now reliably managed by the corrected useAuth hook.
   if (isLoading) {
     return <LoadingSpinner fullScreen message="Verifying authentication..." />;
   }
 
-  // Redirect to login if not authenticated, preserving the original destination
+  // 2. Unauthenticated State: Redirect to Login
   if (!isAuthenticated) {
+    // 'state={{ from: location }}' allows the Login page to redirect 
+    // the user back to this page after a successful login.
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  // User is authenticated, render the protected content
+  // 3. Authenticated State: Render the protected page
   return <>{children}</>;
 }
-
-export default ProtectedRoute;

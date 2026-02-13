@@ -360,7 +360,7 @@ FlowGateX/
    - `VERCEL_PROJECT_ID`
    - All Firebase environment variables
    - Razorpay keys
-   - Google Maps API key
+   - (No maps API key needed — Leaflet + OpenStreetMap)
 
 ### Optional Enhancements:
 

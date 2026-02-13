@@ -8,14 +8,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        // KEC Blue & Green Theme Colors
+        //  Blue & Green Theme Colors
         primary: {
           50: '#e6f7fc',
           100: '#cceff9',
           200: '#99dff3',
           300: '#66cfed',
-          400: '#33bfe7', // KEC Cyan-Blue Light
-          500: '#00A3DB', // KEC Cyan-Blue (Main)
+          400: '#33bfe7', //  Cyan-Blue Light
+          500: '#00A3DB', // Cyan-Blue (Main)
           600: '#0082af',
           700: '#006283',
           800: '#004157',
@@ -27,8 +27,8 @@ export default {
           100: '#ebf9d1',
           200: '#d7f3a3',
           300: '#c3ed75',
-          400: '#afe747', // KEC Lime-Green Light
-          500: '#A3D639', // KEC Lime-Green (Main)
+          400: '#afe747', //  Lime-Green Light
+          500: '#A3D639', // Lime-Green (Main)
           600: '#82ab2e',
           700: '#628022',
           800: '#415517',
@@ -59,9 +59,9 @@ export default {
         display: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        'glow': '0 0 20px rgba(0, 163, 219, 0.3)', // KEC Blue glow
+        'glow': '0 0 20px rgba(0, 163, 219, 0.3)', //  Blue glow
         'glow-lg': '0 0 40px rgba(0, 163, 219, 0.4)',
-        'glow-secondary': '0 0 20px rgba(163, 214, 57, 0.3)', // KEC Green glow
+        'glow-secondary': '0 0 20px rgba(163, 214, 57, 0.3)', // Green glow
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
@@ -88,7 +88,7 @@ export default {
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         pulseGlow: {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(0, 163, 219, 0.3)' }, // KEC Blue
+          '0%, 100%': { boxShadow: '0 0 20px rgba(0, 163, 219, 0.3)' }, // Blue
           '50%': { boxShadow: '0 0 30px rgba(0, 163, 219, 0.5)' },
         },
       },

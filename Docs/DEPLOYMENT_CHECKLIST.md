@@ -16,7 +16,7 @@
 - [ ] Copy `.env.example` to `.env.local`
 - [ ] Set Firebase configuration variables
 - [ ] Set Razorpay/payment gateway keys
-- [ ] Set Google Maps API key (if used)
+- [ ] Verify Leaflet + OpenStreetMap allowed by CSP
 - [ ] Configure feature flags
 - [ ] Set Sentry DSN (optional)
 

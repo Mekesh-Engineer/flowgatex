@@ -1,92 +1,53 @@
-import { Box, TextField, Typography } from '@mui/material';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Select from '@/components/forms/Select';
-import { EVENT_CATEGORIES } from '@/lib/constants';
+import { Box, TextField, Typography, MenuItem, Grid } from '@mui/material';
 import type { CreateEventData } from '../../types/event.types';
 
-const basicInfoSchema = z.object({
-  title: z.string().min(5, 'Title must be at least 5 characters'),
-  description: z.string().min(50, 'Description must be at least 50 characters'),
-  category: z.string().min(1, 'Please select a category'),
-});
+const CATEGORIES = ['Music', 'Tech', 'Business', 'Sports', 'Arts', 'Workshop', 'Other'];
+const AGES = ['all', '18+', '21+'];
 
-interface BasicInfoStepProps {
-  data: Partial<CreateEventData>;
+interface Props {
+  data: CreateEventData;
   onUpdate: (data: Partial<CreateEventData>) => void;
-  onNext: () => void;
 }
 
-function BasicInfoStep({ data, onUpdate, onNext }: BasicInfoStepProps) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(basicInfoSchema),
-    defaultValues: {
-      title: data.title || '',
-      description: data.description || '',
-      category: data.category || '',
-    },
-  });
-
-  const onSubmit = (formData: z.infer<typeof basicInfoSchema>) => {
-    onUpdate({
-      title: formData.title,
-      description: formData.description,
-      category: formData.category as CreateEventData['category'],
-    });
-    onNext();
-  };
-
-  const categoryOptions = EVENT_CATEGORIES.map((cat) => ({
-    value: cat.id,
-    label: cat.label,
-  }));
-
+export default function BasicInfoStep({ data, onUpdate }: Props) {
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-      <Typography variant="h5" sx={{ mb: 4 }}>
-        Basic Information
-      </Typography>
-
+    <Box>
+      <Typography variant="h5" sx={{ mb: 3 }}>Basic Information</Typography>
+      
       <TextField
-        fullWidth
-        label="Event Title"
-        {...register('title')}
-        error={!!errors.title}
-        helperText={errors.title?.message}
+        fullWidth label="Event Title"
+        value={data.title}
+        onChange={(e) => onUpdate({ title: e.target.value })}
+        sx={{ mb: 3 }}
+      />
+      
+      <TextField
+        fullWidth label="Short Tagline / Subtitle"
+        value={data.subtitle}
+        onChange={(e) => onUpdate({ subtitle: e.target.value })}
         sx={{ mb: 3 }}
       />
 
-      <Select
-        label="Category"
-        options={categoryOptions}
-        placeholder="Select a category"
-        {...register('category')}
-        error={errors.category?.message}
-      />
-
-      <TextField
-        fullWidth
-        label="Description"
-        multiline
-        rows={6}
-        {...register('description')}
-        error={!!errors.description}
-        helperText={errors.description?.message}
-        sx={{ mt: 3 }}
-      />
-
-      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-        <button type="submit" className="btn-glow">
-          Next: Venue Details
-        </button>
-      </Box>
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField
+            select fullWidth label="Category"
+            value={data.category}
+            onChange={(e) => onUpdate({ category: e.target.value as any })}
+          >
+            {CATEGORIES.map(c => <MenuItem key={c} value={c.toLowerCase()}>{c}</MenuItem>)}
+          </TextField>
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <TextField
+            select fullWidth label="Age Restriction"
+            value={data.ageRestriction}
+            onChange={(e) => onUpdate({ ageRestriction: e.target.value as any })}
+          >
+            {AGES.map(a => <MenuItem key={a} value={a}>{a === 'all' ? 'All Ages' : a}</MenuItem>)}
+          </TextField>
+        </Grid>
+      </Grid>
     </Box>
   );
 }
-
-export default BasicInfoStep;

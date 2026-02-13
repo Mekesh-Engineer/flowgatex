@@ -1,78 +1,91 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  getEvents,
-  getFeaturedEvents,
-  getEventsByOrganizer,
-  createEvent,
-  updateEvent,
-  deleteEvent,
-  publishEvent,
-} from '../services/eventService';
-import type { EventFilters, CreateEventData, Event } from '../types/event.types';
+import { eventService } from '../services/eventService';
+import type { CreateEventData } from '../types/event.types';
 import { showSuccess, showError } from '@/components/common/Toast';
 
 export const EVENT_KEYS = {
   all: ['events'] as const,
   lists: () => [...EVENT_KEYS.all, 'list'] as const,
-  list: (filters: EventFilters) => [...EVENT_KEYS.lists(), filters] as const,
-  featured: () => [...EVENT_KEYS.all, 'featured'] as const,
   organizer: (id: string) => [...EVENT_KEYS.all, 'organizer', id] as const,
   details: () => [...EVENT_KEYS.all, 'detail'] as const,
   detail: (id: string) => [...EVENT_KEYS.details(), id] as const,
 };
 
-// Hook to fetch events with filters
-export function useEvents(filters: EventFilters = {}) {
+// ── Queries ────────────────────────────────────────────────────────
+
+/** Fetch published events. */
+export function useEvents(count?: number) {
   return useQuery({
-    queryKey: EVENT_KEYS.list(filters),
-    queryFn: () => getEvents(filters),
+    queryKey: EVENT_KEYS.lists(),
+    queryFn: () => eventService.getEvents(count),
   });
 }
 
-// Hook to fetch featured events
-export function useFeaturedEvents(count?: number) {
-  return useQuery({
-    queryKey: EVENT_KEYS.featured(),
-    queryFn: () => getFeaturedEvents(count),
-  });
-}
-
-// Hook to fetch organizer's events
+/** Fetch all events for a specific organizer. */
 export function useOrganizerEvents(organizerId: string) {
   return useQuery({
     queryKey: EVENT_KEYS.organizer(organizerId),
-    queryFn: () => getEventsByOrganizer(organizerId),
+    queryFn: () => eventService.getEventsByOrganizer(organizerId),
     enabled: !!organizerId,
   });
 }
 
-// Hook to create event
-export function useCreateEvent() {
-  const queryClient = useQueryClient();
+/** Fetch a single event by ID. */
+export function useEventById(eventId: string) {
+  return useQuery({
+    queryKey: EVENT_KEYS.detail(eventId),
+    queryFn: () => eventService.getEventById(eventId),
+    enabled: !!eventId,
+  });
+}
+
+// ── Mutations ──────────────────────────────────────────────────────
+
+/** Publish a new event. */
+export function usePublishEvent() {
+  const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateEventData & { organizerId: string; organizerName: string }) =>
-      createEvent(data),
+    mutationFn: ({ data, userId }: { data: CreateEventData; userId: string }) =>
+      eventService.publishEvent(data, userId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.all });
-      showSuccess('Event created successfully!');
+      qc.invalidateQueries({ queryKey: EVENT_KEYS.all });
+      showSuccess('Event published successfully!');
     },
     onError: (error: Error) => {
-      showError(error.message || 'Failed to create event');
+      showError(error.message || 'Failed to publish event');
     },
   });
 }
 
-// Hook to update event
-export function useUpdateEvent() {
-  const queryClient = useQueryClient();
+/** Save an event as a draft. */
+export function useSaveDraft() {
+  const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Event> }) => updateEvent(id, data),
+    mutationFn: ({ data, userId }: { data: CreateEventData; userId: string }) =>
+      eventService.saveDraft(data, userId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: EVENT_KEYS.all });
+      showSuccess('Draft saved!');
+    },
+    onError: (error: Error) => {
+      showError(error.message || 'Failed to save draft');
+    },
+  });
+}
+
+/** Update an existing event. */
+export function useUpdateEvent() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateEventData> }) =>
+      eventService.updateEvent(id, data),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.detail(variables.id) });
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.lists() });
-      showSuccess('Event updated successfully!');
+      qc.invalidateQueries({ queryKey: EVENT_KEYS.detail(variables.id) });
+      qc.invalidateQueries({ queryKey: EVENT_KEYS.lists() });
+      showSuccess('Event updated!');
     },
     onError: (error: Error) => {
       showError(error.message || 'Failed to update event');
@@ -80,35 +93,18 @@ export function useUpdateEvent() {
   });
 }
 
-// Hook to delete event
+/** Delete an event. */
 export function useDeleteEvent() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => deleteEvent(id),
+    mutationFn: (id: string) => eventService.deleteEvent(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.all });
-      showSuccess('Event deleted successfully!');
+      qc.invalidateQueries({ queryKey: EVENT_KEYS.all });
+      showSuccess('Event deleted!');
     },
     onError: (error: Error) => {
       showError(error.message || 'Failed to delete event');
-    },
-  });
-}
-
-// Hook to publish event
-export function usePublishEvent() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => publishEvent(id),
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.detail(id) });
-      queryClient.invalidateQueries({ queryKey: EVENT_KEYS.lists() });
-      showSuccess('Event published successfully!');
-    },
-    onError: (error: Error) => {
-      showError(error.message || 'Failed to publish event');
     },
   });
 }

@@ -4,7 +4,7 @@
 // These types define the API contract for the registration flow.
 // The frontend calls these interfaces; the backend team implements them.
 
-export type SignupRole = 'attendee' | 'organizer' | 'admin';
+export type SignupRole = 'attendee' | 'organizer' | 'admin' | 'superadmin';
 
 export type Gender = 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
 
@@ -19,9 +19,6 @@ export interface CreateUserPayload {
   mobile?: string;
   gender?: Gender;
   liveLocationConsent?: boolean;
-  organization?: string;
-  department?: string;
-  authorizationCode?: string;
   consents: {
     terms: boolean;
     marketing: boolean;
@@ -67,19 +64,7 @@ export interface VerifyOtpResponse {
   message: string;
 }
 
-/** Payload sent to POST /api/auth/validate-auth-code */
-export interface ValidateAuthCodePayload {
-  code: string;
-  role: SignupRole;
-}
 
-/** Response from POST /api/auth/validate-auth-code */
-export interface ValidateAuthCodeResponse {
-  success: boolean;
-  message: string;
-  /** When the code expires (ISO string) */
-  expiresAt?: string;
-}
 
 // =============================================================================
 // ERROR CODES — Backend returns these, frontend maps to messages
@@ -87,8 +72,6 @@ export interface ValidateAuthCodeResponse {
 
 export const REGISTRATION_ERROR_CODES = {
   EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
-  INVALID_AUTH_CODE: 'INVALID_AUTH_CODE',
-  AUTH_CODE_EXPIRED: 'AUTH_CODE_EXPIRED',
   OTP_EXPIRED: 'OTP_EXPIRED',
   OTP_INVALID: 'OTP_INVALID',
   OTP_MAX_ATTEMPTS: 'OTP_MAX_ATTEMPTS',
@@ -105,8 +88,6 @@ export type RegistrationErrorCode =
 /** Map backend error codes to user-friendly messages */
 export const ERROR_MESSAGE_MAP: Record<RegistrationErrorCode, string> = {
   EMAIL_ALREADY_EXISTS: 'An account with this email already exists. Try signing in instead.',
-  INVALID_AUTH_CODE: 'The authorization code is invalid. Please check and try again.',
-  AUTH_CODE_EXPIRED: 'The authorization code has expired. Please request a new one.',
   OTP_EXPIRED: 'The verification code has expired. Please request a new one.',
   OTP_INVALID: 'Invalid verification code. Please check and try again.',
   OTP_MAX_ATTEMPTS: 'Too many attempts. Please wait before trying again.',

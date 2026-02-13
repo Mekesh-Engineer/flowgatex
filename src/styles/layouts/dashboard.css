@@ -50,3 +50,71 @@
 .dark .widget-scroll::-webkit-scrollbar-thumb {
     background: #404040;
 }
+
+/* ============================================================================
+   Dashboard Main Content Area
+   Used by: DashboardLayout.tsx
+   ============================================================================ */
+
+/* Main content wrapper — shifts right when sidebar is visible on desktop */
+.dash-main {
+    min-height: 100vh;
+    padding-top: 0.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-bottom: 2rem;
+    transition: padding-left 0.3s ease;
+}
+
+@media (min-width: 640px) {
+    .dash-main {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dash-main {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}
+
+/* When sidebar is toggled open on desktop, offset the main content */
+@media (min-width: 1024px) {
+    .dash-main.sidebar-visible {
+        padding-left: calc(260px + 2rem);
+    }
+}
+
+/* Content card */
+.dash-main-card {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Card body */
+.dash-main-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Row wrapper */
+.dash-main-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .dash-main-row {
+        flex-direction: row;
+    }
+}
+
+/* Primary content column — fills available space */
+.dash-main-primary {
+    flex: 1;
+    min-width: 0;
+}

@@ -68,9 +68,7 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    alias: {
-      '@': '/src',
-    },
+    // Alias handled by vite-tsconfig-paths
   },
   server: {
     port: 3000,
@@ -78,8 +76,8 @@ export default defineConfig({
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com https://unpkg.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com;
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data: https: blob:;
         connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com wss://*.firebaseio.com;
@@ -106,14 +104,14 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'mui-vendor': ['@mui/material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
           'firebase-vendor': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-          'state-vendor': ['@reduxjs/toolkit', 'react-redux', 'zustand', '@tanstack/react-query'],
-          'chart-vendor': ['recharts', 'chart.js', 'react-chartjs-2'],
+          'state-vendor': ['zustand', '@tanstack/react-query'],
+          'chart-vendor': ['chart.js', 'react-chartjs-2'],
           'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          'utils-vendor': ['axios', 'dayjs', 'lodash', 'fuse.js'],
+          'utils-vendor': ['axios', 'dayjs', 'fuse.js'],
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 500,
     sourcemap: false, // Disable in production
   },
 });

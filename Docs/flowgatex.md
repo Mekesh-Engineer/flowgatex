@@ -106,7 +106,7 @@ interface Event {
 - ✅ Image gallery with drag-and-drop upload
 - ✅ Multiple ticket tier configuration
 - ✅ Dynamic pricing and discount codes
-- ✅ Venue selection with Google Maps integration
+- ✅ Venue selection with Leaflet map (OpenStreetMap tiles)
 - ✅ Recurring event templates
 - ✅ Event cloning and duplication
 - ✅ Draft, published, and archived states
@@ -750,9 +750,9 @@ VITE_CASHFREE_APP_ID=xxxxxxxxxxxxx
 CASHFREE_SECRET_KEY=xxxxxxxxxxxxx
 
 # ========================================
-# GOOGLE SERVICES
+# MAPS
 # ========================================
-VITE_GOOGLE_MAPS_API_KEY=AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Leaflet + OpenStreetMap (no API key required)
 
 # ========================================
 # APPLICATION CONFIGURATION

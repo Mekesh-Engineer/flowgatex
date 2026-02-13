@@ -1,10 +1,16 @@
 // =============================================================================
-// ROLE SELECTOR — Segmented control for Attendee / Organizer / Admin
+// ROLE SELECTOR — Unified role selector with FULL WORKFLOW ENFORCEMENT
+// =============================================================================
+// ✅ SUPPORTED ROLES: Attendee | Organizer | Admin | Superadmin
+// ✅ WORKFLOW: Users can select ANY of the 4 roles during signup
+// ✅ VALIDATION: Selected role is validated before account creation
+// ✅ MAPPING: 'attendee' (UI) maps to 'user' in Firestore/AuthMapppingAutomated
+// ✅ FORM FORMAT: Same format used for all roles (no role-specific fields)
 // =============================================================================
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Users, Briefcase, ShieldCheck } from 'lucide-react';
+import { Users, Briefcase, ShieldCheck, Crown } from 'lucide-react';
 import type { SignupRole } from '@/features/auth/types/registration.types';
 
 interface RoleSelectorProps {
@@ -31,6 +37,12 @@ const ROLES: { id: SignupRole; label: string; icon: React.ElementType; summary: 
     label: 'Admin',
     icon: ShieldCheck,
     summary: 'Full system administration, user management, and monitoring.',
+  },
+  {
+    id: 'superadmin',
+    label: 'Super Admin',
+    icon: Crown,
+    summary: 'Highest-level access: platform-wide control, system config, and audit oversight.',
   },
 ];
 

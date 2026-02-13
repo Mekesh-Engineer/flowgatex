@@ -9,8 +9,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 
 /* ============================================================================
-   Import Modular Stylesheets (MUST come before @tailwind directives)
+   Design Tokens + Modular Stylesheets (MUST come before @tailwind directives)
    ============================================================================ */
+
+/* Design tokens are now consolidated in base/variables.css */
 
 /* Base Styles - Critical, Variables and Reset */
 @import '../styles/base/critical.css';
@@ -27,9 +29,11 @@
 @import '../styles/components/monitoring.css';
 @import '../styles/components/calendar.css';
 @import '../styles/components/cart.css';
+@import '../styles/components/notification-dropdown.css';
 
 /* Layout Styles */
 @import '../styles/layouts/navbar.css';
+@import '../styles/layouts/dash-header.css';
 @import '../styles/layouts/footer.css';
 @import '../styles/layouts/sidebar.css';
 @import '../styles/layouts/dashboard.css';

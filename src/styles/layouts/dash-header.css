@@ -1,0 +1,90 @@
+/* ============================================================================
+   Dashboard Header – Layout Styles
+   Used by: Navbar.tsx (dash-header-item-right)
+             NotificationDropdown.tsx (dash-header-icon-btn)
+   ============================================================================ */
+
+/* Dashboard header container */
+.dash-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg-card, #fff);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-primary, #e5e7eb);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+:root.dark .dash-header,
+html.dark .dash-header {
+    background: hsla(220, 40%, 8%, 0.85);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Dashboard header inner wrapper */
+.dash-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 100%;
+    padding: 0.625rem 1rem;
+}
+
+@media (min-width: 640px) {
+    .dash-header-inner {
+        padding: 0.625rem 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dash-header-inner {
+        padding: 0.625rem 2rem;
+    }
+}
+
+/* Dashboard header icon button (notifications, profile, etc.) */
+.dash-header-icon-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border-primary, #e5e7eb);
+    background: var(--bg-surface, #f8fafc);
+    color: var(--text-secondary, #64748b);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.dash-header-icon-btn:hover {
+    background: var(--bg-card, #fff);
+    color: var(--color-primary, #00a3db);
+    border-color: var(--color-primary, #00a3db);
+    box-shadow: 0 0 0 3px rgba(0, 163, 219, 0.08);
+}
+
+.dash-header-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 163, 219, 0.2);
+    border-color: var(--color-primary, #00a3db);
+}
+
+/* Navbar right-side dashboard items */
+.dash-header-item-right {
+    display: flex;
+    align-items: center;
+}
+
+/* Small screens */
+@media (max-width: 640px) {
+    .dash-header-icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+    }
+}

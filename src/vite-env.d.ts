@@ -14,9 +14,6 @@ interface ImportMetaEnv {
   readonly VITE_RAZORPAY_KEY_ID: string;
   readonly VITE_CASHFREE_APP_ID?: string;
 
-  // Google
-  readonly VITE_GOOGLE_MAPS_API_KEY?: string;
-
   // App
   readonly VITE_APP_NAME: string;
   readonly VITE_APP_URL: string;
@@ -31,4 +28,10 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
   readonly env: ImportMetaEnv;
+}
+
+declare global {
+  interface Window {
+    L?: unknown;
+  }
 }

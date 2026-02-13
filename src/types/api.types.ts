@@ -1,13 +1,22 @@
 /**
  * FlowGateX API Type Definitions
  * Based on API Documentation v1.0
+ *
+ * Event/Venue/TicketTier types are re-exported from their canonical source
+ * at @/features/events/types/event.types to avoid duplication.
  */
+
+export type {
+  CreateEventData,
+  TicketTier,
+  EventCategory,
+} from '@/features/events/types/event.types';
 
 // ==========================================
 // Common Types
 // ==========================================
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: ApiError;
@@ -75,7 +84,7 @@ export interface UserProfile {
   displayName: string;
   photoURL?: string;
   phone?: string;
-  role: 'attendee' | 'organizer' | 'admin';
+  role: 'user' | 'organizer' | 'admin' | 'superadmin';
   verified: boolean;
   createdAt: string;
   preferences?: UserPreferences;
@@ -92,76 +101,13 @@ export interface UserPreferences {
 }
 
 // ==========================================
-// Event Types
+// Event Date Types (API-specific wrapper)
 // ==========================================
-
-export interface Event {
-  id: string;
-  title: string;
-  description: string;
-  category: EventCategory;
-  venue: Venue;
-  dates: EventDates;
-  ticketTiers: TicketTier[];
-  images: string[];
-  organizerId: string;
-  organizerName: string;
-  status: EventStatus;
-  features: string[];
-  tags: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type EventCategory =
-  | 'music'
-  | 'sports'
-  | 'conference'
-  | 'workshop'
-  | 'exhibition'
-  | 'festival'
-  | 'meetup'
-  | 'other';
-
-export type EventStatus = 'draft' | 'published' | 'ongoing' | 'completed' | 'cancelled';
-
-export interface Venue {
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  coordinates: {
-    lat: number;
-    lng: number;
-  };
-  capacity: number;
-}
 
 export interface EventDates {
   start: string;
   end: string;
   registrationDeadline: string;
-}
-
-export interface TicketTier {
-  id: string;
-  name: string;
-  price: number;
-  currency: string;
-  quantity: number;
-  sold: number;
-  available: number;
-  benefits: string[];
-}
-
-export interface EventFilters extends PaginationParams {
-  category?: EventCategory;
-  search?: string;
-  city?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  startDate?: string;
-  endDate?: string;
 }
 
 // ==========================================

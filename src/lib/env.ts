@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 /**
  * Environment variables schema validation
@@ -19,7 +20,6 @@ const envSchema = z.object({
   VITE_CASHFREE_APP_ID: z.string().optional(),
 
   // Google Services
-  VITE_GOOGLE_MAPS_API_KEY: z.string().optional(),
   VITE_GOOGLE_ANALYTICS_ID: z.string().optional(),
 
   // Application Configuration
@@ -69,13 +69,13 @@ export type Env = z.infer<typeof envSchema>;
 export function validateEnv(): Env {
   try {
     const env = envSchema.parse(import.meta.env);
-    console.log('✅ Environment variables validated successfully');
+    logger.log('✅ Environment variables validated successfully');
     return env;
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error('❌ Invalid environment variables:');
+      logger.error('❌ Invalid environment variables:');
       error.errors.forEach((err) => {
-        console.error(`  - ${err.path.join('.')}: ${err.message}`);
+        logger.error(`  - ${err.path.join('.')}: ${err.message}`);
       });
       throw new Error('Environment validation failed. Please check your .env file.');
     }

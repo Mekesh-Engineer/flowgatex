@@ -1,7 +1,12 @@
 import { useState, useCallback } from 'react';
 import { initiateRazorpayPayment } from '../services/razorpayService';
+import { processMockPayment } from '../services/mockPaymentService';
 import type { PaymentResult } from '../types/payment.types';
 import { showSuccess, showError } from '@/components/common/Toast';
+
+// Determine if we should use the mock payment gateway
+const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
+const useMockPayment = !RAZORPAY_KEY || RAZORPAY_KEY.includes('DEMO') || RAZORPAY_KEY.includes('REPLACE');
 
 export function usePayment() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -16,6 +21,24 @@ export function usePayment() {
     ): Promise<PaymentResult> => {
       setIsProcessing(true);
 
+      // ── Mock payment path ──────────────────────────────────────────
+      if (useMockPayment) {
+        try {
+          const result = await processMockPayment(orderId, amount, currency);
+          setPaymentResult(result);
+          showSuccess('Payment successful! (simulated)');
+          return result;
+        } catch {
+          const result: PaymentResult = { success: false, error: 'Mock payment failed' };
+          setPaymentResult(result);
+          showError(result.error!);
+          return result;
+        } finally {
+          setIsProcessing(false);
+        }
+      }
+
+      // ── Live Razorpay path ─────────────────────────────────────────
       return new Promise((resolve) => {
         initiateRazorpayPayment(
           orderId,

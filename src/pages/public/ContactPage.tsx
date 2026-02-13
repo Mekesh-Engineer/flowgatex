@@ -12,7 +12,7 @@ import {
 // TYPES
 // =============================================================================
 
-type UserRole = 'attendee' | 'organizer' | 'admin';
+type ContactRole = 'attendee' | 'organizer' | 'admin';
 type InquiryType = 'general' | 'technical' | 'media' | 'partnership' | 'billing';
 type FormStatus = 'idle' | 'validating' | 'submitting' | 'success' | 'error';
 
@@ -23,7 +23,7 @@ interface FormField {
   placeholder: string;
   required: boolean;
   options?: { value: string; label: string }[];
-  roleVisible?: UserRole[];
+  roleVisible?: ContactRole[];
   ariaLabel: string;
 }
 
@@ -78,7 +78,7 @@ const successPulse = {
 // DATA
 // =============================================================================
 
-const ROLES: { id: UserRole; label: string; icon: React.ReactNode; description: string }[] = [
+const ROLES: { id: ContactRole; label: string; icon: React.ReactNode; description: string }[] = [
   { id: 'attendee', label: 'Attendee', icon: <User size={18} />, description: 'Event queries & ticketing' },
   { id: 'organizer', label: 'Organizer', icon: <Building2 size={18} />, description: 'Partnerships & logistics' },
   { id: 'admin', label: 'Admin', icon: <Shield size={18} />, description: 'Technical & system issues' },
@@ -122,20 +122,24 @@ const FORM_FIELDS: FormField[] = [
   { id: 'email', label: 'Email Address', type: 'email', placeholder: 'john@example.com', required: true, ariaLabel: 'Enter your email address' },
   { id: 'phone', label: 'Phone Number', type: 'tel', placeholder: '+1 (555) 000-0000', required: false, ariaLabel: 'Enter your phone number (optional)' },
   { id: 'company', label: 'Company / Organization', type: 'text', placeholder: 'Acme Events Inc.', required: true, roleVisible: ['organizer', 'admin'], ariaLabel: 'Enter your company name' },
-  { id: 'budget', label: 'Estimated Budget', type: 'select', placeholder: 'Select range', required: false, roleVisible: ['organizer'], options: [
-    { value: '', label: 'Select budget range' },
-    { value: '<5k', label: 'Under $5,000' },
-    { value: '5k-25k', label: '$5,000 - $25,000' },
-    { value: '25k-100k', label: '$25,000 - $100,000' },
-    { value: '>100k', label: 'Over $100,000' },
-  ], ariaLabel: 'Select your estimated budget range' },
-  { id: 'priority', label: 'Priority Level', type: 'select', placeholder: 'Select priority', required: true, roleVisible: ['admin'], options: [
-    { value: '', label: 'Select priority' },
-    { value: 'low', label: 'Low - General question' },
-    { value: 'medium', label: 'Medium - Needs attention' },
-    { value: 'high', label: 'High - Urgent issue' },
-    { value: 'critical', label: 'Critical - System down' },
-  ], ariaLabel: 'Select issue priority level' },
+  {
+    id: 'budget', label: 'Estimated Budget', type: 'select', placeholder: 'Select range', required: false, roleVisible: ['organizer'], options: [
+      { value: '', label: 'Select budget range' },
+      { value: '<5k', label: 'Under $5,000' },
+      { value: '5k-25k', label: '$5,000 - $25,000' },
+      { value: '25k-100k', label: '$25,000 - $100,000' },
+      { value: '>100k', label: 'Over $100,000' },
+    ], ariaLabel: 'Select your estimated budget range'
+  },
+  {
+    id: 'priority', label: 'Priority Level', type: 'select', placeholder: 'Select priority', required: true, roleVisible: ['admin'], options: [
+      { value: '', label: 'Select priority' },
+      { value: 'low', label: 'Low - General question' },
+      { value: 'medium', label: 'Medium - Needs attention' },
+      { value: 'high', label: 'High - Urgent issue' },
+      { value: 'critical', label: 'Critical - System down' },
+    ], ariaLabel: 'Select issue priority level'
+  },
   { id: 'eventId', label: 'Event ID (if applicable)', type: 'text', placeholder: 'EVT-XXXXX', required: false, ariaLabel: 'Enter event ID if your inquiry is about a specific event' },
   { id: 'subject', label: 'Subject', type: 'text', placeholder: 'How can we help?', required: true, ariaLabel: 'Enter the subject of your message' },
   { id: 'message', label: 'Message', type: 'textarea', placeholder: 'Describe your inquiry in detail...', required: true, ariaLabel: 'Enter your message' },
@@ -148,7 +152,7 @@ const FORM_FIELDS: FormField[] = [
 /** Simulated auth hook - in production, this would connect to your auth system */
 const useAuth = () => {
   // Mock user data - replace with actual auth context
-  const [user] = useState<{ name?: string; email?: string; role?: UserRole } | null>(null);
+  const [user] = useState<{ name?: string; email?: string; role?: ContactRole } | null>(null);
   return { user, isLoggedIn: !!user };
 };
 
@@ -282,11 +286,10 @@ const FormInput: React.FC<{
   const [touched, setTouched] = useState(false);
   const showError = touched && error;
 
-  const baseClasses = `w-full bg-[var(--bg-base)] border rounded-xl px-4 py-3.5 text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--bg-card)] ${
-    showError
-      ? 'border-red-500 focus-visible:ring-red-500/50'
-      : 'border-[var(--border-primary)] focus:border-[var(--color-primary)] focus-visible:ring-[var(--color-primary)]/50'
-  } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
+  const baseClasses = `w-full bg-[var(--bg-base)] border rounded-xl px-4 py-3.5 text-[var(--text-primary)] placeholder-[var(--text-muted)] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--bg-card)] ${showError
+    ? 'border-red-500 focus-visible:ring-red-500/50'
+    : 'border-[var(--border-primary)] focus:border-[var(--color-primary)] focus-visible:ring-[var(--color-primary)]/50'
+    } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
 
   return (
     <div className="space-y-1.5">
@@ -367,7 +370,7 @@ export default function ContactPage() {
   const { user, isLoggedIn } = useAuth();
 
   // State
-  const [selectedRole, setSelectedRole] = useState<UserRole>('attendee');
+  const [selectedRole, setSelectedRole] = useState<ContactRole>('attendee');
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryType>('general');
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [formStatus, setFormStatus] = useState<FormStatus>('idle');
@@ -604,7 +607,7 @@ export default function ContactPage() {
                   <div>
                     <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-0.5">Headquarters</p>
                     <p className="text-[var(--text-primary)] font-semibold">101 Future Way, Neo-Tech City</p>
-                    <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-primary)] font-medium flex items-center gap-1 mt-1 hover:underline">
+                    <a href="https://www.openstreetmap.org/search?query=101%20Future%20Way%2C%20Neo-Tech%20City" target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-primary)] font-medium flex items-center gap-1 mt-1 hover:underline">
                       Get Directions <ExternalLink size={10} />
                     </a>
                   </div>
@@ -622,11 +625,10 @@ export default function ContactPage() {
                   <Tooltip key={type.id} text={type.estimatedResponse}>
                     <button
                       onClick={() => setSelectedInquiry(type.id)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${
-                        selectedInquiry === type.id
-                          ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
-                          : 'border-[var(--border-primary)] hover:border-[var(--color-primary)]/50'
-                      }`}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${selectedInquiry === type.id
+                        ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5'
+                        : 'border-[var(--border-primary)] hover:border-[var(--color-primary)]/50'
+                        }`}
                       aria-pressed={selectedInquiry === type.id}
                       aria-label={`${type.title}: ${type.description}`}
                     >
@@ -702,11 +704,10 @@ export default function ContactPage() {
                     role="tab"
                     aria-selected={selectedRole === role.id}
                     onClick={() => setSelectedRole(role.id)}
-                    className={`flex-1 min-w-[100px] flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${
-                      selectedRole === role.id
-                        ? 'bg-[var(--bg-card)] text-[var(--color-primary)] shadow-md'
-                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                    }`}
+                    className={`flex-1 min-w-[100px] flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] ${selectedRole === role.id
+                      ? 'bg-[var(--bg-card)] text-[var(--color-primary)] shadow-md'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                      }`}
                   >
                     {role.icon} {role.label}
                   </button>
@@ -770,11 +771,10 @@ export default function ContactPage() {
                     <button
                       type="button"
                       onClick={toggleVoice}
-                      className={`absolute right-3 bottom-3 size-10 rounded-lg flex items-center justify-center transition-all ${
-                        isVoiceActive
-                          ? 'bg-red-500 text-white animate-pulse'
-                          : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
-                      }`}
+                      className={`absolute right-3 bottom-3 size-10 rounded-lg flex items-center justify-center transition-all ${isVoiceActive
+                        ? 'bg-red-500 text-white animate-pulse'
+                        : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
+                        }`}
                       aria-label={isVoiceActive ? 'Stop voice recording' : 'Start voice recording'}
                       aria-pressed={isVoiceActive}
                     >

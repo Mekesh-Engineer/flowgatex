@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react';
-import { 
-  Ticket, 
-  Calendar as CalendarIcon, 
-  CreditCard, 
-  Heart, 
-  ArrowRight, 
-  ArrowLeft, 
-  MapPin, 
-  Clock, 
-  MoreVertical, 
-  Search, 
-  Wallet, 
-  QrCode, 
-  TrendingUp, 
+import { logger } from '@/lib/logger';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Ticket,
+  Calendar as CalendarIcon,
+  CreditCard,
+  Heart,
+  ArrowRight,
+  ArrowLeft,
+  MapPin,
+  Clock,
+  MoreVertical,
+  Search,
+  Wallet,
+  QrCode,
+  TrendingUp,
   TrendingDown,
   Bell,
   ChevronRight,
-  Filter
+  Filter,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -24,7 +26,7 @@ import Button from '@/components/common/Button';
 import { Card, CardContent } from '@/components/common/Card';
 
 // Ensure this file exists in your project with the styles defined previously
-import '@/styles/features/userdashboard.css'; 
+import '@/styles/features/userdashboard.css';
 
 // =============================================================================
 // TYPES & INTERFACES
@@ -36,7 +38,7 @@ interface StatItem {
   value: string;
   trend: string;
   trendUp: boolean;
-  icon: any; // Lucide Icon
+  icon: LucideIcon;
   color: string;
   bg: string;
   border: string;
@@ -76,8 +78,8 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.08 }
-  }
+    transition: { staggerChildren: 0.08 },
+  },
 };
 
 const itemVariants = {
@@ -85,8 +87,8 @@ const itemVariants = {
   visible: {
     y: 0,
     opacity: 1,
-    transition: { type: 'spring', stiffness: 100, damping: 15 }
-  }
+    transition: { type: 'spring', stiffness: 100, damping: 15 },
+  },
 };
 
 // =============================================================================
@@ -94,55 +96,119 @@ const itemVariants = {
 // =============================================================================
 
 const fetchDashboardData = (): Promise<DashboardData> => {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       resolve({
         stats: [
-          { 
-            id: 1, label: 'Total Bookings', value: '12', trend: '+12%', trendUp: true, icon: Ticket,
-            color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50 dark:bg-blue-500/10', border: 'border-blue-100 dark:border-blue-500/20'
+          {
+            id: 1,
+            label: 'Total Bookings',
+            value: '12',
+            trend: '+12%',
+            trendUp: true,
+            icon: Ticket,
+            color: 'text-blue-600 dark:text-blue-400',
+            bg: 'bg-blue-50 dark:bg-blue-500/10',
+            border: 'border-blue-100 dark:border-blue-500/20',
           },
-          { 
-            id: 2, label: 'Upcoming Events', value: '3', trend: '+2%', trendUp: true, icon: CalendarIcon,
-            color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50 dark:bg-purple-500/10', border: 'border-purple-100 dark:border-purple-500/20'
+          {
+            id: 2,
+            label: 'Upcoming Events',
+            value: '3',
+            trend: '+2%',
+            trendUp: true,
+            icon: CalendarIcon,
+            color: 'text-purple-600 dark:text-purple-400',
+            bg: 'bg-purple-50 dark:bg-purple-500/10',
+            border: 'border-purple-100 dark:border-purple-500/20',
           },
-          { 
-            id: 3, label: 'Total Spent', value: '$450', trend: '+5%', trendUp: true, icon: CreditCard,
-            color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-500/10', border: 'border-emerald-100 dark:border-emerald-500/20'
+          {
+            id: 3,
+            label: 'Total Spent',
+            value: '$450',
+            trend: '+5%',
+            trendUp: true,
+            icon: CreditCard,
+            color: 'text-emerald-600 dark:text-emerald-400',
+            bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+            border: 'border-emerald-100 dark:border-emerald-500/20',
           },
-          { 
-            id: 4, label: 'Favorites', value: '8', trend: '-1%', trendUp: false, icon: Heart,
-            color: 'text-pink-600 dark:text-pink-400', bg: 'bg-pink-50 dark:bg-pink-500/10', border: 'border-pink-100 dark:border-pink-500/20'
+          {
+            id: 4,
+            label: 'Favorites',
+            value: '8',
+            trend: '-1%',
+            trendUp: false,
+            icon: Heart,
+            color: 'text-pink-600 dark:text-pink-400',
+            bg: 'bg-pink-50 dark:bg-pink-500/10',
+            border: 'border-pink-100 dark:border-pink-500/20',
           },
         ],
         upcomingEvents: [
           {
-            id: 1, title: 'Summer Jazz Festival', category: 'Music', date: 'Aug 12', time: '18:00', location: 'Central Park, NY',
-            image: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=800', price: '$120'
+            id: 1,
+            title: 'Summer Jazz Festival',
+            category: 'Music',
+            date: 'Aug 12',
+            time: '18:00',
+            location: 'Central Park, NY',
+            image:
+              'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=800',
+            price: '$120',
           },
           {
-            id: 2, title: 'Global Tech Summit 2024', category: 'Technology', date: 'Sep 05', time: '09:00', location: 'Moscone Center, SF',
-            image: 'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=800', price: '$299'
+            id: 2,
+            title: 'Global Tech Summit 2024',
+            category: 'Technology',
+            date: 'Sep 05',
+            time: '09:00',
+            location: 'Moscone Center, SF',
+            image:
+              'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=800',
+            price: '$299',
           },
           {
-            id: 3, title: 'Neon Night Run', category: 'Sports', date: 'Oct 15', time: '20:00', location: 'Downtown District',
-            image: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800', price: '$45'
+            id: 3,
+            title: 'Neon Night Run',
+            category: 'Sports',
+            date: 'Oct 15',
+            time: '20:00',
+            location: 'Downtown District',
+            image:
+              'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800',
+            price: '$45',
           },
         ],
         recentBookings: [
           {
-            id: 'ORD-7729', event: 'Summer Jazz Festival', date: 'Aug 12, 2024', amount: '$120.00', status: 'Confirmed',
-            image: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=100'
+            id: 'ORD-7729',
+            event: 'Summer Jazz Festival',
+            date: 'Aug 12, 2024',
+            amount: '$120.00',
+            status: 'Confirmed',
+            image:
+              'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=100',
           },
           {
-            id: 'ORD-8102', event: 'Global Tech Summit', date: 'Sep 05, 2024', amount: '$299.00', status: 'Pending',
-            image: 'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=100'
+            id: 'ORD-8102',
+            event: 'Global Tech Summit',
+            date: 'Sep 05, 2024',
+            amount: '$299.00',
+            status: 'Pending',
+            image:
+              'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=100',
           },
           {
-            id: 'ORD-6651', event: 'Design Systems Workshop', date: 'Jul 20, 2024', amount: '$45.00', status: 'Confirmed',
-            image: 'https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&q=80&w=100'
-          }
-        ]
+            id: 'ORD-6651',
+            event: 'Design Systems Workshop',
+            date: 'Jul 20, 2024',
+            amount: '$45.00',
+            status: 'Confirmed',
+            image:
+              'https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&q=80&w=100',
+          },
+        ],
       });
     }, 1200); // Simulate network delay
   });
@@ -170,7 +236,7 @@ export default function UserDashboard() {
         const dashboardData = await fetchDashboardData();
         setData(dashboardData);
       } catch (error) {
-        console.error("Failed to load dashboard data", error);
+        logger.error('Failed to load dashboard data', error);
       } finally {
         setLoading(false);
       }
@@ -190,7 +256,7 @@ export default function UserDashboard() {
   if (loading) return <DashboardSkeleton />;
 
   return (
-    <motion.div 
+    <motion.div
       className="flex flex-1 w-full gap-8 p-4 md:p-0"
       variants={containerVariants}
       initial="hidden"
@@ -198,7 +264,6 @@ export default function UserDashboard() {
     >
       {/* ─── Left Main Content Area ─── */}
       <div className="flex-1 flex flex-col gap-8 min-w-0">
-        
         {/* ─── Hero Section ─── */}
         <motion.section variants={itemVariants} className="@container">
           <div className="relative w-full rounded-2xl overflow-hidden min-h-[300px] flex flex-col justify-end p-8 shadow-2xl group transition-all duration-500 hover:shadow-primary-900/20">
@@ -207,11 +272,11 @@ export default function UserDashboard() {
               <div className="absolute inset-0 bg-gradient-to-r from-violet-900/95 via-purple-900/90 to-transparent mix-blend-multiply" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             </div>
-            
+
             {/* Content */}
             <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="flex flex-col gap-3 max-w-2xl">
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
@@ -223,19 +288,26 @@ export default function UserDashboard() {
                   </span>
                   <span className="text-xs font-medium text-white/90">Account Active</span>
                 </motion.div>
-                
+
                 <h1 className="text-white text-3xl md:text-5xl font-black tracking-tight drop-shadow-lg leading-tight">
-                  Welcome back, <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300 animate-gradient-x">Alex!</span>
+                  Welcome back, <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300 animate-gradient-x">
+                    Alex!
+                  </span>
                 </h1>
-                
+
                 <p className="text-blue-50/80 text-base md:text-lg font-medium max-w-lg leading-relaxed">
-                  Ready for your next adventure? You have <span className="text-white font-bold underline decoration-purple-400 decoration-2 underline-offset-4">{data?.upcomingEvents.length} upcoming events</span> scheduled for this month.
+                  Ready for your next adventure? You have{' '}
+                  <span className="text-white font-bold underline decoration-purple-400 decoration-2 underline-offset-4">
+                    {data?.upcomingEvents.length} upcoming events
+                  </span>{' '}
+                  scheduled for this month.
                 </p>
               </div>
 
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   className="bg-white text-violet-700 hover:bg-blue-50 border-none shadow-xl shadow-violet-900/20 font-bold px-8 py-4 rounded-xl h-auto text-base group/btn"
                 >
                   <span>Explore Events</span>
@@ -247,28 +319,46 @@ export default function UserDashboard() {
         </motion.section>
 
         {/* ─── Stats Grid ─── */}
-        <motion.section variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {data?.stats.map((stat) => (
-            <motion.div key={stat.id} whileHover={{ y: -4 }} transition={{ type: 'spring', stiffness: 300 }}>
-              <Card className={cn("border bg-white dark:bg-neutral-800 shadow-sm hover:shadow-md transition-all duration-300", stat.border)}>
+        <motion.section
+          variants={itemVariants}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        >
+          {data?.stats.map(stat => (
+            <motion.div
+              key={stat.id}
+              whileHover={{ y: -4 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+            >
+              <Card
+                className={cn(
+                  'border bg-white dark:bg-neutral-800 shadow-sm hover:shadow-md transition-all duration-300',
+                  stat.border
+                )}
+              >
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-4">
-                    <div className={cn("p-2.5 rounded-xl shadow-inner", stat.bg, stat.color)}>
+                    <div className={cn('p-2.5 rounded-xl shadow-inner', stat.bg, stat.color)}>
                       <stat.icon size={22} strokeWidth={2.5} />
                     </div>
-                    <div className={cn(
-                      "px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border",
-                      stat.trendUp 
-                        ? "text-emerald-700 bg-emerald-50 border-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20" 
-                        : "text-rose-700 bg-rose-50 border-rose-100 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20"
-                    )}>
-                      {stat.trendUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />} 
+                    <div
+                      className={cn(
+                        'px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border',
+                        stat.trendUp
+                          ? 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20'
+                          : 'text-rose-700 bg-rose-50 border-rose-100 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20'
+                      )}
+                    >
+                      {stat.trendUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                       {stat.trend}
                     </div>
                   </div>
                   <div>
-                    <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium tracking-wide">{stat.label}</p>
-                    <p className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mt-1 tracking-tight">{stat.value}</p>
+                    <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium tracking-wide">
+                      {stat.label}
+                    </p>
+                    <p className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mt-1 tracking-tight">
+                      {stat.value}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -284,16 +374,18 @@ export default function UserDashboard() {
                 <Ticket className="text-primary-600 size-5" />
                 Upcoming Events
               </h3>
-              <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">Don't miss out on your scheduled activities</p>
+              <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
+                Don't miss out on your scheduled activities
+              </p>
             </div>
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => scrollEvents('left')}
                 className="size-9 rounded-full border border-slate-200 dark:border-neutral-700 flex items-center justify-center hover:bg-white dark:hover:bg-neutral-800 hover:shadow-md transition-all text-slate-600 dark:text-neutral-300"
               >
                 <ArrowLeft size={16} />
               </button>
-              <button 
+              <button
                 onClick={() => scrollEvents('right')}
                 className="size-9 rounded-full border border-slate-200 dark:border-neutral-700 flex items-center justify-center hover:bg-white dark:hover:bg-neutral-800 hover:shadow-md transition-all text-slate-600 dark:text-neutral-300"
               >
@@ -301,36 +393,38 @@ export default function UserDashboard() {
               </button>
             </div>
           </div>
-          
-          <div 
+
+          <div
             id="events-container"
             className="flex gap-6 overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide snap-x"
           >
-            {data?.upcomingEvents.map((event) => (
-              <motion.div 
+            {data?.upcomingEvents.map(event => (
+              <motion.div
                 key={event.id}
                 whileHover={{ scale: 1.02 }}
                 className="min-w-[300px] md:min-w-[340px] snap-center bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-neutral-700 shadow-sm hover:shadow-xl dark:hover:shadow-neutral-900/50 transition-all duration-300 flex flex-col group"
               >
                 {/* Image Section */}
                 <div className="h-40 bg-gray-100 relative overflow-hidden">
-                  <img 
-                    src={event.image} 
+                  <img
+                    src={event.image}
                     alt={event.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                  
+
                   <div className="absolute top-3 right-3 bg-white/90 dark:bg-neutral-900/90 backdrop-blur text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm border border-white/20">
                     {event.category}
                   </div>
-                  
+
                   <div className="absolute bottom-3 left-4 text-white">
-                    <p className="text-xs font-medium opacity-90 uppercase tracking-wider">{event.date}</p>
+                    <p className="text-xs font-medium opacity-90 uppercase tracking-wider">
+                      {event.date}
+                    </p>
                     <p className="text-sm font-bold">{event.time}</p>
                   </div>
                 </div>
-                
+
                 {/* Info Section */}
                 <div className="p-5 flex-1 flex flex-col justify-between">
                   <div className="space-y-3">
@@ -342,9 +436,11 @@ export default function UserDashboard() {
                       <span className="line-clamp-1">{event.location}</span>
                     </div>
                   </div>
-                  
+
                   <div className="mt-5 pt-4 border-t border-slate-100 dark:border-neutral-700 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{event.price}</span>
+                    <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {event.price}
+                    </span>
                     <button className="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 flex items-center gap-1 hover:underline">
                       View Ticket <ChevronRight size={14} />
                     </button>
@@ -356,22 +452,33 @@ export default function UserDashboard() {
         </motion.section>
 
         {/* ─── Recent Bookings Table ─── */}
-        <motion.section variants={itemVariants} className="bg-white dark:bg-neutral-800 rounded-2xl border border-slate-200 dark:border-neutral-700 overflow-hidden shadow-sm">
+        <motion.section
+          variants={itemVariants}
+          className="bg-white dark:bg-neutral-800 rounded-2xl border border-slate-200 dark:border-neutral-700 overflow-hidden shadow-sm"
+        >
           <div className="px-6 py-5 border-b border-slate-200 dark:border-neutral-700 flex items-center justify-between bg-slate-50/50 dark:bg-neutral-800/50">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Clock className="text-slate-400" size={20} />
               Recent Bookings
             </h3>
             <div className="flex gap-2">
-              <Button size="sm" variant="ghost" className="text-slate-500 hover:text-slate-700 dark:text-neutral-400">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-slate-500 hover:text-slate-700 dark:text-neutral-400"
+              >
                 <Filter size={16} className="mr-2" /> Filter
               </Button>
-              <Button size="sm" variant="secondary" className="border-slate-200 dark:border-neutral-700">
+              <Button
+                size="sm"
+                variant="secondary"
+                className="border-slate-200 dark:border-neutral-700"
+              >
                 View All
               </Button>
             </div>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -385,9 +492,9 @@ export default function UserDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-neutral-700">
-                {data?.recentBookings.map((booking) => (
-                  <motion.tr 
-                    key={booking.id} 
+                {data?.recentBookings.map(booking => (
+                  <motion.tr
+                    key={booking.id}
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
@@ -395,23 +502,41 @@ export default function UserDashboard() {
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
-                        <div className="size-10 rounded-lg bg-cover bg-center shadow-sm border border-slate-100 dark:border-neutral-700" style={{ backgroundImage: `url('${booking.image}')` }} />
+                        <div
+                          className="size-10 rounded-lg bg-cover bg-center shadow-sm border border-slate-100 dark:border-neutral-700"
+                          style={{ backgroundImage: `url('${booking.image}')` }}
+                        />
                         <span className="font-semibold text-slate-900 dark:text-white group-hover:text-primary-600 transition-colors">
                           {booking.event}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-neutral-400">{booking.date}</td>
-                    <td className="px-6 py-4 text-sm font-mono text-slate-500 dark:text-neutral-500 bg-slate-50 dark:bg-neutral-900 px-2 py-1 rounded w-fit">{booking.id}</td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">{booking.amount}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-neutral-400">
+                      {booking.date}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span className="font-mono text-slate-500 dark:text-neutral-500 bg-slate-50 dark:bg-neutral-900 px-2 py-1 rounded inline-block">
+                        {booking.id}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">
+                      {booking.amount}
+                    </td>
                     <td className="px-6 py-4">
-                      <span className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border",
-                        booking.status === 'Confirmed' 
-                          ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20" 
-                          : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
-                      )}>
-                        <span className={cn("size-1.5 rounded-full animate-pulse", booking.status === 'Confirmed' ? "bg-green-500" : "bg-amber-500")} />
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border',
+                          booking.status === 'Confirmed'
+                            ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20'
+                            : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            'size-1.5 rounded-full animate-pulse',
+                            booking.status === 'Confirmed' ? 'bg-green-500' : 'bg-amber-500'
+                          )}
+                        />
                         {booking.status}
                       </span>
                     </td>
@@ -429,32 +554,38 @@ export default function UserDashboard() {
       </div>
 
       {/* ─── Right Sidebar (Desktop Only) ─── */}
-      <motion.aside 
-        variants={itemVariants}
-        className="hidden xl:flex w-80 flex-col gap-6 pt-0"
-      >
+      <motion.aside variants={itemVariants} className="hidden xl:flex w-80 flex-col gap-6 pt-0">
         <div className="sticky top-28 space-y-6">
-          
           {/* Quick Actions Widget */}
           <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-slate-200 dark:border-neutral-700 shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary-500/10 to-purple-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 relative z-10">Quick Actions</h3>
-            
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 relative z-10">
+              Quick Actions
+            </h3>
+
             <div className="grid grid-cols-1 gap-3 relative z-10">
-              {QUICK_ACTIONS.map((action) => (
-                <motion.button 
+              {QUICK_ACTIONS.map(action => (
+                <motion.button
                   key={action.label}
                   whileHover={{ scale: 1.02, x: 4 }}
                   whileTap={{ scale: 0.98 }}
                   className="flex items-center gap-4 w-full p-3.5 rounded-xl bg-slate-50 dark:bg-neutral-900/50 hover:bg-white dark:hover:bg-neutral-700 border border-transparent hover:border-slate-200 dark:hover:border-neutral-600 hover:shadow-md transition-all duration-200 text-left group/btn"
                 >
-                  <div className={cn("size-10 rounded-xl bg-white dark:bg-neutral-800 flex items-center justify-center shadow-sm group-hover/btn:scale-110 transition-transform", action.color)}>
+                  <div
+                    className={cn(
+                      'size-10 rounded-xl bg-white dark:bg-neutral-800 flex items-center justify-center shadow-sm group-hover/btn:scale-110 transition-transform',
+                      action.color
+                    )}
+                  >
                     <action.icon size={20} strokeWidth={2.5} />
                   </div>
                   <span className="font-semibold text-slate-700 dark:text-neutral-200 group-hover/btn:text-primary-600 dark:group-hover/btn:text-white transition-colors">
                     {action.label}
                   </span>
-                  <ChevronRight className="ml-auto text-slate-300 group-hover/btn:text-primary-500 opacity-0 group-hover/btn:opacity-100 transition-all" size={16} />
+                  <ChevronRight
+                    className="ml-auto text-slate-300 group-hover/btn:text-primary-500 opacity-0 group-hover/btn:opacity-100 transition-all"
+                    size={16}
+                  />
                 </motion.button>
               ))}
             </div>
@@ -468,10 +599,12 @@ export default function UserDashboard() {
                 <MoreVertical size={18} />
               </button>
             </div>
-            
+
             <div className="grid grid-cols-7 gap-y-4 gap-x-2 text-center text-sm">
-              {['S','M','T','W','T','F','S'].map(d => (
-                <span key={d} className="text-slate-500 font-medium text-xs">{d}</span>
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
+                <span key={d} className="text-slate-500 font-medium text-xs">
+                  {d}
+                </span>
               ))}
               {/* Calendar Days Logic (Visual Only) */}
               {[...Array(31)].map((_, i) => {
@@ -480,10 +613,14 @@ export default function UserDashboard() {
                 const hasEvent = [5, 12, 15].includes(day);
                 return (
                   <div key={day} className="relative flex justify-center">
-                    <span className={cn(
-                      "flex size-8 items-center justify-center rounded-full text-sm transition-all cursor-pointer hover:bg-white/10",
-                      isToday ? "bg-primary-600 text-white font-bold shadow-lg shadow-primary-900/50" : "text-slate-300"
-                    )}>
+                    <span
+                      className={cn(
+                        'flex size-8 items-center justify-center rounded-full text-sm transition-all cursor-pointer hover:bg-white/10',
+                        isToday
+                          ? 'bg-primary-600 text-white font-bold shadow-lg shadow-primary-900/50'
+                          : 'text-slate-300'
+                      )}
+                    >
                       {day}
                     </span>
                     {hasEvent && !isToday && (
@@ -517,10 +654,8 @@ export default function UserDashboard() {
               </p>
             </div>
           </div>
-
         </div>
       </motion.aside>
-
     </motion.div>
   );
 }
@@ -537,14 +672,20 @@ function DashboardSkeleton() {
         <div className="w-full h-[300px] rounded-2xl bg-slate-200 dark:bg-neutral-800 animate-pulse" />
         {/* Stats Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="h-32 rounded-xl bg-slate-200 dark:bg-neutral-800 animate-pulse" />
+          {[1, 2, 3, 4].map(i => (
+            <div
+              key={i}
+              className="h-32 rounded-xl bg-slate-200 dark:bg-neutral-800 animate-pulse"
+            />
           ))}
         </div>
         {/* Carousel Skeleton */}
         <div className="flex gap-6 overflow-hidden">
-          {[1,2,3].map(i => (
-            <div key={i} className="min-w-[300px] h-80 rounded-2xl bg-slate-200 dark:bg-neutral-800 animate-pulse" />
+          {[1, 2, 3].map(i => (
+            <div
+              key={i}
+              className="min-w-[300px] h-80 rounded-2xl bg-slate-200 dark:bg-neutral-800 animate-pulse"
+            />
           ))}
         </div>
       </div>

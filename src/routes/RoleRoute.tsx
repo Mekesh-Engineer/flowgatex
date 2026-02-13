@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { ReactNode } from 'react';
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import useAuth from '@/features/auth/hooks/useAuth';
 import { UserRole } from '@/lib/constants';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { ROLE_DASHBOARDS } from './routes.config';
@@ -48,7 +48,7 @@ function RoleRoute({ children, allowedRoles, redirectTo }: RoleRouteProps) {
     // Redirect to user's default dashboard based on their role
     const userDashboard = user?.role ? ROLE_DASHBOARDS[user.role as UserRole] : '/dashboard';
     const fallback = redirectTo || userDashboard || '/dashboard';
-    
+
     return <Navigate to={fallback} replace />;
   }
 

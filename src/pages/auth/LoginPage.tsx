@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Smartphone, AlertCircle, Loader2, Sun, Moon, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -9,6 +9,8 @@ import { ROLE_DASHBOARDS } from '@/routes/routes.config';
 import { UserRole } from '@/lib/constants';
 import { useThemeStore } from '@/store/zustand/stores';
 import PromoPanel from '@/features/auth/components/PromoPanel';
+import RoleSelector from '@/features/auth/components/RoleSelector';
+import type { SignupRole } from '@/features/auth/types/registration.types';
 
 // =============================================================================
 // VALIDATION HELPERS
@@ -81,9 +83,14 @@ export default function LoginPage() {
   // Theme
   const { isDarkMode, toggleTheme } = useThemeStore();
 
+  // Navigation
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<SignupRole>('attendee');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => {
     return localStorage.getItem('flowgatex_remember') === 'true';
@@ -95,8 +102,6 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [loginSuccess, setLoginSuccess] = useState(false);
-
-  const navigate = useNavigate();
 
   // Sync theme class on <html>
   useEffect(() => {
@@ -128,12 +133,17 @@ export default function LoginPage() {
 
       setLoading(true);
       try {
-        await loginWithEmail({ email: email.trim(), password });
+        await loginWithEmail({ email: email.trim(), password, role: selectedRole });
 
         // Fetch user profile to determine role-based redirect
         const firebaseUser = auth?.currentUser;
         let targetPath = '/dashboard';
-        if (firebaseUser) {
+
+        // Check if user was trying to access a protected route before login
+        const from = (location.state as any)?.from?.pathname;
+        if (from && from !== '/login' && from !== '/register') {
+          targetPath = from;
+        } else if (firebaseUser) {
           try {
             const userProfile = await getUserData(firebaseUser.uid);
             const targetRole = (userProfile?.role as UserRole) || UserRole.USER;
@@ -156,20 +166,31 @@ export default function LoginPage() {
 
         // Navigate after a short delay so confetti is visible
         setTimeout(() => {
-          navigate(targetPath);
+          navigate(targetPath, { replace: true });
         }, 1400);
       } catch (error: unknown) {
         const err = error as { code?: string; message?: string };
-        const message =
-          err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password'
-            ? 'Invalid email or password. Please try again.'
-            : err.message || 'Login failed. Please try again later.';
+        let message: string;
+
+        if (err.code === 'auth/unauthorized-role') {
+          // Show the specific role mismatch message from the service
+          message = err.message || 'Role mismatch. Please select the correct role above and try again.';
+        } else if (
+          err.code === 'auth/invalid-credential' ||
+          err.code === 'auth/user-not-found' ||
+          err.code === 'auth/wrong-password'
+        ) {
+          message = 'Invalid email or password. Please try again.';
+        } else {
+          message = err.message || 'Login failed. Please try again later.';
+        }
+
         setErrors({ general: message });
       } finally {
         setLoading(false);
       }
     },
-    [email, password, rememberMe, navigate]
+    [email, password, selectedRole, rememberMe, navigate, location]
   );
 
   const handleGoogleLogin = useCallback(async () => {
@@ -181,7 +202,12 @@ export default function LoginPage() {
       // Fetch user profile to determine role-based redirect
       const firebaseUser = auth?.currentUser;
       let targetPath = '/dashboard';
-      if (firebaseUser) {
+
+      // Check if user was trying to access a protected route before login
+      const from = (location.state as any)?.from?.pathname;
+      if (from && from !== '/login' && from !== '/register') {
+        targetPath = from;
+      } else if (firebaseUser) {
         try {
           const userProfile = await getUserData(firebaseUser.uid);
           const targetRole = (userProfile?.role as UserRole) || UserRole.USER;
@@ -193,7 +219,7 @@ export default function LoginPage() {
 
       setLoginSuccess(true);
       fireConfetti();
-      setTimeout(() => navigate(targetPath), 1400);
+      setTimeout(() => navigate(targetPath, { replace: true }), 1400);
     } catch (error: unknown) {
       const err = error as { message?: string };
       setErrors({ general: err.message || 'Google sign-in failed. Please try again.' });
@@ -269,14 +295,14 @@ export default function LoginPage() {
       <PromoPanel />
 
       {/* ============ RIGHT SIDE — LOGIN FORM ============ */}
-      <div className="w-full lg:w-1/2 bg-[var(--bg-surface)] h-full flex items-center justify-center px-6 py-8 sm:p-8 overflow-y-auto transition-colors duration-300 relative">
+      <div className="w-full lg:w-1/2 bg-[var(--bg-surface)] h-full flex flex-col px-6 py-8 sm:p-8 overflow-y-auto transition-colors duration-300 relative">
 
         {/* Animated floating orbs (lime-green + blue accents) */}
         <div className="login-orb login-orb-1" />
         <div className="login-orb login-orb-2" />
 
         <motion.div
-          className="w-full max-w-[420px] space-y-7 relative z-10"
+          className="w-full max-w-[420px] my-auto mx-auto space-y-7 relative z-10"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -292,20 +318,52 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Success banner */}
+
+          {/* Success Floating Notification */}
           <AnimatePresence>
             {loginSuccess && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2.5 rounded-xl border border-[var(--color-primary)]/40 bg-[var(--color-primary)]/10 px-4 py-3 text-sm font-medium"
-                style={{ color: 'var(--color-primary)' }}
+                initial={{ opacity: 0, y: -50, x: '-50%' }}
+                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                exit={{ opacity: 0, y: -20, x: '-50%' }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 role="status"
                 aria-live="polite"
+                style={{
+                  // Positioning
+                  position: 'fixed',
+                  top: '24px',
+                  left: '50%',
+                  zIndex: 9999, // Ensures it floats above other content
+
+                  // Layout
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+
+                  // Sizing & Spacing
+                  padding: '12px 24px',
+                  borderRadius: '16px',
+                  minWidth: '300px',
+
+                  // Visuals (Glassmorphism & Colors)
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)', // Solid/Glass background for legibility
+                  color: 'var(--color-primary)',
+                  border: '1px solid var(--color-primary)',
+                  boxShadow: '0 10px 30px -10px rgba(0,0,0,0.15)', // Floating shadow depth
+                  backdropFilter: 'blur(12px)',
+
+                  // Typography
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap'
+                }}
               >
-                <Activity className="size-5 shrink-0" aria-hidden="true" />
-                Login successful! Redirecting...
+                <Activity
+                  style={{ width: '20px', height: '20px', flexShrink: 0 }}
+                  aria-hidden="true"
+                />
+                <span>Login successful! Redirecting...</span>
               </motion.div>
             )}
           </AnimatePresence>
@@ -329,6 +387,18 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+
+            {/* Role Selector */}
+            <div className="space-y-1.5">
+              <label className="block text-sm font-semibold text-[var(--text-primary)]">
+                Login as
+              </label>
+              <RoleSelector
+                value={selectedRole}
+                onChange={setSelectedRole}
+                disabled={isDisabled}
+              />
+            </div>
 
             {/* Email Field */}
             <div className="space-y-1.5">
@@ -359,11 +429,10 @@ export default function LoginPage() {
                   onBlur={() => handleBlur('email')}
                   placeholder="name@example.com"
                   disabled={isDisabled}
-                  className={`w-full pl-11 pr-4 py-3 rounded-xl border bg-[var(--bg-base)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all text-sm font-medium shadow-sm outline-none disabled:opacity-60 login-primary-input ${
-                    touched.email && errors.email
-                      ? 'border-red-500/60'
-                      : 'border-[var(--border-primary)]'
-                  }`}
+                  className={`w-full pl-11 pr-4 py-3 rounded-xl border bg-[var(--bg-base)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all text-sm font-medium shadow-sm outline-none disabled:opacity-60 login-primary-input ${touched.email && errors.email
+                    ? 'border-red-500/60'
+                    : 'border-[var(--border-primary)]'
+                    }`}
                 />
               </div>
               {fieldError('email')}
@@ -398,11 +467,10 @@ export default function LoginPage() {
                   onBlur={() => handleBlur('password')}
                   placeholder="Enter your password"
                   disabled={isDisabled}
-                  className={`w-full pl-11 pr-11 py-3 rounded-xl border bg-[var(--bg-base)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all text-sm font-medium shadow-sm outline-none disabled:opacity-60 login-primary-input ${
-                    touched.password && errors.password
-                      ? 'border-red-500/60'
-                      : 'border-[var(--border-primary)]'
-                  }`}
+                  className={`w-full pl-11 pr-11 py-3 rounded-xl border bg-[var(--bg-base)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)] transition-all text-sm font-medium shadow-sm outline-none disabled:opacity-60 login-primary-input ${touched.password && errors.password
+                    ? 'border-red-500/60'
+                    : 'border-[var(--border-primary)]'
+                    }`}
                 />
                 <button
                   type="button"
@@ -454,9 +522,8 @@ export default function LoginPage() {
               aria-busy={loading}
               whileHover={!isDisabled ? { scale: 1.01, y: -2 } : {}}
               whileTap={!isDisabled ? { scale: 0.98 } : {}}
-              className={`w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed ${
-                loading ? 'login-btn-pulse' : ''
-              }`}
+              className={`w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed ${loading ? 'login-btn-pulse' : ''
+                }`}
             >
               <span className="relative z-10 flex items-center gap-2">
                 {loading ? (

@@ -144,7 +144,7 @@ Create `vercel.json` in project root:
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://api.razorpay.com"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://www.googletagmanager.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://api.razorpay.com"
         }
       ]
     },
@@ -191,8 +191,6 @@ vercel env add VITE_FIREBASE_APP_ID
 
 vercel env add VITE_RAZORPAY_KEY_ID
 vercel env add RAZORPAY_KEY_SECRET
-
-vercel env add VITE_GOOGLE_MAPS_API_KEY
 ```
 
 **Option B: Via Vercel Dashboard**
@@ -708,8 +706,8 @@ VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
 VITE_RAZORPAY_KEY_ID=rzp_test_xxxxx
 RAZORPAY_KEY_SECRET=secret_test_xxxxx
 
-# Google Maps
-VITE_GOOGLE_MAPS_API_KEY=AIza...
+# Maps (Leaflet + OpenStreetMap)
+# No API key required
 
 # App Config
 VITE_APP_URL=http://localhost:3000
@@ -739,8 +737,8 @@ VITE_FIREBASE_APP_ID=1:987654321:web:zyxwvu
 VITE_RAZORPAY_KEY_ID=rzp_live_xxxxx
 RAZORPAY_KEY_SECRET=secret_live_xxxxx
 
-# Google Maps
-VITE_GOOGLE_MAPS_API_KEY=AIza...
+# Maps (Leaflet + OpenStreetMap)
+# No API key required
 
 # App Config
 VITE_APP_URL=https://flowgatex.com
@@ -882,8 +880,8 @@ export default defineConfig({
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://unpkg.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com;
         font-src 'self' https://fonts.gstatic.com;
         img-src 'self' data: https:;
         connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com;

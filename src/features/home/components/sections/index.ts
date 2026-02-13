@@ -1,0 +1,11 @@
+export { HeroSection } from './HeroSection';
+export { StatsSection } from './StatsSection';
+export { TrendingSection } from './TrendingSection';
+export { FeaturesGridSection } from './FeaturesGridSection';
+export { CollectionsSection } from './CollectionsSection';
+export { HowItWorksSection } from './HowItWorksSection';
+export { CaseStudySection } from './CaseStudySection';
+export { ReviewSection } from './ReviewSection';
+export { NewsletterSection } from './NewsletterSection';
+export { CTASection } from './CTASection';
+export { VideoModal } from './VideoModal';

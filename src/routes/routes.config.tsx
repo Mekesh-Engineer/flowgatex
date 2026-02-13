@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import { RouteObject } from 'react-router-dom';
 import { UserRole } from '@/lib/constants';
+import { ROUTES } from './paths';
 
 // =============================================================================
 // ROLE-BASED ROUTING CONFIGURATION
@@ -18,6 +19,8 @@ import { UserRole } from '@/lib/constants';
 const HomePage = lazy(() => import('@/pages/public/HomePage'));
 const AboutPage = lazy(() => import('@/pages/public/AboutPage'));
 const ContactPage = lazy(() => import('@/pages/public/ContactPage'));
+const SearchResultsPage = lazy(() => import('@/pages/public/SearchResultsPage'));
+const CategoryPage = lazy(() => import('@/pages/public/CategoryPage'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AUTH PAGES (Unauthenticated users only)
@@ -25,6 +28,7 @@ const ContactPage = lazy(() => import('@/pages/public/ContactPage'));
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // EVENT PAGES (Mixed access levels)
@@ -44,8 +48,25 @@ const BookingSuccessPage = lazy(() => import('@/pages/booking/BookingSuccessPage
 // DASHBOARD PAGES (Role-specific)
 // ─────────────────────────────────────────────────────────────────────────────
 const UserDashboard = lazy(() => import('@/pages/dashboard/Attendee/UserDashboard'));
+const MyBookingsPage = lazy(() => import('@/pages/dashboard/Attendee/MyBookingsPage'));
+const FavoritesPage = lazy(() => import('@/pages/dashboard/Attendee/FavoritesPage'));
+const WalletPage = lazy(() => import('@/pages/dashboard/Attendee/WalletPage'));
+const SettingsPage = lazy(() => import('@/pages/dashboard/Attendee/SettingsPage'));
+
 const OrganizerDashboard = lazy(() => import('@/pages/dashboard/Organizer/OrganizerDashboard'));
+const MyEventsPage = lazy(() => import('@/pages/dashboard/Organizer/MyEventsPage'));
+const EventAnalyticsPage = lazy(() => import('@/pages/dashboard/Organizer/EventAnalyticsPage'));
+const AttendeeManagementPage = lazy(() => import('@/pages/dashboard/Organizer/AttendeeManagementPage'));
+const PayoutsPage = lazy(() => import('@/pages/dashboard/Organizer/PayoutsPage'));
+const IoTDevicesPage = lazy(() => import('@/pages/dashboard/Organizer/IoTDevicesPage'));
+const MarketingToolsPage = lazy(() => import('@/pages/dashboard/Organizer/MarketingToolsPage'));
+
 const AdminDashboard = lazy(() => import('@/pages/dashboard/Admin/AdminDashboard'));
+const UserManagementPage = lazy(() => import('@/pages/dashboard/Admin/UserManagementPage'));
+const OrganizerApprovalsPage = lazy(() => import('@/pages/dashboard/Admin/OrganizerApprovalsPage'));
+const EventModerationPage = lazy(() => import('@/pages/dashboard/Admin/EventModerationPage'));
+const PlatformSettingsPage = lazy(() => import('@/pages/dashboard/Admin/PlatformSettingsPage'));
+const ReportsPage = lazy(() => import('@/pages/dashboard/Admin/ReportsPage'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COMMON AUTH PAGES (Protected)
@@ -77,11 +98,13 @@ export interface AppRoute {
 // Access: Everyone
 // =============================================================================
 export const publicRoutes: RouteObject[] = [
-  { path: '/', element: <HomePage /> },
-  { path: '/about', element: <AboutPage /> },
-  { path: '/contact', element: <ContactPage /> },
-  { path: '/events', element: <EventsPage /> },
+  { path: ROUTES.HOME, element: <HomePage /> },
+  { path: ROUTES.ABOUT, element: <AboutPage /> },
+  { path: ROUTES.CONTACT, element: <ContactPage /> },
+  { path: ROUTES.EVENTS, element: <EventsPage /> },
   { path: '/events/:id', element: <EventDetailsPage /> },
+  { path: ROUTES.SEARCH, element: <SearchResultsPage /> },
+  { path: ROUTES.CATEGORY, element: <CategoryPage /> },
 ];
 
 // =============================================================================
@@ -89,9 +112,10 @@ export const publicRoutes: RouteObject[] = [
 // Access: Guest users
 // =============================================================================
 export const authRoutes: RouteObject[] = [
-  { path: '/login', element: <LoginPage /> },
-  { path: '/register', element: <RegisterPage /> },
-  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: ROUTES.LOGIN, element: <LoginPage /> },
+  { path: ROUTES.REGISTER, element: <RegisterPage /> },
+  { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
+  { path: ROUTES.RESET_PASSWORD, element: <ResetPasswordPage /> },
 ];
 
 // =============================================================================
@@ -104,19 +128,19 @@ export const authRoutes: RouteObject[] = [
 // - Ticket history and QR codes
 // =============================================================================
 export const protectedRoutes: RouteObject[] = [
-  { path: '/dashboard', element: <UserDashboard /> },
-  { path: '/checkout', element: <CheckoutPage /> },
-  { path: '/booking/success', element: <BookingSuccessPage /> },
-  
+  { path: ROUTES.DASHBOARD, element: <UserDashboard /> },
+  { path: ROUTES.CHECKOUT, element: <CheckoutPage /> },
+  { path: ROUTES.BOOKING_SUCCESS, element: <BookingSuccessPage /> },
+
   // Common Protected Routes
-  { path: '/profile', element: <UserProfile /> },
-  { path: '/support', element: <SupportPage /> },
-  
-  // Additional user routes can be added here:
-  // { path: '/tickets', element: <MyTicketsPage /> },
-  // { path: '/tickets/:id', element: <TicketDetailsPage /> },
-  // { path: '/wallet', element: <DigitalWalletPage /> },
-  // { path: '/settings', element: <UserSettingsPage /> },
+  { path: ROUTES.PROFILE, element: <UserProfile /> },
+  { path: ROUTES.SUPPORT, element: <SupportPage /> },
+
+  // Attendee Dashboard Routes
+  { path: ROUTES.MY_BOOKINGS, element: <MyBookingsPage /> },
+  { path: ROUTES.FAVORITES, element: <FavoritesPage /> },
+  { path: ROUTES.WALLET, element: <WalletPage /> },
+  { path: ROUTES.SETTINGS, element: <SettingsPage /> },
 ];
 
 // =============================================================================
@@ -132,23 +156,19 @@ export const protectedRoutes: RouteObject[] = [
 // =============================================================================
 export const organizerRoutes: RouteObject[] = [
   // Main organizer dashboard
-  { path: '/organizer', element: <OrganizerDashboard /> },
-  
+  { path: ROUTES.ORGANIZER, element: <OrganizerDashboard /> },
+
   // Event management
-  { path: '/organizer/events/create', element: <CreateEventPage /> },
+  { path: ROUTES.CREATE_EVENT, element: <CreateEventPage /> },
   { path: '/organizer/events/:id/manage', element: <ManageEventPage /> },
-  // { path: '/organizer/events/:id/edit', element: <EditEventPage /> },
-  // { path: '/organizer/events/:id/analytics', element: <EventAnalyticsPage /> },
-  // { path: '/organizer/events/:id/attendees', element: <AttendeeListPage /> },
-  // { path: '/organizer/events/:id/check-in', element: <CheckInPage /> },
-  
-  // Additional organizer features (uncomment when pages are ready):
-  // { path: '/organizer/analytics', element: <OrganizerAnalyticsPage /> },
-  // { path: '/organizer/payments', element: <PaymentsDashboardPage /> },
-  // { path: '/organizer/iot-devices', element: <IoTManagementPage /> },
-  // { path: '/organizer/communications', element: <CommunicationsPage /> },
-  // { path: '/organizer/reports', element: <ReportsPage /> },
-  // { path: '/organizer/settings', element: <OrganizerSettingsPage /> },
+
+  // Organizer feature pages
+  { path: ROUTES.ORGANIZER_EVENTS, element: <MyEventsPage /> },
+  { path: ROUTES.EVENT_ANALYTICS, element: <EventAnalyticsPage /> },
+  { path: ROUTES.ATTENDEE_MANAGEMENT, element: <AttendeeManagementPage /> },
+  { path: ROUTES.PAYOUTS, element: <PayoutsPage /> },
+  { path: ROUTES.IOT_DEVICES, element: <IoTDevicesPage /> },
+  { path: ROUTES.MARKETING, element: <MarketingToolsPage /> },
 ];
 
 // =============================================================================
@@ -164,20 +184,14 @@ export const organizerRoutes: RouteObject[] = [
 // =============================================================================
 export const adminRoutes: RouteObject[] = [
   // Main admin dashboard
-  { path: '/admin', element: <AdminDashboard /> },
-  
-  // Additional admin features (uncomment when pages are ready):
-  // { path: '/admin/users', element: <UserManagementPage /> },
-  // { path: '/admin/users/:id', element: <UserDetailsPage /> },
-  // { path: '/admin/roles', element: <RoleManagementPage /> },
-  // { path: '/admin/events', element: <AllEventsPage /> },
-  // { path: '/admin/analytics', element: <PlatformAnalyticsPage /> },
-  // { path: '/admin/system-health', element: <SystemHealthPage /> },
-  // { path: '/admin/payments', element: <PaymentMonitoringPage /> },
-  // { path: '/admin/reports', element: <AdminReportsPage /> },
-  // { path: '/admin/audit-logs', element: <AuditLogsPage /> },
-  // { path: '/admin/settings', element: <SystemSettingsPage /> },
-  // { path: '/admin/support', element: <SupportTicketsPage /> },
+  { path: ROUTES.ADMIN, element: <AdminDashboard /> },
+
+  // Admin feature pages
+  { path: ROUTES.ADMIN_USERS, element: <UserManagementPage /> },
+  { path: ROUTES.ADMIN_ORGANIZERS, element: <OrganizerApprovalsPage /> },
+  { path: ROUTES.ADMIN_EVENTS, element: <EventModerationPage /> },
+  { path: ROUTES.ADMIN_SETTINGS, element: <PlatformSettingsPage /> },
+  { path: ROUTES.ADMIN_REPORTS, element: <ReportsPage /> },
 ];
 
 // =============================================================================
@@ -192,8 +206,10 @@ export const adminRoutes: RouteObject[] = [
 // - System backups and maintenance
 // =============================================================================
 export const superAdminRoutes: RouteObject[] = [
+  // Super admin dashboard — reuses AdminDashboard with elevated privileges
+  { path: ROUTES.SUPER_ADMIN, element: <AdminDashboard /> },
+
   // Additional super admin features (uncomment when pages are ready):
-  // { path: '/superadmin', element: <SuperAdminDashboard /> },
   // { path: '/superadmin/system-config', element: <SystemConfigPage /> },
   // { path: '/superadmin/database', element: <DatabaseManagementPage /> },
   // { path: '/superadmin/api-keys', element: <ApiKeyManagementPage /> },
@@ -208,7 +224,7 @@ export const superAdminRoutes: RouteObject[] = [
 // ERROR & FALLBACK ROUTES
 // =============================================================================
 export const fallbackRoute: RouteObject = {
-  path: '*',
+  path: ROUTES.NOT_FOUND,
   element: <NotFoundPage />,
 };
 
@@ -217,10 +233,10 @@ export const fallbackRoute: RouteObject = {
 // Used for dynamic navigation and access control
 // =============================================================================
 export const ROLE_DASHBOARDS: Record<UserRole, string> = {
-  [UserRole.USER]: '/dashboard',
-  [UserRole.ORGANIZER]: '/organizer',
-  [UserRole.ADMIN]: '/admin',
-  [UserRole.SUPER_ADMIN]: '/admin', // Super admin uses admin dashboard with additional features
+  [UserRole.USER]: ROUTES.DASHBOARD,
+  [UserRole.ORGANIZER]: ROUTES.ORGANIZER,
+  [UserRole.ADMIN]: ROUTES.ADMIN,
+  [UserRole.SUPER_ADMIN]: ROUTES.SUPER_ADMIN,
 };
 
 // Export defaults

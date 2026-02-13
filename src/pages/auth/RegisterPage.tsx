@@ -1,1591 +1,1482 @@
-// =============================================================================
-// REGISTER PAGE — 4-step progressive signup: Identity → Security → Verify → Review
-// =============================================================================
-
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  User,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Building2,
-  Briefcase,
-  KeyRound,
-  ArrowRight,
-  ArrowLeft,
-  AlertCircle,
-  Loader2,
-  Sun,
-  Moon,
-  Activity,
-  MapPin,
-  CheckCircle2,
-} from 'lucide-react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-
-import { useThemeStore } from '@/store/zustand/stores';
-import PromoPanel from '@/features/auth/components/PromoPanel';
-
-import RoleSelector from '@/features/auth/components/RoleSelector';
-import StepProgress from '@/features/auth/components/StepProgress';
-import PasswordMeter from '@/features/auth/components/PasswordMeter';
-import { isPasswordValid } from '@/features/auth/utils/passwordValidation';
-import SocialButtons from '@/features/auth/components/SocialButtons';
-import ConfirmationScreen from '@/features/auth/components/ConfirmationScreen';
-import DateOfBirthPicker from '@/features/auth/components/DateOfBirthPicker';
-import { validateDob } from '@/features/auth/utils/dobValidation';
-import MobileInput from '@/features/auth/components/MobileInput';
-import { validateMobile, toE164 } from '@/features/auth/utils/mobileValidation';
-import GenderSelect from '@/features/auth/components/GenderSelect';
-import ReviewScreen from '@/features/auth/components/ReviewScreen';
-
-import type { SignupRole, Gender } from '@/features/auth/types/registration.types';
 import {
-  ERROR_MESSAGE_MAP,
-  type RegistrationErrorCode,
-} from '@/features/auth/types/registration.types';
+    Mail, Lock, User, MapPin, Calendar, ArrowRight, ArrowLeft,
+    AlertCircle, Loader2, Sparkles, Eye, EyeOff, ShieldCheck,
+    CheckCircle2, Sun, Moon, Activity, ChevronDown, RefreshCw,
+    Play, Zap, Users, TrendingUp,
+} from 'lucide-react';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import {
-  createUser,
-  validateAuthCode,
-  signUpWithGoogle,
-  signUpWithPhone,
-} from '@/features/auth/services/registrationService';
-import {
-  trackRoleSelected,
-  trackStepAdvanced,
-  trackSignupSuccess,
-  trackSignupFailure,
-  trackSocialClick,
-  trackAuthCodeValidated,
-} from '@/features/auth/hooks/useSignupAnalytics';
+    createUserWithEmailAndPassword,
+    sendEmailVerification,
+    updateProfile,
+} from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import confetti from 'canvas-confetti';
+
+import { auth, db, firebaseEnabled } from '@/lib/firebase';
+import { logger } from '@/lib/logger';
+import { UserRole } from '@/lib/constants';
+import { useAuthStore, useThemeStore, type AuthUser } from '@/store/zustand/stores';
+import { ROLE_DASHBOARDS } from '@/routes/routes.config';
 
 // =============================================================================
-// TYPES & VALIDATION
+// UTILS
 // =============================================================================
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-interface FormData {
-  // Step 1 — Identity
-  firstName: string;
-  lastName: string;
-  email: string;
-  dob: string;
-  // Step 2 — Security & Contact
-  mobile: string;
-  countryCode: string;
-  password: string;
-  confirmPassword: string;
-  gender: Gender | '';
-  termsAccepted: boolean;
-  liveLocationConsent: boolean;
-  marketingConsent: boolean;
-  whatsappConsent: boolean;
-  // Step 3 — Verify (role-specific)
-  organization: string;
-  department: string;
-  authorizationCode: string;
+function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs));
 }
 
-interface FormErrors {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  dob?: string;
-  mobile?: string;
-  password?: string;
-  confirmPassword?: string;
-  organization?: string;
-  authorizationCode?: string;
-  termsAccepted?: string;
-  general?: string;
+// =============================================================================
+// CONFIG
+// =============================================================================
+
+const MAX_STEPS = 4;
+
+// =============================================================================
+// ZOD SCHEMAS
+// =============================================================================
+
+const step1Schema = z.object({
+    firstName: z.string().min(2, 'First name is too short'),
+    lastName: z.string().min(2, 'Last name is too short'),
+    email: z.string().email('Invalid email address'),
+});
+
+const step2Schema = z.object({
+    gender: z.enum(['male', 'female', 'other'], {
+        errorMap: () => ({ message: 'Select gender' }),
+    }),
+    dob: z.string().refine(
+        (val) => {
+            const date = new Date(val);
+            if (isNaN(date.getTime())) return false;
+            const today = new Date();
+            if (date >= today) return false;
+            let age = today.getFullYear() - date.getFullYear();
+            const m = today.getMonth() - date.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < date.getDate())) age--;
+            return age >= 13;
+        },
+        'You must be at least 13 years old',
+    ),
+    location: z.string().min(3, 'City/Location is required'),
+    role: z.enum(['user', 'organizer'], {
+        errorMap: () => ({ message: 'Select a role' }),
+    }),
+});
+
+const registrationSchema = step1Schema.merge(step2Schema).merge(
+    z.object({
+        password: z
+            .string()
+            .min(8, 'Min 8 chars')
+            .regex(/[A-Z]/, 'Needs uppercase')
+            .regex(/[0-9]/, 'Needs number')
+            .regex(/[^A-Za-z0-9]/, 'Needs special char'),
+        confirmPassword: z.string(),
+        terms: z.boolean().refine((val) => val === true, {
+            message: 'You must agree to the terms',
+        }),
+    }),
+).refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+});
+
+type RegistrationFormData = z.infer<typeof registrationSchema>;
+
+// =============================================================================
+// FIREBASE REGISTRATION SERVICE
+// =============================================================================
+
+interface RegistrationResult {
+    success: boolean;
+    uid: string;
+    email: string;
+    role: string;
 }
 
-const INITIAL_FORM: FormData = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  dob: '',
-  mobile: '',
-  countryCode: '+91',
-  password: '',
-  confirmPassword: '',
-  gender: '',
-  termsAccepted: false,
-  liveLocationConsent: false,
-  marketingConsent: false,
-  whatsappConsent: false,
-  organization: '',
-  department: '',
-  authorizationCode: '',
+async function registerWithFirebase(
+    data: RegistrationFormData,
+): Promise<RegistrationResult> {
+    if (!firebaseEnabled || !auth || !db) {
+        throw new Error(
+            'Firebase is not configured. Please set up your .env.local with valid Firebase credentials.',
+        );
+    }
+
+    const emailTrimmed = data.email.trim();
+    const displayName = `${data.firstName.trim()} ${data.lastName.trim()}`;
+
+    // 1. Create Firebase Auth user
+    const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        emailTrimmed,
+        data.password,
+    );
+    const user = userCredential.user;
+
+    // 2. Set display name
+    await updateProfile(user, { displayName });
+
+    // 3. Send email verification
+    try {
+        await sendEmailVerification(user, {
+            url: `${window.location.origin}/login?verified=true`,
+            handleCodeInApp: false,
+        });
+        logger.log('📧 Verification email sent to:', emailTrimmed);
+    } catch (verifyErr) {
+        logger.warn('⚠️ Could not send verification email:', verifyErr);
+    }
+
+    const allowedRoles = ['user', 'organizer'];
+    const firestoreRole = allowedRoles.includes(data.role) ? data.role : 'user';
+
+    const userData = {
+        uid: user.uid,
+        email: emailTrimmed,
+        displayName,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
+        phoneNumber: null,
+        photoURL: null,
+        role: firestoreRole,
+        dob: data.dob || null,
+        gender: data.gender || null,
+        location: data.location || null,
+        emailVerified: false,
+        phoneVerified: false,
+        consents: {
+            terms: data.terms,
+            marketing: false,
+            whatsapp: false,
+            liveLocation: false,
+        },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        isDeleted: false,
+    };
+
+    try {
+        await setDoc(doc(db, 'users', user.uid), userData);
+        logger.log('✅ User document created in Firestore:', user.uid);
+    } catch (dbError) {
+        logger.error('⚠️ Firestore write failed (Auth user still created):', dbError);
+    }
+
+    return {
+        success: true,
+        uid: user.uid,
+        email: emailTrimmed,
+        role: firestoreRole,
+    };
+}
+
+function toUserRole(role: string): UserRole {
+    switch (role) {
+        case 'organizer':
+            return UserRole.ORGANIZER;
+        default:
+            return UserRole.USER;
+    }
+}
+
+// =============================================================================
+// HELPER: Scroll to first error in a container
+// =============================================================================
+
+function scrollToFirstError(containerRef: React.RefObject<HTMLDivElement | null>) {
+    if (!containerRef.current) return;
+    const firstError = containerRef.current.querySelector('[role="alert"]');
+    if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const errorId = firstError.getAttribute('id');
+        if (errorId) {
+            const inputId = errorId.replace('-error', '');
+            const input = containerRef.current.querySelector(`#${inputId}`) as HTMLElement | null;
+            input?.focus();
+        }
+    }
+}
+
+// =============================================================================
+// PROMO PANEL WITH VIDEO
+// =============================================================================
+
+const PromoPanel = () => {
+    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
+    useEffect(() => {
+        const video = videoRef.current;
+        if (video) {
+            video.play().catch((err) => {
+                logger.warn('Video autoplay failed:', err);
+            });
+        }
+    }, []);
+
+    const features = [
+        {
+            icon: Zap,
+            title: 'Lightning Fast',
+            description: 'Streamlined check-ins in seconds',
+        },
+        {
+            icon: Users,
+            title: 'Real-Time Insights',
+            description: 'Monitor attendance as it happens',
+        },
+        {
+            icon: TrendingUp,
+            title: 'Smart Analytics',
+            description: 'Data-driven event optimization',
+        },
+    ];
+
+    return (
+        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+            {/* Video Background */}
+            <div className="absolute inset-0 z-0">
+                <video
+                    ref={videoRef}
+                    className={cn(
+                        'absolute inset-0 w-full h-full object-cover transition-opacity duration-1000',
+                        isVideoLoaded ? 'opacity-30' : 'opacity-0',
+                    )}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    onLoadedData={() => setIsVideoLoaded(true)}
+                    poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%231e293b' width='100' height='100'/%3E%3C/svg%3E"
+                >
+                    {/* Replace these with your actual video sources */}
+                    <source
+                        src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-44911-large.mp4"
+                        type="video/mp4"
+                    />
+                    <source
+                        src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-44911-large.webm"
+                        type="video/webm"
+                    />
+                </video>
+
+                {/* Video Loading Placeholder */}
+                {!isVideoLoaded && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+                        <div className="flex flex-col items-center gap-3">
+                            <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
+                            <p className="text-sm text-slate-400">Loading experience...</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Gradient Overlays */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-transparent to-slate-900/40" />
+            </div>
+
+            {/* Content Layer */}
+            <div className="relative z-10 h-full flex flex-col justify-between p-8 lg:p-12">
+                {/* Top Section */}
+                <div className="space-y-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
+                            <Play className="w-4 h-4 text-[var(--color-primary)]" />
+                            <span className="text-sm font-medium text-white">
+                                Join 10,000+ Event Organizers
+                            </span>
+                        </div>
+                    </motion.div>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                        className="space-y-4"
+                    >
+                        <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight">
+                            Transform Your
+                            <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-blue-400">
+                                Event Experience
+                            </span>
+                        </h1>
+                        <p className="text-lg lg:text-xl text-slate-300 max-w-lg leading-relaxed">
+                            Seamless check-ins, powerful analytics, and real-time insights
+                            for events of any size.
+                        </p>
+                    </motion.div>
+                </div>
+
+                {/* Features Grid */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                    className="grid gap-4"
+                >
+                    {features.map((feature, index) => (
+                        <motion.div
+                            key={feature.title}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
+                            className="group flex items-start gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
+                        >
+                            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <feature.icon className="w-6 h-6 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-white font-semibold mb-1">
+                                    {feature.title}
+                                </h3>
+                                <p className="text-sm text-slate-400">
+                                    {feature.description}
+                                </p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </motion.div>
+
+                {/* Bottom Stats */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.9 }}
+                    className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10"
+                >
+                    {[
+                        { value: '500K+', label: 'Attendees' },
+                        { value: '15K+', label: 'Events' },
+                        { value: '99.9%', label: 'Uptime' },
+                    ].map((stat) => (
+                        <div key={stat.label} className="text-center">
+                            <div className="text-2xl lg:text-3xl font-bold text-white mb-1">
+                                {stat.value}
+                            </div>
+                            <div className="text-xs lg:text-sm text-slate-400">
+                                {stat.label}
+                            </div>
+                        </div>
+                    ))}
+                </motion.div>
+            </div>
+
+            {/* Decorative Elements */}
+            <div className="absolute top-20 right-20 w-72 h-72 bg-[var(--color-primary)] rounded-full blur-[120px] opacity-20 pointer-events-none" />
+            <div className="absolute bottom-20 left-20 w-72 h-72 bg-blue-500 rounded-full blur-[120px] opacity-20 pointer-events-none" />
+        </div>
+    );
 };
 
-function validateStep1(data: FormData): FormErrors {
-  const errors: FormErrors = {};
-  if (!data.firstName.trim()) errors.firstName = 'First name is required.';
-  if (!data.lastName.trim()) errors.lastName = 'Last name is required.';
-  const emailTrimmed = data.email.trim();
-  if (!emailTrimmed) {
-    errors.email = 'Email address is required.';
-  } else if (!EMAIL_REGEX.test(emailTrimmed)) {
-    errors.email = 'Please enter a valid email address.';
-  }
-  const dobErr = validateDob(data.dob);
-  if (dobErr) errors.dob = dobErr;
-  return errors;
-}
-
-function validateStep2(data: FormData): FormErrors {
-  const errors: FormErrors = {};
-  if (!data.password) {
-    errors.password = 'Password is required.';
-  } else if (!isPasswordValid(data.password)) {
-    errors.password = 'Password does not meet all requirements.';
-  }
-  if (!data.confirmPassword) {
-    errors.confirmPassword = 'Please confirm your password.';
-  } else if (data.password !== data.confirmPassword) {
-    errors.confirmPassword = 'Passwords do not match.';
-  }
-  const mobileErr = validateMobile(data.countryCode, data.mobile);
-  if (mobileErr) errors.mobile = mobileErr;
-  if (!data.termsAccepted) {
-    errors.termsAccepted = 'You must accept the Terms of Service.';
-  }
-  return errors;
-}
-
-function validateStep3(data: FormData, role: SignupRole): FormErrors {
-  const errors: FormErrors = {};
-  if ((role === 'organizer' || role === 'admin') && !data.authorizationCode.trim()) {
-    errors.authorizationCode = 'Authorization code is required for this role.';
-  }
-  if (role === 'organizer' && !data.organization.trim()) {
-    errors.organization = 'Organization name is required.';
-  }
-  return errors;
-}
-
 // =============================================================================
-// ANIMATION VARIANTS
+// SUB-COMPONENTS
 // =============================================================================
 
-const stepVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 60 : -60,
-    opacity: 0,
-  }),
-  center: { x: 0, opacity: 1 },
-  exit: (direction: number) => ({
-    x: direction > 0 ? -60 : 60,
-    opacity: 0,
-  }),
+const InputField = ({
+    label,
+    error,
+    icon: Icon,
+    type = 'text',
+    className,
+    registration,
+    ...props
+}: {
+    label?: string;
+    error?: { message?: string };
+    icon?: React.ElementType;
+    type?: string;
+    className?: string;
+    registration?: object;
+    [key: string]: unknown;
+}) => {
+    const inputId = props.id as string | undefined;
+    const errorId = inputId ? `${inputId}-error` : undefined;
+
+    return (
+        <div className={cn('space-y-1.5', className)}>
+            {label && (
+                <label
+                    className="block text-xs font-semibold text-[var(--text-secondary)] ml-1"
+                    htmlFor={inputId}
+                >
+                    {label}
+                </label>
+            )}
+            <div className="relative group">
+                {Icon && (
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)] group-focus-within:text-[var(--color-primary)] transition-colors pointer-events-none">
+                        <Icon size={18} aria-hidden="true" />
+                    </div>
+                )}
+                <input
+                    type={type}
+                    className={cn(
+                        'register-input login-primary-input w-full',
+                        Icon && 'register-input--icon',
+                        error && 'register-input--error',
+                    )}
+                    aria-invalid={!!error}
+                    aria-describedby={error && errorId ? errorId : undefined}
+                    {...registration}
+                    {...(props as React.InputHTMLAttributes<HTMLInputElement>)}
+                />
+            </div>
+            {error && (
+                <motion.p
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    id={errorId}
+                    className="text-red-400 text-xs flex items-center gap-1 pl-1"
+                    role="alert"
+                    aria-live="assertive"
+                >
+                    <AlertCircle size={12} aria-hidden="true" /> {error.message}
+                </motion.p>
+            )}
+        </div>
+    );
 };
 
+const SelectField = ({
+    label,
+    error,
+    options,
+    registration,
+    ...props
+}: {
+    label?: string;
+    error?: { message?: string };
+    options: { value: string; label: string }[];
+    registration?: object;
+    [key: string]: unknown;
+}) => {
+    const selectId = props.id as string | undefined;
+    const errorId = selectId ? `${selectId}-error` : undefined;
+
+    return (
+        <div className="space-y-1.5">
+            {label && (
+                <label
+                    className="block text-xs font-semibold text-[var(--text-secondary)] ml-1"
+                    htmlFor={selectId}
+                >
+                    {label}
+                </label>
+            )}
+            <div className="relative">
+                <select
+                    className={cn(
+                        'register-input register-input--select w-full appearance-none',
+                        error && 'register-input--error',
+                        'focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1',
+                    )}
+                    aria-invalid={!!error}
+                    aria-describedby={error && errorId ? errorId : undefined}
+                    {...registration}
+                    {...(props as React.SelectHTMLAttributes<HTMLSelectElement>)}
+                >
+                    <option value="" disabled>
+                        Select {label}
+                    </option>
+                    {options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                        </option>
+                    ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--text-muted)]">
+                    <ChevronDown size={16} aria-hidden="true" />
+                </div>
+            </div>
+            {error && (
+                <p
+                    id={errorId}
+                    className="text-red-400 text-xs pl-1"
+                    role="alert"
+                    aria-live="assertive"
+                >
+                    {error.message}
+                </p>
+            )}
+        </div>
+    );
+};
+
+const PasswordStrengthMeter = ({ password }: { password: string }) => {
+    const checks = [
+        { re: /.{8,}/, label: '8+ Chars' },
+        { re: /[A-Z]/, label: 'Uppercase' },
+        { re: /[0-9]/, label: 'Number' },
+        { re: /[^A-Za-z0-9]/, label: 'Special' },
+    ];
+    const strength = checks.filter((c) => c.re.test(password)).length;
+
+    const strengthClass =
+        strength === 0
+            ? ''
+            : strength === 1
+                ? 'register-pw-very-weak'
+                : strength === 2
+                    ? 'register-pw-weak'
+                    : strength === 3
+                        ? 'register-pw-strong'
+                        : 'register-pw-very-strong';
+
+    const strengthLabel =
+        strength === 0
+            ? 'Enter Password'
+            : strength <= 2
+                ? 'Weak'
+                : strength === 3
+                    ? 'Good'
+                    : 'Strong';
+
+    return (
+        <div className="space-y-2 mt-2" aria-label="Password strength indicator">
+            <div className="register-pw-bar flex gap-1 h-1">
+                {[1, 2, 3, 4].map((level) => (
+                    <div
+                        key={level}
+                        className={cn(
+                            'register-pw-bar-seg flex-1 rounded-full transition-all duration-300',
+                            'bg-[var(--border-primary)]',
+                            strength >= level && strengthClass,
+                        )}
+                    />
+                ))}
+            </div>
+            <p
+                className={cn(
+                    'text-xs font-medium transition-colors text-right',
+                    strength === 0 ? 'text-[var(--text-muted)]' : strengthClass,
+                )}
+                aria-live="polite"
+            >
+                {strengthLabel}
+            </p>
+        </div>
+    );
+};
+
+function fireConfetti() {
+    const duration = 2500;
+    const end = Date.now() + duration;
+    const colors = ['#00A3DB', '#33B8E5', '#A3D639', '#ffffff'];
+    (function frame() {
+        confetti({
+            particleCount: 4,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.7 },
+            colors,
+        });
+        confetti({
+            particleCount: 4,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.7 },
+            colors,
+        });
+        if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+}
+
 // =============================================================================
-// REGISTER PAGE
+// MAIN PAGE COMPONENT
 // =============================================================================
 
 export default function RegisterPage() {
-  const { isDarkMode, toggleTheme } = useThemeStore();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const setUser = useAuthStore((s) => s.setUser);
+    const { isDarkMode, toggleTheme } = useThemeStore();
 
-  // Multi-step state
-  const [step, setStep] = useState(1);
-  const [direction, setDirection] = useState(1);
-  const [hasNavigated, setHasNavigated] = useState(false);
+    const [step, setStep] = useState(1);
+    const [direction, setDirection] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [showPass, setShowPass] = useState(false);
+    const [registrationComplete, setRegistrationComplete] = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState('');
+    const [registeredRole, setRegisteredRole] = useState('');
+    const [formError, setFormError] = useState<string | null>(null);
+    const [resendLoading, setResendLoading] = useState(false);
+    const [resendSuccess, setResendSuccess] = useState(false);
 
-  // Role
-  const [role, setRole] = useState<SignupRole>('attendee');
+    const formContainerRef = useRef<HTMLDivElement>(null);
 
-  // Form fields
-  const [formData, setFormData] = useState<FormData>(INITIAL_FORM);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    useEffect(() => {
+        const root = document.documentElement;
+        root.classList.remove('light', 'dark');
+        root.classList.add(isDarkMode ? 'dark' : 'light');
+    }, [isDarkMode]);
 
-  // UI state
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  // Email verification happens after account creation via Firebase link
-  // No separate OTP flow needed
-
-  // Auth code state
-  const [authCodeValidated, setAuthCodeValidated] = useState(false);
-
-  // Completed (step 4 submitted)
-  const [completed, setCompleted] = useState(false);
-
-  // Sync theme class
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
-
-  // Reset auth code validation when code changes
-  useEffect(() => {
-    setAuthCodeValidated(false);
-  }, [formData.authorizationCode]);
-
-  // Debug: Log role changes
-  useEffect(() => {
-    console.log('🎭 Role state updated:', role);
-  }, [role]);
-
-  // Debug: Log role changes
-  useEffect(() => {
-    console.log('🎭 Role state updated:', role);
-  }, [role]);
-
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
-
-  const needsAuthCode = role === 'organizer' || role === 'admin';
-  const hasMobile = formData.mobile.replace(/\D/g, '').length >= 6;
-
-  const handleField = useCallback(
-    (field: keyof FormData, value: string | boolean) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      if (errors[field as keyof FormErrors]) {
-        setErrors((prev) => ({ ...prev, [field]: undefined }));
-      }
-    },
-    [errors],
-  );
-
-  const handleBlur = useCallback((field: string) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  }, []);
-
-  const fieldError = (field: keyof FormErrors) =>
-    touched[field] && errors[field] ? (
-      <p className="mt-1.5 flex items-center gap-1 text-xs text-red-400" role="alert">
-        <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
-        {errors[field]}
-      </p>
-    ) : null;
-
-  const isDisabled = loading || submitting;
-
-  const stepHeading = useMemo(() => {
-    switch (step) {
-      case 1:
-        return {
-          title: 'Create your account',
-          subtitle: 'Tell us who you are.',
-        };
-      case 2:
-        return {
-          title: 'Contact & Security',
-          subtitle: 'Set up your password and contact info.',
-        };
-      case 3:
-        return {
-          title: needsAuthCode ? 'Verify your identity' : 'Almost there!',
-          subtitle: needsAuthCode
-            ? 'Enter your organization details and authorization code.'
-            : 'Review your info before creating your account.',
-        };
-      case 4:
-        return {
-          title: 'Review & Submit',
-          subtitle: 'Double-check your details before signing up.',
-        };
-      default:
-        return { title: '', subtitle: '' };
-    }
-  }, [step, needsAuthCode]);
-
-  // ---------------------------------------------------------------------------
-  // Role change handler
-  // ---------------------------------------------------------------------------
-
-  const handleRoleChange = useCallback((newRole: SignupRole) => {
-    console.log('🔄 Role changed to:', newRole);
-    setRole(newRole);
-    setAuthCodeValidated(false);
-    trackRoleSelected(newRole);
-  }, []);
-
-  // ---------------------------------------------------------------------------
-  // Step navigation
-  // ---------------------------------------------------------------------------
-
-  const goToStep = useCallback(
-    (target: number) => {
-      setDirection(target > step ? 1 : -1);
-      setHasNavigated(true);
-      setStep(target);
-    },
-    [step],
-  );
-
-  const goBack = useCallback(() => {
-    if (step > 1) goToStep(step - 1);
-  }, [step, goToStep]);
-
-  // ---------------------------------------------------------------------------
-  // Step 1 → Step 2 (validate identity fields)
-  // ---------------------------------------------------------------------------
-
-  const handleStep1Next = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
-      const validationErrors = validateStep1(formData);
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        const touchAll: Record<string, boolean> = {};
-        for (const key of Object.keys(validationErrors)) touchAll[key] = true;
-        setTouched((prev) => ({ ...prev, ...touchAll }));
-        return;
-      }
-      setErrors({});
-      goToStep(2);
-      trackStepAdvanced(2, role);
-    },
-    [formData, role, goToStep],
-  );
-
-  // ---------------------------------------------------------------------------
-  // Step 2 → Step 3 (validate security fields)
-  // ---------------------------------------------------------------------------
-  // Note: Email verification happens AFTER account creation (Firebase link)
-
-  const handleStep2Next = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      const validationErrors = validateStep2(formData);
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        const touchAll: Record<string, boolean> = {};
-        for (const key of Object.keys(validationErrors)) touchAll[key] = true;
-        setTouched((prev) => ({ ...prev, ...touchAll }));
-        return;
-      }
-
-      setErrors({});
-      // Proceed directly to Step 3 (role-specific fields)
-      // Email verification link is sent AFTER account creation
-      goToStep(3);
-      trackStepAdvanced(3, role);
-    },
-    [formData, role, goToStep],
-  );
-
-  // Note: Email/Phone OTP handlers removed - verification happens via Firebase link after account creation
-
-  const handleValidateAuthCode = useCallback(async (): Promise<boolean> => {
-    if (!formData.authorizationCode.trim()) return false;
-    setLoading(true);
-    try {
-      await validateAuthCode({
-        code: formData.authorizationCode.trim(),
-        role,
-      });
-      setAuthCodeValidated(true);
-      trackAuthCodeValidated(role, true);
-      return true;
-    } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
-      const errCode = error.code as RegistrationErrorCode | undefined;
-      setErrors({
-        authorizationCode:
-          errCode && ERROR_MESSAGE_MAP[errCode]
-            ? ERROR_MESSAGE_MAP[errCode]
-            : error.message || 'Invalid code.',
-      });
-      setTouched((prev) => ({ ...prev, authorizationCode: true }));
-      trackAuthCodeValidated(role, false);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [formData.authorizationCode, role]);
-
-  // Step 3 "Next" — validate role-specific fields, go to review
-  // Note: Email verification happens AFTER account creation via link
-  const handleStep3Next = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-
-      console.log('📍 Step 3 Submit - Current role:', role, '| needsAuthCode:', needsAuthCode);
-
-      // Validate role-specific fields
-      const validationErrors = validateStep3(formData, role);
-      if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        const touchAll: Record<string, boolean> = {};
-        for (const key of Object.keys(validationErrors)) touchAll[key] = true;
-        setTouched((prev) => ({ ...prev, ...touchAll }));
-        return;
-      }
-
-      // Validate auth code if needed (for organizer/admin roles)
-      if (needsAuthCode) {
-        if (!authCodeValidated) {
-          // Auto-validate the auth code if user hasn't done it yet
-          const isValid = await handleValidateAuthCode();
-          if (!isValid) return; // Use return value, not stale state
-        }
-      }
-
-      setErrors({});
-      goToStep(4);
-      trackStepAdvanced(4, role);
-    },
-    [
-      formData,
-      role,
-      needsAuthCode,
-      authCodeValidated,
-      handleValidateAuthCode,
-      goToStep,
-    ],
-  );
-
-  // ---------------------------------------------------------------------------
-  // Step 4 — Final submit
-  // ---------------------------------------------------------------------------
-
-  const handleFinalSubmit = useCallback(async () => {
-    setSubmitting(true);
-    try {
-      await createUser({
-        role,
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
-        email: formData.email.trim(),
-        dob: formData.dob,
-        password: formData.password,
-        mobile: hasMobile
-          ? toE164(formData.countryCode, formData.mobile)
-          : undefined,
-        gender: formData.gender || undefined,
-        liveLocationConsent: formData.liveLocationConsent,
-        organization: formData.organization.trim() || undefined,
-        department: formData.department || undefined,
-        authorizationCode: formData.authorizationCode.trim() || undefined,
-        consents: {
-          terms: formData.termsAccepted,
-          marketing: formData.marketingConsent,
-          whatsapp: formData.whatsappConsent,
+    const {
+        register,
+        handleSubmit,
+        control,
+        trigger,
+        watch,
+        setValue,
+        formState: { errors },
+    } = useForm<RegistrationFormData>({
+        resolver: zodResolver(registrationSchema),
+        mode: 'onChange',
+        defaultValues: {
+            firstName: '',
+            lastName: '',
+            email: '',
+            gender: undefined,
+            dob: '',
+            location: '',
+            role: undefined,
+            password: '',
+            confirmPassword: '',
+            terms: false,
         },
-      });
+    });
 
-      trackSignupSuccess(role, 'email');
-      setCompleted(true);
-    } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
-      const code = error.code as RegistrationErrorCode | undefined;
-      setErrors({
-        general:
-          code && ERROR_MESSAGE_MAP[code]
-            ? ERROR_MESSAGE_MAP[code]
-            : error.message || 'Registration failed.',
-      });
-      trackSignupFailure(role, code ?? 'UNKNOWN');
-    } finally {
-      setSubmitting(false);
-    }
-  }, [formData, role, hasMobile]);
-
-  // ---------------------------------------------------------------------------
-  // Social auth handlers (Step 1 only)
-  // ---------------------------------------------------------------------------
-
-  const handleSocialClick = useCallback(
-    async (provider: 'google' | 'phone') => {
-      trackSocialClick(provider);
-      try {
-        if (provider === 'google') await signUpWithGoogle();
-        if (provider === 'phone')
-          await signUpWithPhone(formData.mobile || '+1000000000');
-      } catch (err: unknown) {
-        const error = err as { message?: string };
-        setErrors({
-          general:
-            error.message || `${provider} sign-up is not available yet.`,
-        });
-      }
-    },
-    [formData.mobile],
-  );
-
-  // ---------------------------------------------------------------------------
-  // Edit from Review (go back to a specific step)
-  // ---------------------------------------------------------------------------
-
-  const handleEditStep = useCallback(
-    (targetStep: number) => {
-      goToStep(targetStep);
-    },
-    [goToStep],
-  );
-
-  // ---------------------------------------------------------------------------
-  // Live location consent handler
-  // ---------------------------------------------------------------------------
-
-  const handleLocationConsent = useCallback(
-    (checked: boolean) => {
-      if (checked && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          () => handleField('liveLocationConsent', true),
-          () => handleField('liveLocationConsent', false),
-        );
-      } else {
-        handleField('liveLocationConsent', checked);
-      }
-    },
-    [handleField],
-  );
-
-  // ---------------------------------------------------------------------------
-  // Can advance from step 3?
-  // ---------------------------------------------------------------------------
-  // Email verification happens after account creation, so we don't block on it
-  // For organizer/admin: allow submit if auth code is filled (auto-validates on submit)
-  // or if already validated via the "Validate Code" button
-  const step3CanAdvance = !needsAuthCode || authCodeValidated || formData.authorizationCode.trim().length > 0;
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
-
-  return (
-    <div className="h-screen w-full flex overflow-hidden bg-[var(--bg-base)] text-[var(--text-primary)] font-sans relative">
-      {/* ============ FIXED: Brand Logo (top-left) ============ */}
-      <Link to="/" className="login-brand-logo" aria-label="FlowGateX Home">
-        <div className="logo-icon">
-          <Activity size={18} className="text-white" aria-hidden="true" />
-        </div>
-        <span className="logo-text hidden sm:inline">FlowGateX</span>
-      </Link>
-
-      {/* ============ FIXED: Theme Switcher (top-right) ============ */}
-      <button
-        type="button"
-        onClick={toggleTheme}
-        className="login-theme-toggle"
-        aria-label={
-          isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+    useEffect(() => {
+        if (location.state && (location.state as { email?: string }).email) {
+            setValue('email', (location.state as { email: string }).email);
         }
-        title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          {isDarkMode ? (
-            <motion.div
-              key="sun"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+    }, [location.state, setValue]);
+
+    const passwordValue = useWatch({ control, name: 'password' });
+    const emailValue = useWatch({ control, name: 'email' });
+
+    useEffect(() => {
+        const errorKeys = Object.keys(errors);
+        if (errorKeys.length > 0) {
+            const timer = setTimeout(() => scrollToFirstError(formContainerRef), 100);
+            return () => clearTimeout(timer);
+        }
+    }, [errors]);
+
+    const nextStep = useCallback(async () => {
+        setFormError(null);
+        let isValid = false;
+        if (step === 1)
+            isValid = await trigger(['firstName', 'lastName', 'email']);
+        if (step === 2)
+            isValid = await trigger(['gender', 'dob', 'location', 'role']);
+        if (step === 3)
+            isValid = await trigger(['password', 'confirmPassword', 'terms']);
+
+        if (isValid) {
+            setDirection(1);
+            setStep((s) => s + 1);
+        } else {
+            setTimeout(() => scrollToFirstError(formContainerRef), 100);
+        }
+    }, [step, trigger]);
+
+    const prevStep = useCallback(() => {
+        setFormError(null);
+        setDirection(-1);
+        setStep((s) => s - 1);
+    }, []);
+
+    const goToStep = useCallback(
+        (targetStep: number) => {
+            if (targetStep < step) {
+                setFormError(null);
+                setDirection(targetStep < step ? -1 : 1);
+                setStep(targetStep);
+            }
+        },
+        [step],
+    );
+
+    const onSubmit = useCallback(
+        async (data: RegistrationFormData) => {
+            setIsLoading(true);
+            setFormError(null);
+            try {
+                const result = await registerWithFirebase(data);
+                logger.log('✅ Registration successful:', result.uid);
+
+                const userRole = toUserRole(result.role);
+                const authUser: AuthUser = {
+                    uid: result.uid,
+                    email: result.email,
+                    displayName: `${data.firstName.trim()} ${data.lastName.trim()}`,
+                    firstName: data.firstName.trim(),
+                    lastName: data.lastName.trim(),
+                    photoURL: null,
+                    phoneNumber: null,
+                    role: userRole,
+                    emailVerified: false,
+                    dob: data.dob || null,
+                    gender: data.gender || null,
+                    consents: {
+                        terms: data.terms,
+                        marketing: false,
+                        whatsapp: false,
+                        liveLocation: false,
+                    },
+                };
+                setUser(authUser);
+
+                setRegisteredEmail(result.email);
+                setRegisteredRole(data.role);
+                setRegistrationComplete(true);
+
+                fireConfetti();
+            } catch (error: unknown) {
+                const err = error as { code?: string; message?: string };
+                logger.error('❌ Registration failed:', err);
+
+                const messageMap: Record<string, string> = {
+                    'auth/email-already-in-use':
+                        'An account with this email already exists. Try signing in instead.',
+                    'auth/invalid-email': 'Please enter a valid email address.',
+                    'auth/weak-password':
+                        'Password is too weak. Please use at least 8 characters.',
+                    'auth/network-request-failed':
+                        'Network error. Please check your internet connection.',
+                    'auth/too-many-requests':
+                        'Too many requests. Please wait a moment and try again.',
+                    'auth/operation-not-allowed':
+                        'Email/password sign-up is not enabled in Firebase Console.',
+                };
+                setFormError(
+                    messageMap[err.code || ''] ||
+                    err.message ||
+                    'Registration failed. Please try again.',
+                );
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [setUser],
+    );
+
+    const handleResendVerification = useCallback(async () => {
+        if (!auth?.currentUser) return;
+        setResendLoading(true);
+        setResendSuccess(false);
+        try {
+            await sendEmailVerification(auth.currentUser, {
+                url: `${window.location.origin}/login?verified=true`,
+                handleCodeInApp: false,
+            });
+            setResendSuccess(true);
+            logger.log('📧 Verification email re-sent');
+        } catch (err) {
+            logger.error('❌ Failed to resend verification email:', err);
+        } finally {
+            setResendLoading(false);
+        }
+    }, []);
+
+    const goToDashboard = useCallback(() => {
+        const userRole = toUserRole(registeredRole);
+        const dashboardPath = ROLE_DASHBOARDS[userRole] || '/dashboard';
+        navigate(dashboardPath);
+    }, [registeredRole, navigate]);
+
+    const variants = {
+        enter: (dir: number) => ({ x: dir > 0 ? 50 : -50, opacity: 0 }),
+        center: { x: 0, opacity: 1 },
+        exit: (dir: number) => ({ x: dir > 0 ? -50 : 50, opacity: 0 }),
+    };
+
+    const formValues = watch();
+
+    return (
+        <div className="min-h-screen w-full flex flex-col lg:flex-row bg-[var(--bg-base)] text-[var(--text-primary)] font-sans relative">
+            {/* Brand Logo */}
+            <Link
+                to="/"
+                className="login-brand-logo fixed top-4 left-4 z-50 pointer-events-auto"
+                aria-label="FlowGateX Home"
             >
-              <Sun size={18} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="moon"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+                <div className="logo-icon">
+                    <Activity size={18} className="text-white" aria-hidden="true" />
+                </div>
+                <span className="logo-text">FlowGateX</span>
+            </Link>
+
+            {/* Theme Switcher */}
+            <button
+                type="button"
+                onClick={toggleTheme}
+                className="login-theme-toggle fixed top-4 right-4 z-50 pointer-events-auto"
+                aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              <Moon size={18} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </button>
-
-      {/* ============ LEFT SIDE — Video PromoPanel ============ */}
-      <PromoPanel />
-
-      {/* ============ RIGHT SIDE — REGISTER FORM ============ */}
-      <div className="w-full lg:w-1/2 bg-[var(--bg-surface)] h-full flex items-center justify-center px-6 py-8 sm:p-8 overflow-y-auto transition-colors duration-300 relative">
-        {/* Floating orbs */}
-        <div className="login-orb login-orb-1" />
-        <div className="login-orb login-orb-2" />
-
-        <div className="w-full max-w-[460px] relative z-10">
-          <AnimatePresence mode="wait" custom={direction}>
-            {/* ================================================================
-                STEP 1 — Identity: Role + Name + Email + DOB
-                ================================================================ */}
-            {step === 1 && !completed && (
-              <motion.div
-                key="step-1"
-                custom={direction}
-                variants={stepVariants}
-                initial={hasNavigated ? 'enter' : false}
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="space-y-5"
-              >
-                <StepProgress currentStep={1} />
-
-                {/* Heading */}
-                <div className="text-center sm:text-left">
-                  <h1 className="text-3xl font-bold text-[var(--text-primary)] tracking-tight">
-                    {stepHeading.title}
-                  </h1>
-                  <p className="text-[var(--text-secondary)] mt-1.5 text-sm sm:text-base">
-                    {stepHeading.subtitle}
-                  </p>
-                </div>
-
-                {/* General error */}
-                <AnimatePresence>
-                  {errors.general && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
-                      role="alert"
-                      aria-live="assertive"
-                    >
-                      <AlertCircle
-                        className="size-5 shrink-0 mt-0.5"
-                        aria-hidden="true"
-                      />
-                      <span>{errors.general}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Role Selector */}
-                <RoleSelector
-                  value={role}
-                  onChange={handleRoleChange}
-                  disabled={isDisabled}
-                />
-
-                <form
-                  className="space-y-4"
-                  onSubmit={handleStep1Next}
-                  noValidate
-                >
-                  {/* Name Row */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <label
-                        className="block text-sm font-semibold text-[var(--text-primary)]"
-                        htmlFor="reg-first-name"
-                      >
-                        First Name{' '}
-                        <span className="text-[var(--color-error)]">*</span>
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
-                          <User size={18} aria-hidden="true" />
-                        </div>
-                        <input
-                          id="reg-first-name"
-                          name="firstName"
-                          type="text"
-                          autoComplete="given-name"
-                          required
-                          aria-required="true"
-                          aria-invalid={
-                            touched.firstName && !!errors.firstName
-                          }
-                          value={formData.firstName}
-                          onChange={(e) =>
-                            handleField('firstName', e.target.value)
-                          }
-                          onBlur={() => handleBlur('firstName')}
-                          placeholder="Jane"
-                          disabled={isDisabled}
-                          className={`register-input register-input--icon ${
-                            touched.firstName && errors.firstName
-                              ? 'register-input--error'
-                              : ''
-                          }`}
-                        />
-                      </div>
-                      {fieldError('firstName')}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label
-                        className="block text-sm font-semibold text-[var(--text-primary)]"
-                        htmlFor="reg-last-name"
-                      >
-                        Last Name{' '}
-                        <span className="text-[var(--color-error)]">*</span>
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
-                          <User size={18} aria-hidden="true" />
-                        </div>
-                        <input
-                          id="reg-last-name"
-                          name="lastName"
-                          type="text"
-                          autoComplete="family-name"
-                          required
-                          aria-required="true"
-                          aria-invalid={touched.lastName && !!errors.lastName}
-                          value={formData.lastName}
-                          onChange={(e) =>
-                            handleField('lastName', e.target.value)
-                          }
-                          onBlur={() => handleBlur('lastName')}
-                          placeholder="Doe"
-                          disabled={isDisabled}
-                          className={`register-input register-input--icon ${
-                            touched.lastName && errors.lastName
-                              ? 'register-input--error'
-                              : ''
-                          }`}
-                        />
-                      </div>
-                      {fieldError('lastName')}
-                    </div>
-                  </div>
-
-                  {/* Email */}
-                  <div className="space-y-1.5">
-                    <label
-                      className="block text-sm font-semibold text-[var(--text-primary)]"
-                      htmlFor="reg-email"
-                    >
-                      Email Address{' '}
-                      <span className="text-[var(--color-error)]">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
-                        <Mail size={20} aria-hidden="true" />
-                      </div>
-                      <input
-                        id="reg-email"
-                        name="email"
-                        type="email"
-                        autoComplete="email"
-                        required
-                        aria-required="true"
-                        aria-invalid={touched.email && !!errors.email}
-                        value={formData.email}
-                        onChange={(e) => handleField('email', e.target.value)}
-                        onBlur={() => handleBlur('email')}
-                        placeholder="name@example.com"
-                        disabled={isDisabled}
-                        className={`register-input register-input--icon ${
-                          touched.email && errors.email
-                            ? 'register-input--error'
-                            : ''
-                        }`}
-                      />
-                    </div>
-                    {fieldError('email')}
-                  </div>
-
-                  {/* Date of Birth */}
-                  <DateOfBirthPicker
-                    value={formData.dob}
-                    onChange={(v) => handleField('dob', v)}
-                    error={touched.dob ? errors.dob : undefined}
-                    disabled={isDisabled}
-                  />
-
-                  {/* Next Button */}
-                  <motion.button
-                    type="submit"
-                    disabled={isDisabled}
-                    whileHover={!isDisabled ? { scale: 1.01, y: -2 } : {}}
-                    whileTap={!isDisabled ? { scale: 0.98 } : {}}
-                    className="w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    Continue
-                    <ArrowRight size={18} aria-hidden="true" />
-                  </motion.button>
-                </form>
-
-                {/* Social Auth — only on Step 1 */}
-                <SocialButtons
-                  onSocialClick={handleSocialClick}
-                  disabled={isDisabled}
-                />
-
-                {/* Sign-in link */}
-                <p className="text-center text-sm text-[var(--text-secondary)]">
-                  Already have an account?{' '}
-                  <Link
-                    to="/login"
-                    className="font-bold login-primary-link focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 rounded transition-all"
-                  >
-                    Sign in
-                  </Link>
-                </p>
-              </motion.div>
-            )}
-
-            {/* ================================================================
-                STEP 2 — Security: Mobile + Password + Confirm + Gender + Consents
-                ================================================================ */}
-            {step === 2 && !completed && (
-              <motion.div
-                key="step-2"
-                custom={direction}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-                className="space-y-5"
-              >
-                <StepProgress currentStep={2} />
-
-                {/* Back button */}
-                <button
-                  type="button"
-                  onClick={goBack}
-                  disabled={isDisabled}
-                  className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                  aria-label="Go back to identity"
-                >
-                  <ArrowLeft size={16} aria-hidden="true" />
-                  Back
-                </button>
-
-                {/* Heading */}
-                <div className="text-center sm:text-left">
-                  <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-                    {stepHeading.title}
-                  </h1>
-                  <p className="text-[var(--text-secondary)] mt-1.5 text-sm">
-                    {stepHeading.subtitle}
-                  </p>
-                </div>
-
-                {/* General error */}
-                <AnimatePresence>
-                  {errors.general && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
-                      role="alert"
-                    >
-                      <AlertCircle
-                        className="size-5 shrink-0 mt-0.5"
-                        aria-hidden="true"
-                      />
-                      <span>{errors.general}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <form
-                  className="space-y-4"
-                  onSubmit={handleStep2Next}
-                  noValidate
-                >
-                  {/* Mobile Input */}
-                  <MobileInput
-                    value={formData.mobile}
-                    countryCode={formData.countryCode}
-                    onValueChange={(v) => handleField('mobile', v)}
-                    onCountryCodeChange={(c) => handleField('countryCode', c)}
-                    error={touched.mobile ? errors.mobile : undefined}
-                    disabled={isDisabled}
-                  />
-
-                  {/* Password */}
-                  <div className="space-y-1.5">
-                    <label
-                      className="block text-sm font-semibold text-[var(--text-primary)]"
-                      htmlFor="reg-password"
-                    >
-                      Password{' '}
-                      <span className="text-[var(--color-error)]">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
-                        <Lock size={20} aria-hidden="true" />
-                      </div>
-                      <input
-                        id="reg-password"
-                        name="password"
-                        type={showPassword ? 'text' : 'password'}
-                        autoComplete="new-password"
-                        required
-                        aria-required="true"
-                        aria-invalid={touched.password && !!errors.password}
-                        value={formData.password}
-                        onChange={(e) =>
-                          handleField('password', e.target.value)
-                        }
-                        onBlur={() => handleBlur('password')}
-                        placeholder="Create a strong password"
-                        disabled={isDisabled}
-                        className={`register-input register-input--icon register-input--pr-icon ${
-                          touched.password && errors.password
-                            ? 'register-input--error'
-                            : ''
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        aria-label={
-                          showPassword ? 'Hide password' : 'Show password'
-                        }
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors"
-                      >
-                        {showPassword ? (
-                          <EyeOff size={20} aria-hidden="true" />
-                        ) : (
-                          <Eye size={20} aria-hidden="true" />
-                        )}
-                      </button>
-                    </div>
-                    {fieldError('password')}
-                    <PasswordMeter password={formData.password} />
-                  </div>
-
-                  {/* Confirm Password */}
-                  <div className="space-y-1.5">
-                    <label
-                      className="block text-sm font-semibold text-[var(--text-primary)]"
-                      htmlFor="reg-confirm-password"
-                    >
-                      Confirm Password{' '}
-                      <span className="text-[var(--color-error)]">*</span>
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
-                        <Lock size={20} aria-hidden="true" />
-                      </div>
-                      <input
-                        id="reg-confirm-password"
-                        name="confirmPassword"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        autoComplete="new-password"
-                        required
-                        aria-required="true"
-                        aria-invalid={
-                          touched.confirmPassword && !!errors.confirmPassword
-                        }
-                        value={formData.confirmPassword}
-                        onChange={(e) =>
-                          handleField('confirmPassword', e.target.value)
-                        }
-                        onBlur={() => handleBlur('confirmPassword')}
-                        placeholder="Re-enter your password"
-                        disabled={isDisabled}
-                        className={`register-input register-input--icon register-input--pr-icon ${
-                          touched.confirmPassword && errors.confirmPassword
-                            ? 'register-input--error'
-                            : ''
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setShowConfirmPassword(!showConfirmPassword)
-                        }
-                        aria-label={
-                          showConfirmPassword
-                            ? 'Hide password'
-                            : 'Show password'
-                        }
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors"
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff size={20} aria-hidden="true" />
-                        ) : (
-                          <Eye size={20} aria-hidden="true" />
-                        )}
-                      </button>
-                    </div>
-                    {fieldError('confirmPassword')}
-                    {/* Match indicator */}
-                    {formData.confirmPassword &&
-                      formData.password === formData.confirmPassword && (
-                        <p className="flex items-center gap-1 text-xs text-[var(--color-success)]">
-                          <CheckCircle2 size={12} aria-hidden="true" />
-                          Passwords match
-                        </p>
-                      )}
-                  </div>
-
-                  {/* Gender */}
-                  <GenderSelect
-                    value={formData.gender}
-                    onChange={(g) => handleField('gender', g)}
-                    disabled={isDisabled}
-                  />
-
-                  {/* Consents */}
-                  <div className="space-y-3 pt-1">
-                    <div className="flex items-start gap-3">
-                      <input
-                        id="reg-terms"
-                        type="checkbox"
-                        checked={formData.termsAccepted}
-                        onChange={(e) =>
-                          handleField('termsAccepted', e.target.checked)
-                        }
-                        className="mt-0.5 h-4 w-4 rounded border-[var(--border-primary)] cursor-pointer accent-[var(--color-primary)] login-checkbox"
-                        required
-                      />
-                      <label
-                        htmlFor="reg-terms"
-                        className="text-sm text-[var(--text-secondary)] cursor-pointer select-none"
-                      >
-                        I agree to the{' '}
-                        <a
-                          href="#"
-                          className="font-semibold text-[var(--text-primary)] hover:underline"
+                <AnimatePresence mode="wait" initial={false}>
+                    {isDarkMode ? (
+                        <motion.div
+                            key="sun"
+                            initial={{ rotate: -90, opacity: 0 }}
+                            animate={{ rotate: 0, opacity: 1 }}
+                            exit={{ rotate: 90, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                          Terms of Service
-                        </a>{' '}
-                        and{' '}
-                        <a
-                          href="#"
-                          className="font-semibold text-[var(--text-primary)] hover:underline"
-                        >
-                          Privacy Policy
-                        </a>
-                        .
-                        <span className="text-[var(--color-error)]"> *</span>
-                      </label>
-                    </div>
-                    {touched.termsAccepted && errors.termsAccepted && (
-                      <p
-                        className="flex items-center gap-1 text-xs text-red-400 pl-7"
-                        role="alert"
-                      >
-                        <AlertCircle
-                          className="size-3.5 shrink-0"
-                          aria-hidden="true"
-                        />
-                        {errors.termsAccepted}
-                      </p>
-                    )}
-
-                    <div className="flex items-start gap-3">
-                      <input
-                        id="reg-location"
-                        type="checkbox"
-                        checked={formData.liveLocationConsent}
-                        onChange={(e) =>
-                          handleLocationConsent(e.target.checked)
-                        }
-                        className="mt-0.5 h-4 w-4 rounded border-[var(--border-primary)] cursor-pointer accent-[var(--color-primary)] login-checkbox"
-                      />
-                      <label
-                        htmlFor="reg-location"
-                        className="text-sm text-[var(--text-muted)] cursor-pointer select-none"
-                      >
-                        <MapPin
-                          size={13}
-                          className="inline mr-1"
-                          aria-hidden="true"
-                        />
-                        Allow live location sharing for event check-in
-                        (optional)
-                      </label>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <input
-                        id="reg-marketing"
-                        type="checkbox"
-                        checked={formData.marketingConsent}
-                        onChange={(e) =>
-                          handleField('marketingConsent', e.target.checked)
-                        }
-                        className="mt-0.5 h-4 w-4 rounded border-[var(--border-primary)] cursor-pointer accent-[var(--color-primary)] login-checkbox"
-                      />
-                      <label
-                        htmlFor="reg-marketing"
-                        className="text-sm text-[var(--text-muted)] cursor-pointer select-none"
-                      >
-                        Send me event recommendations and updates (optional)
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Next Button */}
-                  <motion.button
-                    type="submit"
-                    disabled={isDisabled}
-                    aria-busy={loading}
-                    whileHover={!isDisabled ? { scale: 1.01, y: -2 } : {}}
-                    whileTap={!isDisabled ? { scale: 0.98 } : {}}
-                    className={`w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed ${
-                      loading ? 'login-btn-pulse' : ''
-                    }`}
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      {loading ? (
-                        <>
-                          <Loader2
-                            className="size-4 animate-spin"
-                            aria-hidden="true"
-                          />
-                          Sending verification…
-                        </>
-                      ) : (
-                        <>
-                          Continue
-                          <ArrowRight size={18} aria-hidden="true" />
-                        </>
-                      )}
-                    </span>
-                  </motion.button>
-                </form>
-              </motion.div>
-            )}
-
-            {/* ================================================================
-                STEP 3 — Verify: Role fields + Email OTP + Phone OTP
-                ================================================================ */}
-            {step === 3 && !completed && (
-              <motion.div
-                key="step-3"
-                custom={direction}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="space-y-5"
-              >
-                <StepProgress currentStep={3} />
-
-                {/* Back button */}
-                <button
-                  type="button"
-                  onClick={goBack}
-                  disabled={submitting}
-                  className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                  aria-label="Go back to security"
-                >
-                  <ArrowLeft size={16} aria-hidden="true" />
-                  Back
-                </button>
-
-                {/* Heading */}
-                <div className="text-center sm:text-left">
-                  <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-                    {stepHeading.title}
-                  </h1>
-                  <p className="text-[var(--text-secondary)] mt-1.5 text-sm">
-                    {stepHeading.subtitle}
-                  </p>
-                   {/* Debug: Show current role */}
-                  <div className="mt-3 px-3 py-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-                    <p className="text-xs font-mono text-yellow-200">
-                      🔹 DEBUG MODE: role="{role}" | needsAuthCode={String(needsAuthCode)} | step={step}
-                    </p>
-                  </div>
-                </div>
-
-                {/* General error */}
-                <AnimatePresence>
-                  {errors.general && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
-                      role="alert"
-                    >
-                      <AlertCircle
-                        className="size-5 shrink-0 mt-0.5"
-                        aria-hidden="true"
-                      />
-                      <span>{errors.general}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <form
-                  className="space-y-5"
-                  onSubmit={handleStep3Next}
-                  noValidate
-                >
-                  {/* === Attendee: No role-specific fields, show summary === */}
-                  {role === 'attendee' && (
-                    <div className="rounded-xl border border-[var(--color-success)]/30 bg-[var(--color-success)]/10 px-4 py-3">
-                      <p className="text-sm text-[var(--color-success)] font-medium">
-                        <CheckCircle2 size={14} className="inline mr-2 -mt-0.5" />
-                        No additional verification needed for attendee accounts.
-                        Review your details and submit to create your account.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* === Dynamic role-specific fields (Organizer / Admin) === */}
-                  {(role === 'organizer' || role === 'admin') && (
-                    <div className="space-y-4">
-                      {/* Debug/Confirmation of Role */}
-                      <p className="text-sm text-[var(--color-primary)] font-medium bg-[var(--color-primary)]/10 px-3 py-2 rounded-lg">
-                        <Building2 size={14} className="inline mr-2 -mt-0.5" />
-                        Registering as {role === 'admin' ? 'Administrator' : 'Event Organizer'}
-                      </p>
-
-                      {/* Organization (Organizer only) */}
-                      {role === 'organizer' && (
-                        <div className="space-y-1.5">
-                          <label
-                            className="block text-sm font-semibold text-[var(--text-primary)]"
-                            htmlFor="reg-organization"
-                          >
-                            Organization Name{' '}
-                            <span className="text-[var(--color-error)]">
-                              *
-                            </span>
-                          </label>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
-                              <Building2 size={18} aria-hidden="true" />
-                            </div>
-                            <input
-                              id="reg-organization"
-                              name="organization"
-                              type="text"
-                              autoComplete="organization"
-                              value={formData.organization}
-                              onChange={(e) =>
-                                handleField('organization', e.target.value)
-                              }
-                              onBlur={() => handleBlur('organization')}
-                              placeholder="Acme Corp"
-                              disabled={isDisabled}
-                              className={`register-input register-input--icon ${
-                                touched.organization && errors.organization
-                                  ? 'register-input--error'
-                                  : ''
-                              }`}
-                            />
-                          </div>
-                          {fieldError('organization')}
-                        </div>
-                      )}
-
-                      {/* Department (Organizer only) */}
-                      {role === 'organizer' && (
-                        <div className="space-y-1.5">
-                          <label
-                            className="block text-sm font-semibold text-[var(--text-primary)]"
-                            htmlFor="reg-department"
-                          >
-                            Department
-                          </label>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
-                              <Briefcase size={18} aria-hidden="true" />
-                            </div>
-                            <select
-                              id="reg-department"
-                              name="department"
-                              value={formData.department}
-                              onChange={(e) =>
-                                handleField('department', e.target.value)
-                              }
-                              disabled={isDisabled}
-                              className="register-input register-input--icon register-input--select"
-                            >
-                              <option value="" disabled>
-                                Select Department
-                              </option>
-                              <option value="marketing">
-                                Marketing & Events
-                              </option>
-                              <option value="hr">Human Resources</option>
-                              <option value="ops">Operations</option>
-                              <option value="engineering">Engineering</option>
-                              <option value="other">Other</option>
-                            </select>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Authorization Code (Organizer + Admin) */}
-                      <div className="space-y-1.5">
-                        <label
-                          className="block text-sm font-semibold text-[var(--text-primary)]"
-                          htmlFor="reg-auth-code"
-                        >
-                          Authorization Code{' '}
-                          <span className="text-[var(--color-error)]">*</span>
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[var(--text-muted)]">
-                            <KeyRound size={18} aria-hidden="true" />
-                          </div>
-                          <input
-                            id="reg-auth-code"
-                            name="authorizationCode"
-                            type="text"
-                            value={formData.authorizationCode}
-                            onChange={(e) =>
-                              handleField(
-                                'authorizationCode',
-                                e.target.value,
-                              )
-                            }
-                            onBlur={() => handleBlur('authorizationCode')}
-                            placeholder={
-                              role === 'admin'
-                                ? 'ADMIN-2026-FLOWGATEX'
-                                : 'ORG-KEC-2026'
-                            }
-                            disabled={isDisabled}
-                            className={`register-input register-input--icon ${
-                              touched.authorizationCode &&
-                              errors.authorizationCode
-                                ? 'register-input--error'
-                                : ''
-                            }`}
-                          />
-                          {authCodeValidated && (
-                            <CheckCircle2
-                              size={18}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-success)]"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </div>
-                        {fieldError('authorizationCode')}
-                        {!authCodeValidated &&
-                          formData.authorizationCode.trim() && (
-                            <button
-                              type="button"
-                              onClick={handleValidateAuthCode}
-                              disabled={isDisabled}
-                              className="text-xs font-semibold text-[var(--color-primary)] hover:underline"
-                            >
-                              Validate Code
-                            </button>
-                          )}
-                        {authCodeValidated && (
-                          <p className="flex items-center gap-1 text-xs text-[var(--color-success)]">
-                            <CheckCircle2 size={12} aria-hidden="true" />
-                            Authorization code verified
-                          </p>
-                        )}
-                        <p className="text-xs text-[var(--text-muted)] pl-0.5">
-                          {role === 'admin'
-                            ? 'Admin code is provided by your system administrator.'
-                            : 'Organization code is issued during event registration.'}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Email Verification Notice */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-base)] px-4 py-3">
-                      <Mail
-                        size={16}
-                        className="text-[var(--color-primary)] shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span className="text-sm text-[var(--text-secondary)] truncate">
-                        {formData.email}
-                      </span>
-                    </div>
-                    <div className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-3">
-                      <p className="text-sm text-blue-400">
-                        <strong>📧 Email Verification:</strong> After you submit, we'll send a verification link to your email.
-                        Please click the link to activate your account.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Phone number display (if provided, no verification needed) */}
-                  {hasMobile && (
-                    <div className="flex items-center gap-2 rounded-xl border border-[var(--border-primary)] bg-[var(--bg-base)] px-4 py-3">
-                      <span className="text-sm text-[var(--text-muted)]">
-                        📱 {formData.countryCode} {formData.mobile}
-                      </span>
-                      <span className="ml-auto text-xs text-[var(--text-muted)]">
-                        (Optional)
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Next Button */}
-                  <motion.button
-                    type="submit"
-                    disabled={isDisabled || !step3CanAdvance}
-                    whileHover={
-                      !isDisabled && step3CanAdvance
-                        ? { scale: 1.01, y: -2 }
-                        : {}
-                    }
-                    whileTap={
-                      !isDisabled && step3CanAdvance ? { scale: 0.98 } : {}
-                    }
-                    className={`w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed ${
-                      loading ? 'login-btn-pulse' : ''
-                    }`}
-                  >
-                    <span className="relative z-10 flex items-center gap-2">
-                      {loading ? (
-                        <>
-                          <Loader2
-                            className="size-4 animate-spin"
-                            aria-hidden="true"
-                          />
-                          Validating…
-                        </>
-                      ) : (
-                        <>
-                          Review & Submit
-                          <ArrowRight size={18} aria-hidden="true" />
-                        </>
-                      )}
-                    </span>
-                  </motion.button>
-                </form>
-              </motion.div>
-            )}
-
-            {/* ================================================================
-                STEP 4 — Review & Submit
-                ================================================================ */}
-            {step === 4 && !completed && (
-              <motion.div
-                key="step-4"
-                custom={direction}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="space-y-5"
-              >
-                <StepProgress currentStep={4} />
-
-                {/* Back button */}
-                <button
-                  type="button"
-                  onClick={goBack}
-                  disabled={submitting}
-                  className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                  aria-label="Go back to verification"
-                >
-                  <ArrowLeft size={16} aria-hidden="true" />
-                  Back
-                </button>
-
-                {/* Heading */}
-                <div className="text-center sm:text-left">
-                  <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">
-                    {stepHeading.title}
-                  </h1>
-                  <p className="text-[var(--text-secondary)] mt-1.5 text-sm">
-                    {stepHeading.subtitle}
-                  </p>
-                </div>
-
-                {/* General error */}
-                <AnimatePresence>
-                  {errors.general && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
-                      role="alert"
-                    >
-                      <AlertCircle
-                        className="size-5 shrink-0 mt-0.5"
-                        aria-hidden="true"
-                      />
-                      <span>{errors.general}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Review Screen */}
-                <ReviewScreen
-                  data={{
-                    role,
-                    firstName: formData.firstName,
-                    lastName: formData.lastName,
-                    email: formData.email,
-                    dob: formData.dob,
-                    mobile: formData.mobile,
-                    countryCode: formData.countryCode,
-                    gender: formData.gender,
-                    acceptTerms: formData.termsAccepted,
-                    liveLocationConsent: formData.liveLocationConsent,
-                    organization: formData.organization,
-                    department: formData.department,
-                    authorizationCode: formData.authorizationCode,
-                    emailVerified: false, // Will be verified via email link after registration
-                    phoneVerified: false, // Phone verification disabled
-                  }}
-                  onEditStep={handleEditStep}
-                  disabled={submitting}
-                />
-
-                {/* Submit Button */}
-                <motion.button
-                  type="button"
-                  onClick={handleFinalSubmit}
-                  disabled={submitting}
-                  aria-busy={submitting}
-                  whileHover={!submitting ? { scale: 1.01, y: -2 } : {}}
-                  whileTap={!submitting ? { scale: 0.98 } : {}}
-                  className={`w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed ${
-                    submitting ? 'login-btn-pulse' : ''
-                  }`}
-                >
-                  <span className="relative z-10 flex items-center gap-2">
-                    {submitting ? (
-                      <>
-                        <Loader2
-                          className="size-4 animate-spin"
-                          aria-hidden="true"
-                        />
-                        Creating account…
-                      </>
+                            <Sun size={20} />
+                        </motion.div>
                     ) : (
-                      <>
-                        Create Account
-                        <ArrowRight size={18} aria-hidden="true" />
-                      </>
+                        <motion.div
+                            key="moon"
+                            initial={{ rotate: 90, opacity: 0 }}
+                            animate={{ rotate: 0, opacity: 1 }}
+                            exit={{ rotate: -90, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <Moon size={20} />
+                        </motion.div>
                     )}
-                  </span>
-                </motion.button>
-              </motion.div>
-            )}
+                </AnimatePresence>
+            </button>
 
-            {/* ================================================================
-                COMPLETED — Confirmation Screen
-                ================================================================ */}
-            {completed && (
-              <motion.div
-                key="completed"
-                custom={1}
-                variants={stepVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.35, ease: 'easeInOut' }}
-              >
-                <StepProgress currentStep={4} />
-                <ConfirmationScreen email={formData.email} role={role} />
-              </motion.div>
-            )}
-          </AnimatePresence>
+            {/* ============ LEFT SIDE — REGISTRATION FORM ============ */}
+            <div
+                ref={formContainerRef}
+                className="w-full lg:w-1/2 bg-[var(--bg-surface)] min-h-screen flex flex-col px-6 pt-20 pb-6 sm:px-10 sm:pt-20 sm:pb-8 overflow-y-auto transition-colors duration-300 relative"
+            >
+                {/* Floating orbs */}
+                <div className="login-orb login-orb-1 pointer-events-none" aria-hidden="true" />
+                <div className="login-orb login-orb-2 pointer-events-none" aria-hidden="true" />
+
+                <motion.div
+                    className="w-full max-w-[440px] my-auto mx-auto space-y-5 relative z-10"
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                >
+                    {/* Firebase warning */}
+                    {!firebaseEnabled && !registrationComplete && (
+                        <div
+                            className="flex items-start gap-2.5 rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-3 text-sm text-orange-400"
+                            role="alert"
+                        >
+                            <AlertCircle className="size-5 shrink-0 mt-0.5" aria-hidden="true" />
+                            <span>
+                                Firebase is not configured. Registration requires valid Firebase
+                                credentials in <code className="font-mono">.env.local</code>.
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Progress Bar */}
+                    {!registrationComplete && (
+                        <div className="register-step-progress" aria-label={`Step ${step} of ${MAX_STEPS}`}>
+                            <div className="flex justify-between mb-2">
+                                <span className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
+                                    Step {step} of {MAX_STEPS}
+                                </span>
+                                <span className="text-sm text-[var(--text-muted)]">
+                                    {Math.round((step / MAX_STEPS) * 100)}%
+                                </span>
+                            </div>
+                            <div className="register-step-bar">
+                                <motion.div
+                                    className="register-step-bar-fill"
+                                    initial={{ width: 0 }}
+                                    animate={{
+                                        width: `${(step / MAX_STEPS) * 100}%`,
+                                    }}
+                                    transition={{ duration: 0.5, ease: 'circOut' }}
+                                />
+                            </div>
+                            <ol className="register-step-list" aria-label="Registration steps">
+                                {[
+                                    { num: 1, label: 'Identity' },
+                                    { num: 2, label: 'Profile' },
+                                    { num: 3, label: 'Security' },
+                                    { num: 4, label: 'Review' },
+                                ].map(({ num, label }) => {
+                                    const isCompleted = step > num;
+                                    const isCurrent = step === num;
+
+                                    return (
+                                        <li
+                                            key={num}
+                                            className={cn(
+                                                'register-step-item',
+                                                isCurrent && 'register-step-item--active',
+                                                isCompleted && 'register-step-item--done',
+                                            )}
+                                        >
+                                            {isCompleted ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => goToStep(num)}
+                                                    className="register-step-dot cursor-pointer hover:ring-2 hover:ring-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] rounded-full transition-all"
+                                                    aria-label={`Go back to step ${num}: ${label}`}
+                                                    title={`Go back to ${label}`}
+                                                >
+                                                    <CheckCircle2 size={12} aria-hidden="true" />
+                                                </button>
+                                            ) : (
+                                                <span
+                                                    className="register-step-dot"
+                                                    aria-current={isCurrent ? 'step' : undefined}
+                                                >
+                                                    {num}
+                                                </span>
+                                            )}
+                                            <span className="register-step-label hidden sm:inline">{label}</span>
+                                        </li>
+                                    );
+                                })}
+                            </ol>
+                        </div>
+                    )}
+
+                    {/* Global form error */}
+                    <AnimatePresence>
+                        {formError && !registrationComplete && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="flex items-start gap-2.5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+                                role="alert"
+                                aria-live="assertive"
+                            >
+                                <AlertCircle className="size-5 shrink-0 mt-0.5" aria-hidden="true" />
+                                <span>{formError}</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* SUCCESS SCREEN */}
+                    {registrationComplete ? (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.5, ease: 'easeOut' }}
+                            className="flex flex-col items-center justify-center text-center space-y-6 py-8"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{
+                                    type: 'spring',
+                                    stiffness: 300,
+                                    damping: 20,
+                                    delay: 0.2,
+                                }}
+                                className="register-confirmation-icon"
+                            >
+                                <CheckCircle2 size={48} />
+                            </motion.div>
+
+                            <div className="space-y-2">
+                                <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+                                    Welcome to FlowGateX!
+                                </h2>
+                                <p className="text-[var(--text-secondary)] text-sm max-w-sm">
+                                    Your{' '}
+                                    <span className="font-semibold capitalize" style={{ color: 'var(--color-primary)' }}>
+                                        {registeredRole === 'user' ? 'attendee' : registeredRole}
+                                    </span>{' '}
+                                    account has been created successfully. A verification email
+                                    has been sent to{' '}
+                                    <span className="font-semibold text-[var(--text-primary)]">
+                                        {registeredEmail}
+                                    </span>
+                                    .
+                                </p>
+                            </div>
+
+                            <div className="register-confirmation-card max-w-sm">
+                                <Mail
+                                    size={18}
+                                    className="shrink-0 mt-0.5"
+                                    style={{ color: 'var(--color-primary)' }}
+                                    aria-hidden="true"
+                                />
+                                <div className="flex-1 space-y-2">
+                                    <p className="text-sm text-[var(--text-secondary)]">
+                                        Please check your inbox and click the verification link to
+                                        unlock all features. You can start exploring your dashboard
+                                        now.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={handleResendVerification}
+                                        disabled={resendLoading || resendSuccess}
+                                        className={cn(
+                                            'inline-flex items-center gap-1.5 text-xs font-medium transition-colors',
+                                            'focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 rounded px-1 py-0.5',
+                                            resendSuccess
+                                                ? 'text-green-400 cursor-default'
+                                                : 'text-[var(--color-primary)] hover:underline cursor-pointer',
+                                            resendLoading && 'opacity-60 cursor-not-allowed',
+                                        )}
+                                        aria-label="Resend verification email"
+                                    >
+                                        {resendLoading ? (
+                                            <>
+                                                <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+                                                Sending…
+                                            </>
+                                        ) : resendSuccess ? (
+                                            <>
+                                                <CheckCircle2 size={12} aria-hidden="true" />
+                                                Email sent!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <RefreshCw size={12} aria-hidden="true" />
+                                                Resend verification email
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <motion.button
+                                type="button"
+                                onClick={goToDashboard}
+                                whileHover={{ scale: 1.02, y: -2 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="register-confirmation-cta w-full max-w-xs justify-center"
+                            >
+                                Continue to Dashboard
+                                <ArrowRight size={18} aria-hidden="true" />
+                            </motion.button>
+
+                            <p className="text-[var(--text-muted)] text-xs">
+                                Or{' '}
+                                <Link
+                                    to="/login"
+                                    state={{ email: registeredEmail }}
+                                    className="login-primary-link font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 rounded"
+                                >
+                                    go to login
+                                </Link>
+                            </p>
+                        </motion.div>
+                    ) : (
+                        /* REGISTRATION FORM */
+                        <>
+                            <form onSubmit={handleSubmit(onSubmit)} noValidate>
+                                <AnimatePresence mode="wait" custom={direction}>
+                                    <motion.div
+                                        key={step}
+                                        custom={direction}
+                                        variants={variants}
+                                        initial="enter"
+                                        animate="center"
+                                        exit="exit"
+                                        transition={{ duration: 0.3 }}
+                                        layout
+                                    >
+                                        {/* STEP 1: IDENTITY */}
+                                        {step === 1 && (
+                                            <div className="space-y-5">
+                                                <div className="mb-3">
+                                                    <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
+                                                        Let&apos;s start with basics
+                                                    </h2>
+                                                    <p className="text-[var(--text-secondary)]">
+                                                        Tell us who you are to get started.
+                                                    </p>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <InputField
+                                                        label="First Name"
+                                                        icon={User}
+                                                        id="reg-firstName"
+                                                        registration={register('firstName')}
+                                                        error={errors.firstName}
+                                                        placeholder="John"
+                                                        autoFocus
+                                                        aria-required="true"
+                                                    />
+                                                    <InputField
+                                                        label="Last Name"
+                                                        icon={User}
+                                                        id="reg-lastName"
+                                                        registration={register('lastName')}
+                                                        error={errors.lastName}
+                                                        placeholder="Doe"
+                                                        aria-required="true"
+                                                    />
+                                                </div>
+                                                <InputField
+                                                    label="Email Address"
+                                                    icon={Mail}
+                                                    type="email"
+                                                    id="reg-email"
+                                                    registration={register('email')}
+                                                    error={errors.email}
+                                                    placeholder="john@example.com"
+                                                    autoComplete="email"
+                                                    aria-required="true"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* STEP 2: PROFILE */}
+                                        {step === 2 && (
+                                            <div className="space-y-5">
+                                                <div className="mb-3">
+                                                    <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
+                                                        Profile Details
+                                                    </h2>
+                                                    <p className="text-[var(--text-secondary)]">
+                                                        Customize your platform experience.
+                                                    </p>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <SelectField
+                                                        label="Gender"
+                                                        id="reg-gender"
+                                                        options={[
+                                                            { value: 'male', label: 'Male' },
+                                                            { value: 'female', label: 'Female' },
+                                                            { value: 'other', label: 'Other' },
+                                                        ]}
+                                                        registration={register('gender')}
+                                                        error={errors.gender}
+                                                    />
+                                                    <InputField
+                                                        label="Date of Birth"
+                                                        icon={Calendar}
+                                                        type="date"
+                                                        id="reg-dob"
+                                                        registration={register('dob')}
+                                                        error={errors.dob}
+                                                        aria-required="true"
+                                                    />
+                                                </div>
+                                                <InputField
+                                                    label="Location"
+                                                    icon={MapPin}
+                                                    id="reg-location"
+                                                    registration={register('location')}
+                                                    error={errors.location}
+                                                    placeholder="City, Country"
+                                                    aria-required="true"
+                                                />
+                                                <SelectField
+                                                    label="I am a..."
+                                                    id="reg-role"
+                                                    options={[
+                                                        { value: 'user', label: 'Attendee' },
+                                                        { value: 'organizer', label: 'Event Organizer' },
+                                                    ]}
+                                                    registration={register('role')}
+                                                    error={errors.role}
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* STEP 3: SECURITY */}
+                                        {step === 3 && (
+                                            <div className="space-y-5">
+                                                <div className="mb-3">
+                                                    <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
+                                                        Secure Account
+                                                    </h2>
+                                                    <p className="text-[var(--text-secondary)]">
+                                                        Create a strong password to protect your data.
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <div className="relative">
+                                                        <InputField
+                                                            label="Password"
+                                                            icon={Lock}
+                                                            id="reg-password"
+                                                            type={showPass ? 'text' : 'password'}
+                                                            registration={register('password')}
+                                                            error={errors.password}
+                                                            placeholder="••••••••"
+                                                            autoComplete="new-password"
+                                                            aria-required="true"
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPass(!showPass)}
+                                                            className={cn(
+                                                                'absolute right-4 text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors',
+                                                                'focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] rounded',
+                                                                errors.password
+                                                                    ? 'top-[calc(1.5rem+14px)]'
+                                                                    : 'top-[calc(1.5rem+14px)]',
+                                                            )}
+                                                            style={{
+                                                                marginTop: '0.125rem',
+                                                            }}
+                                                            aria-label={
+                                                                showPass ? 'Hide password' : 'Show password'
+                                                            }
+                                                        >
+                                                            {showPass ? (
+                                                                <EyeOff size={18} aria-hidden="true" />
+                                                            ) : (
+                                                                <Eye size={18} aria-hidden="true" />
+                                                            )}
+                                                        </button>
+                                                    </div>
+                                                    <PasswordStrengthMeter
+                                                        password={passwordValue || ''}
+                                                    />
+                                                </div>
+
+                                                <InputField
+                                                    label="Confirm Password"
+                                                    icon={Lock}
+                                                    id="reg-confirmPassword"
+                                                    type="password"
+                                                    registration={register('confirmPassword')}
+                                                    error={errors.confirmPassword}
+                                                    placeholder="••••••••"
+                                                    autoComplete="new-password"
+                                                    aria-required="true"
+                                                />
+
+                                                <div className="flex items-start gap-3 pt-2">
+                                                    <div className="relative flex items-center pt-0.5">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="terms"
+                                                            {...register('terms')}
+                                                            className="h-4 w-4 rounded border-[var(--border-primary)] cursor-pointer accent-[var(--color-primary)] login-checkbox focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1"
+                                                            aria-required="true"
+                                                        />
+                                                    </div>
+                                                    <label
+                                                        htmlFor="terms"
+                                                        className="text-sm text-[var(--text-secondary)] select-none cursor-pointer"
+                                                    >
+                                                        I agree to the{' '}
+                                                        <Link
+                                                            to="/terms"
+                                                            className="login-primary-link font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1 rounded"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            Terms of Service
+                                                        </Link>{' '}
+                                                        and{' '}
+                                                        <Link
+                                                            to="/privacy"
+                                                            className="login-primary-link font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-1 rounded"
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            Privacy Policy
+                                                        </Link>
+                                                    </label>
+                                                </div>
+                                                {errors.terms && (
+                                                    <p className="text-red-400 text-xs pl-7" role="alert" aria-live="assertive">
+                                                        {errors.terms.message}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* STEP 4: REVIEW */}
+                                        {step === 4 && (
+                                            <div className="space-y-5">
+                                                <div className="mb-3 text-center">
+                                                    <div className="register-confirmation-icon mx-auto mb-3" style={{ width: '4rem', height: '4rem' }}>
+                                                        <ShieldCheck size={32} />
+                                                    </div>
+                                                    <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
+                                                        Review &amp; Create Account
+                                                    </h2>
+                                                    <p className="text-[var(--text-secondary)] text-sm">
+                                                        Confirm your details below and create your account.
+                                                    </p>
+                                                </div>
+
+                                                <div className="register-review-section">
+                                                    <div className="space-y-3">
+                                                        <ReviewRow
+                                                            icon={User}
+                                                            label="Name"
+                                                            value={`${formValues.firstName} ${formValues.lastName}`}
+                                                        />
+                                                        <ReviewRow
+                                                            icon={Mail}
+                                                            label="Email"
+                                                            value={formValues.email}
+                                                        />
+                                                        <ReviewRow
+                                                            icon={Calendar}
+                                                            label="Date of Birth"
+                                                            value={
+                                                                formValues.dob
+                                                                    ? new Date(formValues.dob).toLocaleDateString(
+                                                                        'en-IN',
+                                                                        {
+                                                                            day: '2-digit',
+                                                                            month: 'short',
+                                                                            year: 'numeric',
+                                                                        },
+                                                                    )
+                                                                    : '—'
+                                                            }
+                                                        />
+                                                        <ReviewRow
+                                                            icon={MapPin}
+                                                            label="Location"
+                                                            value={formValues.location || '—'}
+                                                        />
+                                                        <ReviewRow
+                                                            icon={User}
+                                                            label="Gender"
+                                                            value={
+                                                                formValues.gender
+                                                                    ? formValues.gender.charAt(0).toUpperCase() +
+                                                                    formValues.gender.slice(1)
+                                                                    : '—'
+                                                            }
+                                                        />
+                                                        <ReviewRow
+                                                            icon={Sparkles}
+                                                            label="Role"
+                                                            value={
+                                                                formValues.role === 'organizer'
+                                                                    ? 'Event Organizer'
+                                                                    : 'Attendee'
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-[var(--text-muted)] text-xs text-center">
+                                                    By clicking below you agree to our Terms and will
+                                                    receive a verification email.
+                                                </p>
+                                            </div>
+                                        )}
+                                    </motion.div>
+                                </AnimatePresence>
+
+                                {/* ACTION BUTTONS */}
+                                <div className="mt-4 flex gap-3 pt-4 border-t border-[var(--border-primary)]">
+                                    {step > 1 && (
+                                        <motion.button
+                                            type="button"
+                                            onClick={prevStep}
+                                            disabled={isLoading}
+                                            whileHover={!isLoading ? { scale: 1.02 } : {}}
+                                            whileTap={!isLoading ? { scale: 0.98 } : {}}
+                                            className="login-social-btn flex items-center justify-center gap-2 px-6 py-3 border border-[var(--border-primary)] rounded-xl bg-[var(--bg-base)] text-sm font-medium text-[var(--text-primary)] hover:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                            aria-label="Go to previous step"
+                                        >
+                                            <ArrowLeft size={18} aria-hidden="true" /> Back
+                                        </motion.button>
+                                    )}
+
+                                    <motion.button
+                                        type={step === MAX_STEPS ? 'submit' : 'button'}
+                                        onClick={step === MAX_STEPS ? undefined : nextStep}
+                                        disabled={isLoading || !firebaseEnabled}
+                                        aria-busy={isLoading}
+                                        whileHover={!(isLoading || !firebaseEnabled) ? { scale: 1.01, y: -2 } : {}}
+                                        whileTap={!(isLoading || !firebaseEnabled) ? { scale: 0.98 } : {}}
+                                        className={cn(
+                                            'flex-1 flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn',
+                                            'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all',
+                                            'disabled:opacity-70 disabled:cursor-not-allowed',
+                                            isLoading && 'login-btn-pulse',
+                                        )}
+                                    >
+                                        <span className="relative z-10 flex items-center gap-2">
+                                            {isLoading ? (
+                                                <>
+                                                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                                                    Creating Account...
+                                                </>
+                                            ) : step === MAX_STEPS ? (
+                                                <>
+                                                    Create Account <Sparkles size={18} aria-hidden="true" />
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Continue <ArrowRight size={18} aria-hidden="true" />
+                                                </>
+                                            )}
+                                        </span>
+                                    </motion.button>
+                                </div>
+                            </form>
+
+                            <p className="text-center mt-4 text-sm text-[var(--text-secondary)]">
+                                Already have an account?{' '}
+                                <Link
+                                    to="/login"
+                                    state={{ email: emailValue }}
+                                    className="font-bold login-primary-link focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-1 rounded transition-all"
+                                >
+                                    Sign in
+                                </Link>
+                            </p>
+                        </>
+                    )}
+                </motion.div>
+            </div>
+
+            {/* ============ RIGHT SIDE — VIDEO PROMO PANEL ============ */}
+            <div className="hidden lg:block lg:w-1/2 lg:h-screen lg:sticky lg:top-0 relative overflow-hidden">
+                <PromoPanel />
+            </div>
+
+            {/* ============ MOBILE BRANDING ============ */}
+            <div className="lg:hidden w-full py-6 px-6 bg-[var(--bg-base)] border-t border-[var(--border-primary)]">
+                <div className="flex items-center justify-center gap-3 text-center">
+                    <div
+                        className="flex items-center justify-center w-8 h-8 rounded-lg"
+                        style={{ background: 'var(--color-primary)' }}
+                    >
+                        <Activity size={16} className="text-white" aria-hidden="true" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-bold text-[var(--text-primary)]">FlowGateX</p>
+                        <p className="text-xs text-[var(--text-muted)]">
+                            Smart Event Access Management
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
+}
+
+// Helper for review screen
+function ReviewRow({
+    icon: Icon,
+    label,
+    value,
+}: {
+    icon: React.ElementType;
+    label: string;
+    value: string;
+}) {
+    return (
+        <div className="flex items-center gap-3 text-sm">
+            <Icon size={14} className="shrink-0" style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
+            <span className="text-[var(--text-muted)] w-24 shrink-0">{label}</span>
+            <span className="text-[var(--text-primary)] font-medium truncate">{value}</span>
+        </div>
+    );
 }

@@ -1,29 +1,32 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateEvent as useCreateEventMutation } from './useEvents';
-import { useAppSelector } from '@/store/redux/hooks';
+import useAuth from '@/features/auth/hooks/useAuth';
+import { eventService } from '../services/eventService';
+import { INITIAL_EVENT_DATA } from '../types/event.types';
 import type { CreateEventData } from '../types/event.types';
 
+/**
+ * Convenience hook encapsulating the multi-step create-event flow.
+ * Manages step navigation, form state, and submission.
+ */
 export function useCreateEvent() {
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
-  const createEventMutation = useCreateEventMutation();
+  const { user } = useAuth();
+
+  const STEPS = ['Basic', 'Time', 'Venue', 'Tickets', 'Details', 'Media', 'Organizer', 'Settings', 'Review'];
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<Partial<CreateEventData>>({});
-
-  const steps = ['Basic Info', 'Venue', 'Tickets', 'Review'];
+  const [formData, setFormData] = useState<CreateEventData>(INITIAL_EVENT_DATA);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
+    setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
   };
 
   const updateFormData = (data: Partial<CreateEventData>) => {
@@ -32,25 +35,44 @@ export function useCreateEvent() {
 
   const submitEvent = async () => {
     if (!user) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await eventService.publishEvent(formData, user.uid);
+      navigate('/organizer/events', { state: { success: 'Event published!' } });
+    } catch (err: any) {
+      setError(err.message || 'Failed to publish event');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    await createEventMutation.mutateAsync({
-      ...(formData as CreateEventData),
-      organizerId: user.uid,
-      organizerName: user.displayName || 'Unknown Organizer',
-    });
-
-    navigate('/organizer/events');
+  const saveDraft = async () => {
+    if (!user) return;
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await eventService.saveDraft(formData, user.uid);
+      navigate('/organizer/events', { state: { success: 'Draft saved!' } });
+    } catch (err: any) {
+      setError(err.message || 'Failed to save draft');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return {
     currentStep,
-    steps,
+    steps: STEPS,
     formData,
     nextStep,
     prevStep,
     updateFormData,
     submitEvent,
-    isSubmitting: createEventMutation.isPending,
+    saveDraft,
+    isSubmitting,
+    error,
+    setError,
   };
 }
 

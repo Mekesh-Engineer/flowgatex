@@ -1,27 +1,30 @@
 import { useState, ChangeEvent, useEffect } from 'react';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Shield, 
-  Camera, 
-  Save, 
-  CheckCircle2, 
-  Bell, 
-  Lock, 
-  Globe, 
-  Moon, 
-  Sun, 
+import {
+  User,
+  Mail,
+  Phone,
+  Shield,
+  Camera,
+  Save,
+  CheckCircle2,
+  Bell,
+  Lock,
+  Globe,
+  Moon,
+  Sun,
   Monitor,
   Smartphone
 } from 'lucide-react';
 
-import { useAuth } from '@/features/auth/hooks/useAuth';
+import useAuth from '@/features/auth/hooks/useAuth';
 import { UserRole } from '@/lib/constants';
+import { updateUserProfile, changePassword, deleteUserAccount } from '@/features/auth/services/authService';
+import { logger } from '@/lib/logger';
 import Input from '@/components/forms/Input';
 import Select from '@/components/forms/Select';
 import Button from '@/components/common/Button';
 import { cn } from '@/lib/utils';
+import Swal from 'sweetalert2';
 
 // =============================================================================
 // TYPES
@@ -53,14 +56,25 @@ export default function UserProfile() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('personal');
   const [isLoading, setIsLoading] = useState(false);
-  
+
+  // Password change state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   // Form State (Initialized with auth data)
   const [formData, setFormData] = useState({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
     displayName: user?.displayName || '',
     email: user?.email || '',
     phone: user?.phoneNumber || '',
-    dob: '',
-    gender: '',
+    dob: user?.dob || '',
+    gender: user?.gender || '',
     bio: '',
     theme: (localStorage.getItem('theme') || 'system') as 'light' | 'dark' | 'system',
     language: 'en',
@@ -77,9 +91,13 @@ export default function UserProfile() {
     if (user) {
       setFormData(prev => ({
         ...prev,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
         displayName: user.displayName || '',
         email: user.email || '',
         phone: user.phoneNumber || '',
+        dob: user.dob || '',
+        gender: user.gender || '',
       }));
     }
   }, [user]);
@@ -102,14 +120,14 @@ export default function UserProfile() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       // Apply theme changes immediately
       if (formData.theme) {
         localStorage.setItem('theme', formData.theme);
         const root = document.documentElement;
         root.classList.remove('light', 'dark');
-        
+
         if (formData.theme === 'dark') {
           root.classList.add('dark');
         } else if (formData.theme === 'light') {
@@ -121,19 +139,44 @@ export default function UserProfile() {
           }
         }
       }
-      
-      // Simulate API call for other profile updates
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // TODO: Call actual API to update user profile
-      // await updateUserProfile({ displayName, phone, bio, etc. });
-      
+
+      // Call actual API to update user profile
+      const displayName = [formData.firstName, formData.lastName].filter(Boolean).join(' ') || formData.displayName;
+      await updateUserProfile(user!.uid, {
+        firstName: formData.firstName || null,
+        lastName: formData.lastName || null,
+        displayName,
+        phoneNumber: formData.phone || null,
+        dob: formData.dob || null,
+        gender: formData.gender || null,
+      });
+
       setIsLoading(false);
-      // TODO: Show success toast notification
+      // Show success toast notification
+      Swal.fire({
+        title: 'Success',
+        text: 'Profile updated successfully!',
+        icon: 'success',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
     } catch (error) {
-      console.error('Failed to update profile:', error);
+      logger.error('Failed to update profile:', error);
       setIsLoading(false);
-      // TODO: Show error toast notification
+      // Show error toast notification
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to update profile. Please try again.',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+      });
     }
   };
 
@@ -149,7 +192,7 @@ export default function UserProfile() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
-      
+
       {/* ─── Page Header ─── */}
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
@@ -191,13 +234,13 @@ export default function UserProfile() {
 
       {/* ─── Content Area ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* Left Column: Quick Profile (Visible on all tabs) */}
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-neutral-700 text-center relative overflow-hidden">
             {/* Background Pattern */}
             <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-blue-600 to-purple-600 opacity-10"></div>
-            
+
             <div className="relative mt-4 mb-4 inline-block group cursor-pointer">
               <div className="w-32 h-32 rounded-full p-1 bg-white dark:bg-neutral-800 ring-2 ring-gray-100 dark:ring-neutral-700 mx-auto">
                 <img
@@ -213,7 +256,7 @@ export default function UserProfile() {
               <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-full m-1">
                 <Camera className="text-white h-8 w-8" />
               </div>
-              <button 
+              <button
                 type="button"
                 className="absolute bottom-1 right-1 p-2 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors"
                 aria-label="Change profile picture"
@@ -273,12 +316,32 @@ export default function UserProfile() {
         {/* Right Column: Tab Content */}
         <div className="lg:col-span-8">
           <form onSubmit={handleSave} className="bg-white dark:bg-neutral-800 rounded-2xl shadow-sm border border-gray-200 dark:border-neutral-700">
-            
+
             {/* ─── Personal Info Tab ─── */}
             {activeTab === 'personal' && (
               <div className="p-6 md:p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Full Name */}
+                  {/* First Name */}
+                  <Input
+                    label="First Name"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    placeholder="Enter your first name"
+                    className="bg-gray-50 dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
+                  />
+
+                  {/* Last Name */}
+                  <Input
+                    label="Last Name"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    placeholder="Enter your last name"
+                    className="bg-gray-50 dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
+                  />
+
+                  {/* Display Name */}
                   <Input
                     label="Full Name"
                     name="displayName"
@@ -389,13 +452,13 @@ export default function UserProfile() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {['light', 'dark', 'system'].map((theme) => (
-                      <div 
+                      <div
                         key={theme}
-                        onClick={() => setFormData(p => ({...p, theme: theme as 'light' | 'dark' | 'system'}))}
+                        onClick={() => setFormData(p => ({ ...p, theme: theme as 'light' | 'dark' | 'system' }))}
                         className={cn(
                           "cursor-pointer rounded-xl border-2 p-4 flex flex-col items-center gap-3 transition-all hover:bg-gray-50 dark:hover:bg-neutral-700/50",
-                          formData.theme === theme 
-                            ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/10" 
+                          formData.theme === theme
+                            ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/10"
                             : "border-gray-200 dark:border-neutral-700"
                         )}
                       >
@@ -474,6 +537,9 @@ export default function UserProfile() {
                     <Input
                       type="password"
                       label="Current Password"
+                      name="currentPassword"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
                       placeholder="••••••••"
                       className="bg-gray-50 dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
                     />
@@ -481,15 +547,49 @@ export default function UserProfile() {
                       <Input
                         type="password"
                         label="New Password"
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
                         placeholder="••••••••"
                         className="bg-gray-50 dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
                       />
                       <Input
                         type="password"
                         label="Confirm New Password"
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                         placeholder="••••••••"
                         className="bg-gray-50 dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
                       />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="primary"
+                        isLoading={passwordLoading}
+                        disabled={passwordLoading || !passwordData.currentPassword || !passwordData.newPassword || passwordData.newPassword !== passwordData.confirmPassword}
+                        onClick={async () => {
+                          if (passwordData.newPassword.length < 8) {
+                            Swal.fire({ title: 'Error', text: 'New password must be at least 8 characters.', icon: 'error', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
+                            return;
+                          }
+                          setPasswordLoading(true);
+                          try {
+                            await changePassword(passwordData.currentPassword, passwordData.newPassword);
+                            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+                            Swal.fire({ title: 'Success', text: 'Password changed successfully!', icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
+                          } catch (error: any) {
+                            logger.error('Password change failed:', error);
+                            Swal.fire({ title: 'Error', text: error?.message || 'Failed to change password.', icon: 'error', toast: true, position: 'top-end', showConfirmButton: false, timer: 4000, timerProgressBar: true });
+                          } finally {
+                            setPasswordLoading(false);
+                          }
+                        }}
+                      >
+                        <Lock className="mr-2 h-4 w-4" />
+                        Update Password
+                      </Button>
                     </div>
                   </div>
 
@@ -509,6 +609,53 @@ export default function UserProfile() {
                       </div>
                     </div>
                     <Button variant="primary" size="sm">Enable 2FA</Button>
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 border-b border-red-200 dark:border-red-900/30 pb-2 pt-4">
+                    Danger Zone
+                  </h3>
+                  <div className="p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded-xl">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <p className="font-bold text-red-700 dark:text-red-300">Delete Account</p>
+                        <p className="text-sm text-red-600 dark:text-red-400 max-w-md">
+                          Permanently delete your account and all associated data. This action cannot be undone.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 whitespace-nowrap"
+                        isLoading={deleteLoading}
+                        disabled={deleteLoading}
+                        onClick={async () => {
+                          const { value: password } = await Swal.fire({
+                            title: 'Delete Account',
+                            text: 'This is irreversible. Enter your password to confirm.',
+                            input: 'password',
+                            inputPlaceholder: 'Enter your password',
+                            showCancelButton: true,
+                            confirmButtonText: 'Delete My Account',
+                            confirmButtonColor: '#dc2626',
+                            inputValidator: (value) => !value ? 'Password is required' : null,
+                          });
+                          if (!password) return;
+                          setDeleteLoading(true);
+                          try {
+                            await deleteUserAccount(password);
+                            Swal.fire({ title: 'Account Deleted', text: 'Your account has been permanently deleted.', icon: 'info', timer: 3000, showConfirmButton: false });
+                            window.location.href = '/';
+                          } catch (error: any) {
+                            logger.error('Account deletion failed:', error);
+                            Swal.fire({ title: 'Error', text: error?.message || 'Failed to delete account.', icon: 'error', toast: true, position: 'top-end', showConfirmButton: false, timer: 4000, timerProgressBar: true });
+                          } finally {
+                            setDeleteLoading(false);
+                          }
+                        }}
+                      >
+                        Delete Account
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

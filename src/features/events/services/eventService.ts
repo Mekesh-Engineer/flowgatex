@@ -1,139 +1,145 @@
 import {
   collection,
-  doc,
-  getDocs,
-  getDoc,
   addDoc,
+  serverTimestamp,
+  doc,
+  getDoc,
+  getDocs,
   updateDoc,
   deleteDoc,
   query,
   where,
   orderBy,
   limit,
-  startAfter,
-  DocumentSnapshot,
-  serverTimestamp,
 } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase';
-import type { Event, EventFilters, CreateEventData } from '../types/event.types';
-import { EventStatus } from '@/lib/constants';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getDb, getStorageInstance } from '@/lib/firebase';
+import type { CreateEventData } from '../types/event.types';
 
-const COLLECTION = 'events';
+const EVENTS_COLLECTION = 'events';
 
-// Get all events with filters
-export const getEvents = async (
-  filters: EventFilters = {},
-  pageLimit: number = 20,
-  lastDoc?: DocumentSnapshot
-) => {
-  let q = query(collection(getDb(), COLLECTION));
+export const eventService = {
+  // ── Create / Publish ────────────────────────────────────────────
 
-  // Apply filters
-  if (filters.category) {
-    q = query(q, where('category', '==', filters.category));
-  }
-  if (filters.city) {
-    q = query(q, where('venue.city', '==', filters.city));
-  }
-  if (filters.status) {
-    q = query(q, where('status', '==', filters.status));
-  } else {
-    // Default to published events
-    q = query(q, where('status', '==', EventStatus.PUBLISHED));
-  }
+  /** Publish a new event to Firestore. */
+  publishEvent: async (eventData: CreateEventData, userId: string): Promise<string> => {
+    const db = getDb();
+    const minPrice =
+      eventData.ticketTiers.length > 0
+        ? Math.min(...eventData.ticketTiers.map((t) => t.price))
+        : 0;
 
-  // Order and pagination
-  q = query(q, orderBy('dates.start', 'asc'), limit(pageLimit));
+    const payload = {
+      ...eventData,
+      organizerId: userId,
+      price: minPrice,
+      status: 'published' as const,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
 
-  if (lastDoc) {
-    q = query(q, startAfter(lastDoc));
-  }
+    const docRef = await addDoc(collection(db, EVENTS_COLLECTION), payload);
+    return docRef.id;
+  },
 
-  const snapshot = await getDocs(q);
-  const events = snapshot.docs.map(
-    (doc) => ({ id: doc.id, ...doc.data() }) as Event
-  );
-  const lastVisible = snapshot.docs[snapshot.docs.length - 1];
+  /** Save an event as a draft (not yet published). */
+  saveDraft: async (eventData: CreateEventData, userId: string): Promise<string> => {
+    const db = getDb();
+    const payload = {
+      ...eventData,
+      organizerId: userId,
+      status: 'draft' as const,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
 
-  return { events, lastDoc: lastVisible };
-};
+    const docRef = await addDoc(collection(db, EVENTS_COLLECTION), payload);
+    return docRef.id;
+  },
 
-// Get event by ID
-export const getEventById = async (id: string): Promise<Event | null> => {
-  const docRef = doc(getDb(), COLLECTION, id);
-  const docSnap = await getDoc(docRef);
+  // ── Read ────────────────────────────────────────────────────────
 
-  if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() } as Event;
-  }
-  return null;
-};
+  /** Get a single event by its Firestore document ID. */
+  getEventById: async (id: string): Promise<(CreateEventData & { id: string }) | null> => {
+    const db = getDb();
+    const snap = await getDoc(doc(db, EVENTS_COLLECTION, id));
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() } as CreateEventData & { id: string };
+  },
 
-// Get featured events
-export const getFeaturedEvents = async (count: number = 6): Promise<Event[]> => {
-  const q = query(
-    collection(getDb(), COLLECTION),
-    where('featured', '==', true),
-    where('status', '==', EventStatus.PUBLISHED),
-    orderBy('dates.start', 'asc'),
-    limit(count)
-  );
+  /** Get published events, newest first. */
+  getEvents: async (count = 50): Promise<(CreateEventData & { id: string })[]> => {
+    const db = getDb();
+    const q = query(
+      collection(db, EVENTS_COLLECTION),
+      where('status', '==', 'published'),
+      orderBy('createdAt', 'desc'),
+      limit(count),
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as CreateEventData & { id: string });
+  },
 
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Event);
-};
+  /** Get all events (any status) belonging to a specific organizer. */
+  getEventsByOrganizer: async (organizerId: string): Promise<(CreateEventData & { id: string })[]> => {
+    const db = getDb();
+    const q = query(
+      collection(db, EVENTS_COLLECTION),
+      where('organizerId', '==', organizerId),
+      orderBy('createdAt', 'desc'),
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as CreateEventData & { id: string });
+  },
 
-// Get events by organizer
-export const getEventsByOrganizer = async (organizerId: string): Promise<Event[]> => {
-  const q = query(
-    collection(getDb(), COLLECTION),
-    where('organizerId', '==', organizerId),
-    orderBy('createdAt', 'desc')
-  );
+  // ── Update ──────────────────────────────────────────────────────
 
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Event);
-};
+  /** Partially update an existing event document. */
+  updateEvent: async (id: string, data: Partial<CreateEventData>): Promise<void> => {
+    const db = getDb();
+    await updateDoc(doc(db, EVENTS_COLLECTION, id), {
+      ...data,
+      updatedAt: serverTimestamp(),
+    });
+  },
 
-// Create event
-export const createEvent = async (
-  data: CreateEventData & { organizerId: string; organizerName: string }
-): Promise<string> => {
-  const ticketTiers = data.ticketTiers.map((tier, index) => ({
-    ...tier,
-    id: `tier-${index + 1}`,
-    sold: 0,
-    available: tier.quantity,
-  }));
+  // ── Delete ──────────────────────────────────────────────────────
 
-  const docRef = await addDoc(collection(getDb(), COLLECTION), {
-    ...data,
-    ticketTiers,
-    status: EventStatus.DRAFT,
-    featured: false,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
+  /** Permanently delete an event document. */
+  deleteEvent: async (id: string): Promise<void> => {
+    const db = getDb();
+    await deleteDoc(doc(db, EVENTS_COLLECTION, id));
+  },
 
-  return docRef.id;
-};
+  // ── Storage ─────────────────────────────────────────────────────
 
-// Update event
-export const updateEvent = async (id: string, data: Partial<Event>): Promise<void> => {
-  const docRef = doc(getDb(), COLLECTION, id);
-  await updateDoc(docRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
-  });
-};
+  /** Upload a file to Firebase Storage and return the download URL. */
+  uploadImage: async (file: File, path: string): Promise<string> => {
+    const storage = getStorageInstance();
+    const storageRef = ref(storage, path);
+    await uploadBytes(storageRef, file);
+    return getDownloadURL(storageRef);
+  },
 
-// Delete event
-export const deleteEvent = async (id: string): Promise<void> => {
-  const docRef = doc(getDb(), COLLECTION, id);
-  await deleteDoc(docRef);
-};
+  // ── Utilities ───────────────────────────────────────────────────
 
-// Publish event
-export const publishEvent = async (id: string): Promise<void> => {
-  await updateEvent(id, { status: EventStatus.PUBLISHED });
+  /** Parse a JSON file into CreateEventData (basic validation). */
+  parseEventJson: async (file: File): Promise<CreateEventData> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const json = JSON.parse(e.target?.result as string);
+          if (!json.title || !json.startDate) {
+            throw new Error('Missing required event fields (title, startDate)');
+          }
+          resolve(json as CreateEventData);
+        } catch {
+          reject(new Error('Invalid JSON file format'));
+        }
+      };
+      reader.onerror = () => reject(new Error('Error reading file'));
+      reader.readAsText(file);
+    });
+  },
 };

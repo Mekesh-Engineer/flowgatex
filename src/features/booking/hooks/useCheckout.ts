@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '@/store/redux/hooks';
+import { useAuthStore } from '@/store/zustand/stores';
 import { createBooking, updateBookingStatus } from '../services/bookingService';
 import { useCart } from './useCart';
 import { showSuccess, showError } from '@/components/common/Toast';
 import { BookingStatus } from '@/lib/constants';
 import type { Attendee } from '../types/booking.types';
+import { logger } from '@/lib/logger';
 
 export function useCheckout() {
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
+  const { user } = useAuthStore();
   const { items, emptyCart, totalPrice } = useCart();
   const [isLoading, setIsLoading] = useState(false);
   const [bookingId, setBookingId] = useState<string | null>(null);
@@ -46,7 +47,7 @@ export function useCheckout() {
       setBookingId(id);
       return id;
     } catch (error) {
-      console.error('Checkout error:', error);
+      logger.error('Checkout error:', error);
       showError('Failed to create booking');
       return null;
     } finally {
@@ -63,7 +64,7 @@ export function useCheckout() {
       showSuccess('Booking confirmed!');
       navigate(`/booking/success?id=${bookingId}`);
     } catch (error) {
-      console.error('Payment confirmation error:', error);
+      logger.error('Payment confirmation error:', error);
       showError('Failed to confirm payment');
     }
   };

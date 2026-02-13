@@ -1,5 +1,62 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { UserRole } from '@/lib/constants';
+
+// =============================================================================
+// AUTH STORE — replaces Redux authSlice
+// =============================================================================
+
+export interface AuthUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  photoURL: string | null;
+  phoneNumber: string | null;
+  role: UserRole;
+  emailVerified: boolean;
+  dob?: string | null;
+  gender?: string | null;
+  consents?: {
+    terms?: boolean;
+    marketing?: boolean;
+    whatsapp?: boolean;
+    liveLocation?: boolean;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface AuthState {
+  user: AuthUser | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  setUser: (user: AuthUser) => void;
+  clearUser: () => void;
+  setLoading: (loading: boolean) => void;
+  setError: (error: string) => void;
+  updateProfile: (patch: Partial<AuthUser>) => void;
+}
+
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isLoading: true,
+  error: null,
+  setUser: (user) => set({ user, isAuthenticated: true, isLoading: false, error: null }),
+  clearUser: () => set({ user: null, isAuthenticated: false, isLoading: false, error: null }),
+  setLoading: (isLoading) => set({ isLoading }),
+  setError: (error) => set({ error, isLoading: false }),
+  updateProfile: (patch) =>
+    set((state) => ({
+      user: state.user ? { ...state.user, ...patch } : null,
+    })),
+}));
+
+// Re-export for backwards compat with code that imported User from authSlice
+export type User = AuthUser;
 
 // Theme store for light/dark mode
 interface ThemeState {

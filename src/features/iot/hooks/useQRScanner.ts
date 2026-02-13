@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { validateQRCode } from '../services/iotService';
 import type { ScanResult } from '../types/iot.types';
 import { showSuccess, showError } from '@/components/common/Toast';
+import { logger } from '@/lib/logger';
 
 interface UseQRScannerOptions {
   eventId: string;
@@ -27,7 +28,7 @@ export function useQRScanner({ eventId, onSuccess, onError }: UseQRScannerOption
         setIsScanning(true);
       }
     } catch (error) {
-      console.error('Camera access denied:', error);
+      logger.error('Camera access denied:', error);
       onError?.('Camera access denied');
     }
   }, [onError]);

@@ -3,12 +3,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, TextField, Button, Typography, Divider } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
+import { useState } from 'react';
 import { loginSchema, type LoginFormData } from '../utils/validation';
 import { useLogin } from '../hooks/useLogin';
 import SocialAuth from './SocialAuth';
+import RoleSelector from './RoleSelector';
+import type { SignupRole } from '../types/registration.types';
 
 function LoginForm() {
   const { login, loginGoogle, isLoading } = useLogin();
+  const [selectedRole, setSelectedRole] = useState<SignupRole>('attendee');
 
   const {
     register,
@@ -19,7 +23,7 @@ function LoginForm() {
   });
 
   const onSubmit = (data: LoginFormData) => {
-    login(data.email, data.password);
+    login(data.email, data.password, selectedRole);
   };
 
   return (
@@ -30,6 +34,17 @@ function LoginForm() {
       <Typography color="text.secondary" sx={{ mb: 4 }}>
         Sign in to continue to FlowGateX
       </Typography>
+
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body2" sx={{ fontWeight: 600, mb: 1.5 }}>
+          Login as
+        </Typography>
+        <RoleSelector
+          value={selectedRole}
+          onChange={setSelectedRole}
+          disabled={isLoading}
+        />
+      </Box>
 
       <TextField
         fullWidth

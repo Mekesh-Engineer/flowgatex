@@ -362,7 +362,7 @@
    **d) Venue Information**
    - Venue Name (H3)
    - Full Address
-   - Google Maps Embed (Interactive)
+   - Leaflet Map (OpenStreetMap tiles)
    - "Get Directions" button
    - Nearby landmarks
    

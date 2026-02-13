@@ -1,70 +1,22 @@
-import { UserRole, EventCategory, EventStatus, BookingStatus, PaymentStatus } from '@/lib/constants';
+/**
+ * FlowGateX Centralized Type Re-exports
+ *
+ * This file re-exports canonical types from their feature modules so that
+ * consumers who prefer a single import path can use `@/types`.
+ *
+ * Canonical sources:
+ *  - User/Auth types  → @/features/auth/types/auth.types
+ *  - Event types      → @/features/events/types/event.types
+ *  - Constants/Enums  → @/lib/constants
+ */
 
-// User types
-export interface User {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  phoneNumber: string | null;
-  role: UserRole;
-  emailVerified: boolean;
-  createdAt?: string;
-  preferences?: {
-    categories?: EventCategory[];
-    cities?: string[];
-  };
-}
+import { BookingStatus, PaymentStatus } from '@/lib/constants';
 
-// Event types
-export interface Venue {
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-  capacity: number;
-}
+// Re-export canonical types
+export type { AuthUser as User } from '@/features/auth/types/auth.types';
+export type { CreateEventData, TicketTier, EventCategory } from '@/features/events/types/event.types';
 
-export interface TicketTier {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  currency: string;
-  quantity: number;
-  sold: number;
-  available: number;
-  benefits?: string[];
-}
-
-export interface Event {
-  id: string;
-  title: string;
-  description: string;
-  category: EventCategory;
-  organizerId: string;
-  organizerName: string;
-  venue: Venue;
-  dates: {
-    start: string;
-    end: string;
-    registrationDeadline: string;
-  };
-  ticketTiers: TicketTier[];
-  images: string[];
-  status: EventStatus;
-  featured: boolean;
-  tags: string[];
-  features?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Booking types
+// Booking types (defined here — no dedicated feature type file yet)
 export interface Attendee {
   name: string;
   email: string;
@@ -95,7 +47,7 @@ export interface Booking {
   bookingDate: string;
 }
 
-// Payment types
+// Payment types (defined here — no dedicated feature type file yet)
 export interface Payment {
   id: string;
   orderId: string;
@@ -132,16 +84,4 @@ export interface PaginatedResponse<T> {
     hasNext: boolean;
     hasPrev: boolean;
   };
-}
-
-// Filter types
-export interface EventFilters {
-  category?: EventCategory;
-  search?: string;
-  city?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  startDate?: string;
-  endDate?: string;
-  status?: EventStatus;
 }

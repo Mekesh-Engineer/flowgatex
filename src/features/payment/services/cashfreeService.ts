@@ -1,5 +1,6 @@
 import type { CashfreeOptions, PaymentResult } from '../types/payment.types';
 import api from '@/lib/api';
+import { logger } from '@/lib/logger';
 
 const CASHFREE_APP_ID = import.meta.env.VITE_CASHFREE_APP_ID;
 
@@ -23,7 +24,7 @@ export const initiateCashfreePayment = async (
       orderId,
     };
   } catch (error) {
-    console.error('Cashfree payment error:', error);
+    logger.error('Cashfree payment error:', error);
     return {
       success: false,
       error: 'Failed to initiate payment',
@@ -36,7 +37,7 @@ export const verifyCashfreePayment = async (orderId: string): Promise<boolean> =
     const response = await api.get(`/payments/cashfree/verify/${orderId}`);
     return response.data.success;
   } catch (error) {
-    console.error('Cashfree verification error:', error);
+    logger.error('Cashfree verification error:', error);
     return false;
   }
 };

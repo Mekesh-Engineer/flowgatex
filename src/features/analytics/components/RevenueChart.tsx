@@ -30,12 +30,14 @@ function RevenueChart() {
   const [period, setPeriod] = useState('30d');
   const { data, isLoading } = useRevenueAnalytics(period);
 
+  const revenueData = Array.isArray(data) ? data : [];
+
   const chartData = {
-    labels: data?.map((d) => d.date) || [],
+    labels: revenueData.map((d) => d.date),
     datasets: [
       {
         label: 'Revenue',
-        data: data?.map((d) => d.revenue) || [],
+        data: revenueData.map((d) => d.revenue),
         borderColor: '#22d3ee',
         backgroundColor: 'rgba(34, 211, 238, 0.1)',
         fill: true,
