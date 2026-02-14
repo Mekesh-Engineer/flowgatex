@@ -64,9 +64,9 @@ export type Env = z.infer<typeof envSchema>;
 
 /**
  * Validate environment variables on app initialization
- * @throws {Error} If validation fails
+ * Logs warnings for missing variables but does not crash the app in production.
  */
-export function validateEnv(): Env {
+export function validateEnv(): Env | null {
   try {
     const env = envSchema.parse(import.meta.env);
     logger.log('✅ Environment variables validated successfully');
@@ -77,7 +77,12 @@ export function validateEnv(): Env {
       error.errors.forEach((err) => {
         logger.error(`  - ${err.path.join('.')}: ${err.message}`);
       });
-      throw new Error('Environment validation failed. Please check your .env file.');
+      // In production, log the error but don't crash — Firebase init will handle missing keys
+      if (import.meta.env.PROD) {
+        logger.warn('⚠️ Environment validation failed. Some features may be unavailable.');
+        return null;
+      }
+      throw new Error('Environment validation failed. Please check your .env.local file.');
     }
     throw error;
   }
