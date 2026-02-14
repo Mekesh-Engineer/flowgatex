@@ -1,16 +1,10 @@
-/**
- * Leaflet Type Declarations
- * 
- * This file provides TypeScript declarations for Leaflet when loaded via CDN.
- * The Leaflet library is loaded from unpkg.com in index.html.
- */
-
 declare global {
   interface Window {
     L: typeof L;
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 declare namespace L {
   // Core Map
   function map(element: HTMLElement | string, options?: MapOptions): Map;
@@ -51,8 +45,8 @@ declare namespace L {
     getZoom(): number;
     getBounds(): LatLngBounds;
     panTo(latlng: LatLngExpression, options?: PanOptions): this;
-    on(type: string, fn: Function): this;
-    off(type?: string, fn?: Function): this;
+    on(type: string, fn: (...args: unknown[]) => void): this;
+    off(type?: string, fn?: ((...args: unknown[]) => void)): this;
   }
 
   // Layers
@@ -202,6 +196,7 @@ declare namespace L {
   }
 
   // Renderer
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   interface Renderer extends Layer {}
 
   // Pan/Zoom Options

@@ -83,6 +83,7 @@ export const loginWithEmail = async (credentials: LoginCredentials & { role?: Si
       const roleMap: Record<SignupRole, string> = {
         'attendee': UserRole.USER,
         'organizer': UserRole.ORGANIZER,
+        'org_admin': UserRole.ORG_ADMIN,
         'admin': UserRole.ADMIN,
         'superadmin': UserRole.SUPER_ADMIN,
       };
@@ -97,6 +98,7 @@ export const loginWithEmail = async (credentials: LoginCredentials & { role?: Si
         const reverseRoleMap: Record<string, string> = {
           [UserRole.USER]: 'Attendee',
           [UserRole.ORGANIZER]: 'Organizer',
+          [UserRole.ORG_ADMIN]: 'Organization Admin',
           [UserRole.ADMIN]: 'Admin',
           [UserRole.SUPER_ADMIN]: 'Super Admin',
         };
@@ -290,6 +292,7 @@ export const getUserData = async (uid: string): Promise<AuthUser | null> => {
     logger.warn('⚠️ User profile missing during fetch. Creating default profile...');
     const currentUser = auth.currentUser;
     const nameParts = currentUser.displayName?.split(' ') || ['', ''];
+    const fullName = currentUser.displayName || [nameParts[0], nameParts.slice(1).join(' ')].filter(Boolean).join(' ') || '';
     const newProfile = {
       uid: currentUser.uid,
       email: currentUser.email,
@@ -303,6 +306,45 @@ export const getUserData = async (uid: string): Promise<AuthUser | null> => {
       phoneVerified: false,
       dob: null,
       gender: null,
+      accountStatus: 'active',
+      // Structured nested fields for new RBAC/profile system
+      profile: {
+        fullName,
+        email: currentUser.email || '',
+        phone: currentUser.phoneNumber || undefined,
+        avatarUrl: currentUser.photoURL || undefined,
+      },
+      preferences: {
+        language: 'en',
+        timezone: 'UTC',
+        currency: 'USD',
+        notifications: {
+          eventReminders: true,
+          promotionalEmails: false,
+          pushNotifications: false,
+          smsNotifications: false,
+          bookingConfirmations: true,
+          eventUpdates: true,
+          newsletter: false,
+          inApp: true,
+        },
+        smartPreferences: {
+          favoriteCategories: true,
+          personalizedRecommendations: true,
+          autoAddCalendar: false,
+          autoFollowOrganizers: true,
+        },
+      },
+      privacy: {
+        profileVisibility: 'public',
+        showEmail: true,
+        showPhone: false,
+        showAttendedEvents: true,
+      },
+      security: {
+        twoFactorEnabled: false,
+        activeSessions: [],
+      },
       consents: {
         terms: false,
         marketing: false,
@@ -329,7 +371,7 @@ export const getUserData = async (uid: string): Promise<AuthUser | null> => {
 // Update user profile
 export const updateUserProfile = async (
   uid: string,
-  updates: Partial<Pick<AuthUser, 'displayName' | 'firstName' | 'lastName' | 'phoneNumber' | 'photoURL' | 'dob' | 'gender'>>
+  updates: Partial<AuthUser>
 ): Promise<void> => {
   requireFirebase(true);
 
@@ -353,29 +395,27 @@ export const updateUserProfile = async (
     validatedUpdates.displayName = updates.displayName.trim();
   }
   
-  if (updates.firstName !== undefined) {
-    validatedUpdates.firstName = updates.firstName?.trim() || null;
-  }
+  if (updates.firstName !== undefined) validatedUpdates.firstName = updates.firstName?.trim() || null;
+  if (updates.lastName !== undefined) validatedUpdates.lastName = updates.lastName?.trim() || null;
+  if (updates.phoneNumber !== undefined) validatedUpdates.phoneNumber = updates.phoneNumber?.trim() || null;
+  if (updates.dob !== undefined) validatedUpdates.dob = updates.dob || null;
+  if (updates.gender !== undefined) validatedUpdates.gender = updates.gender || null;
+  if (updates.photoURL !== undefined) validatedUpdates.photoURL = updates.photoURL || null;
   
-  if (updates.lastName !== undefined) {
-    validatedUpdates.lastName = updates.lastName?.trim() || null;
-  }
+  // New fields
+  if (updates.bio !== undefined) validatedUpdates.bio = updates.bio?.trim() || null;
+  if (updates.organizationName !== undefined) validatedUpdates.organizationName = updates.organizationName?.trim() || null;
+  if (updates.organizerBio !== undefined) validatedUpdates.organizerBio = updates.organizerBio?.trim() || null;
+  if (updates.websiteUrl !== undefined) validatedUpdates.websiteUrl = updates.websiteUrl?.trim() || null;
   
-  if (updates.phoneNumber !== undefined) {
-    validatedUpdates.phoneNumber = updates.phoneNumber?.trim() || null;
-  }
-  
-  if (updates.dob !== undefined) {
-    validatedUpdates.dob = updates.dob || null;
-  }
-  
-  if (updates.gender !== undefined) {
-    validatedUpdates.gender = updates.gender || null;
-  }
-  
-  if (updates.photoURL !== undefined) {
-    validatedUpdates.photoURL = updates.photoURL || null;
-  }
+  if (updates.socials !== undefined) validatedUpdates.socials = updates.socials;
+  if (updates.businessRegNumber !== undefined) validatedUpdates.businessRegNumber = updates.businessRegNumber?.trim() || null;
+  if (updates.taxId !== undefined) validatedUpdates.taxId = updates.taxId?.trim() || null;
+  if (updates.verificationStatus !== undefined) validatedUpdates.verificationStatus = updates.verificationStatus;
+  if (updates.branding !== undefined) validatedUpdates.branding = updates.branding;
+
+  if (updates.preferences !== undefined) validatedUpdates.preferences = updates.preferences;
+  if (updates.privacy !== undefined) validatedUpdates.privacy = updates.privacy;
 
   validatedUpdates.updatedAt = serverTimestamp();
 
@@ -542,6 +582,53 @@ export const deleteUserAccount = async (
       code: 'ACCOUNT_DELETION_FAILED',
       message: error.message || 'Failed to delete account. Please try again.',
     };
+  }
+};
+
+// Update Platform Settings (Admin)
+// Writes to `SettingInfo/platform` collection for RBAC-driven platform config.
+export const updatePlatformSettings = async (settings: any): Promise<void> => {
+  if (!firebaseEnabled || !auth?.currentUser) {
+     throw { code: 'auth/not-authenticated', message: 'Auth not ready.' };
+  }
+
+  try {
+    // Use the SettingInfo collection (RBAC standard)
+    const settingsDoc = doc(db!, 'SettingInfo', 'platform');
+    // Using setDoc with merge: true creates the document if it doesn't exist
+    await setDoc(settingsDoc, {
+      ...settings,
+      updatedAt: serverTimestamp(),
+      updatedBy: auth.currentUser.uid
+    }, { merge: true });
+    
+    logger.log('⚙️ Platform settings updated in SettingInfo/platform');
+  } catch (error: any) {
+    logger.error('❌ Failed to update platform settings:', error);
+    throw error;
+  }
+};
+
+// Upload File to Firebase Storage
+export const uploadFile = async (file: File, path: string): Promise<string> => {
+  // Dynamically import storage modules to avoid SSR/initialization issues
+  try {
+    const { storage } = await import('@/lib/firebase');
+    const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
+
+    if (!storage) {
+      throw { code: 'storage/not-configured', message: 'Firebase Storage is not configured.' };
+    }
+
+    const storageRef = ref(storage, path);
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    
+    logger.log('📂 File uploaded successfully:', path);
+    return downloadURL;
+  } catch (error: any) {
+    logger.error('❌ File upload failed:', error);
+    throw error;
   }
 };
 

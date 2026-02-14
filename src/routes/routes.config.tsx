@@ -235,6 +235,7 @@ export const fallbackRoute: RouteObject = {
 export const ROLE_DASHBOARDS: Record<UserRole, string> = {
   [UserRole.USER]: ROUTES.DASHBOARD,
   [UserRole.ORGANIZER]: ROUTES.ORGANIZER,
+  [UserRole.ORG_ADMIN]: ROUTES.ORGANIZER,
   [UserRole.ADMIN]: ROUTES.ADMIN,
   [UserRole.SUPER_ADMIN]: ROUTES.SUPER_ADMIN,
 };

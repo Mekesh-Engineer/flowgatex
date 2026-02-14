@@ -156,20 +156,35 @@ export function useAuth() {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email || userData.email,
                 displayName: firebaseUser.displayName || userData.displayName,
-                firstName: userData.firstName || null,
-                lastName: userData.lastName || null,
-                photoURL: firebaseUser.photoURL || userData.photoURL,
-                phoneNumber: firebaseUser.phoneNumber || userData.phoneNumber,
+                firstName: userData.firstName || userData.profile?.fullName?.split(' ')[0] || null,
+                lastName: userData.lastName || userData.profile?.fullName?.split(' ').slice(1).join(' ') || null,
+                photoURL: firebaseUser.photoURL || userData.photoURL || userData.profile?.avatarUrl || null,
+                phoneNumber: firebaseUser.phoneNumber || userData.phoneNumber || userData.profile?.phone || null,
                 role: (userData.role as UserRole) || UserRole.USER,
                 emailVerified: firebaseUser.emailVerified,
-                dob: userData.dob || null,
-                gender: userData.gender || null,
+                dob: userData.dob || userData.profile?.dateOfBirth || null,
+                gender: userData.gender || userData.profile?.gender || null,
+                // RBAC fields
+                organizationId: userData.organizationId || undefined,
+                accountStatus: userData.accountStatus || 'active',
                 consents: userData.consents || {
                   terms: false,
                   marketing: false,
                   whatsapp: false,
                   liveLocation: false,
                 },
+                // Organizer fields
+                bio: userData.bio || userData.profile?.bio || userData.organizerInfo?.organizationName || null,
+                organizationName: userData.organizationName || userData.organizerInfo?.organizationName || null,
+                organizerBio: userData.organizerBio || null,
+                websiteUrl: userData.websiteUrl || userData.organizerInfo?.website || null,
+                socials: userData.socials || userData.organizerInfo?.socialLinks || undefined,
+                verificationStatus: userData.verificationStatus || userData.organizerInfo?.verificationStatus || undefined,
+                // Preferences (supports both flat and nested structures)
+                preferences: userData.preferences || undefined,
+                privacy: userData.privacy || undefined,
+                // Security
+                security: userData.security || undefined,
                 createdAt: toISO(userData.createdAt),
                 updatedAt: toISO(userData.updatedAt),
               });
@@ -252,6 +267,7 @@ export function useAuth() {
     error,
     isAdmin: user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN,
     isOrganizer: user?.role === UserRole.ORGANIZER,
+    isOrgAdmin: user?.role === UserRole.ORG_ADMIN,
     isSuperAdmin: user?.role === UserRole.SUPER_ADMIN,
   };
 }

@@ -4,7 +4,7 @@
 // These types define the API contract for the registration flow.
 // The frontend calls these interfaces; the backend team implements them.
 
-export type SignupRole = 'attendee' | 'organizer' | 'admin' | 'superadmin';
+export type SignupRole = 'attendee' | 'organizer' | 'org_admin' | 'admin' | 'superadmin';
 
 export type Gender = 'male' | 'female' | 'non-binary' | 'prefer-not-to-say';
 

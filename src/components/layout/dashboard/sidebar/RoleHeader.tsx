@@ -27,6 +27,11 @@ const ROLE_CONFIG = {
     label: 'Organizer',
     iconBg: 'bg-primary-600/20',
   },
+  [UserRole.ORG_ADMIN]: {
+    gradient: 'from-amber-500 to-orange-400',
+    label: 'Org Admin',
+    iconBg: 'bg-amber-600/20',
+  },
   [UserRole.ADMIN]: {
     gradient: 'from-red-500 to-orange-400',
     label: 'System Admin',

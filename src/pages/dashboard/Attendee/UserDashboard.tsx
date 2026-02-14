@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { logger } from '@/lib/logger';
+import { Link } from 'react-router-dom';
 import {
   Ticket,
   Calendar as CalendarIcon,
@@ -7,27 +7,28 @@ import {
   Heart,
   Search,
   Wallet,
-  QrCode,
   ArrowRight,
   ArrowLeft,
   MapPin,
   Clock,
   MoreVertical,
   TrendingUp,
-  TrendingDown,
   Bell,
   ChevronRight,
-  Filter,
+  Zap,
+  Shield,
+  Activity
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn, formatCurrency } from '@/lib/utils';
-import Button from '@/components/common/Button';
-import { Card, CardContent } from '@/components/common/Card';
 import { useAuthStore } from '@/store/zustand/stores';
 import { getUserBookings } from '@/features/booking/services/bookingService';
 import { eventService } from '@/features/events/services/eventService';
-// Ensure this file exists in your project with the styles defined previously
+import { useEvents } from '@/features/events/hooks/useEvents';
+import { toEventItems } from '@/features/events/utils/eventMapper';
+import { fadeInUp, staggerContainer, FloatingElement } from '@/features/home/components/ui/SharedComponents';
+
+// Ensure styles are loaded
 import '@/styles/features/userdashboard.css';
 
 // =============================================================================
@@ -40,13 +41,12 @@ interface StatItem {
   value: string;
   trend: string;
   trendUp: boolean;
-  icon: LucideIcon;
+  icon: any;
+  variant: 'primary' | 'secondary' | 'success' | 'warning' | 'info';
   color: string;
-  bg: string;
-  border: string;
 }
 
-interface EventItem {
+interface DashboardEvent {
   id: string;
   title: string;
   category: string;
@@ -55,6 +55,9 @@ interface EventItem {
   location: string;
   image: string;
   price: string;
+  rating?: number;
+  attendees?: number;
+  isBooked?: boolean;
 }
 
 interface BookingTableItem {
@@ -66,64 +69,164 @@ interface BookingTableItem {
   image: string;
 }
 
-interface DashboardData {
-  stats: StatItem[];
-  upcomingEvents: EventItem[];
-  recentBookings: BookingTableItem[];
-  userName: string;
-}
-
 // =============================================================================
-// ANIMATION VARIANTS
+// SUB-COMPONENTS
 // =============================================================================
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 },
-  },
-};
+const MetricCard = ({ stat }: { stat: StatItem }) => (
+  <motion.div 
+    variants={fadeInUp}
+    whileHover={{ y: -5 }}
+    className={`metric-card metric-card-${stat.variant} relative overflow-hidden group`}
+  >
+    {/* Background Pattern */}
+    <div className="absolute top-0 right-0 p-4 opacity-5 transform group-hover:scale-110 transition-transform duration-500">
+      <stat.icon size={80} />
+    </div>
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { type: 'spring', stiffness: 100, damping: 15 },
-  },
-};
+    <div className="metric-card-header relative z-10">
+      <div className={`metric-card-icon shadow-lg shadow-${stat.variant}/20`}>
+        <stat.icon size={22} />
+      </div>
+      <span className={cn(
+        "metric-card-trend px-2 py-0.5 rounded-full bg-white/5 backdrop-blur-sm border border-white/10",
+        stat.trendUp ? "text-green-500" : "text-red-500"
+      )}>
+        {stat.trendUp ? <TrendingUp size={12} /> : <Activity size={12} />}
+        {stat.trend}
+      </span>
+    </div>
+    
+    <div className="relative z-10 mt-4">
+      <h3 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
+        {stat.value}
+      </h3>
+      <p className="metric-card-label mt-1 text-[var(--text-secondary)] font-medium">
+        {stat.label}
+      </p>
+    </div>
 
-const QUICK_ACTIONS = [
-  { label: 'Find Events', icon: Search, color: 'text-blue-500' },
-  { label: 'My Tickets', icon: Ticket, color: 'text-purple-500' },
-  { label: 'Wallet', icon: Wallet, color: 'text-green-500' },
-  { label: 'Scan Entry', icon: QrCode, color: 'text-orange-500' },
-];
+    {/* Hover Glow Effect */}
+    <div 
+      className="absolute -inset-0.5 blur opacity-0 group-hover:opacity-20 transition duration-500"
+      style={{ background: `linear-gradient(to right, ${stat.color}, transparent)` }}
+    />
+  </motion.div>
+);
+
+const EventCard = ({ event, isBooked = false }: { event: DashboardEvent, isBooked?: boolean }) => (
+  <motion.div 
+    variants={fadeInUp}
+    whileHover={{ y: -8 }}
+    className="group relative flex flex-col h-full min-w-[280px] md:min-w-[320px] rounded-2xl overflow-hidden bg-[var(--bg-card)] border border-[var(--border-primary)] hover:border-[var(--color-primary)] transition-all duration-300 shadow-lg hover:shadow-[var(--shadow-lg)] cursor-pointer snap-center"
+  >
+    <div className="relative h-48 overflow-hidden shrink-0">
+      <img 
+        src={event.image} 
+        alt={event.title} 
+        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent opacity-80" />
+      
+      <div className="absolute top-3 left-3 flex gap-2">
+        <span className="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md text-white text-xs font-bold border border-white/20 shadow-lg">
+          {event.category}
+        </span>
+        {isBooked && (
+          <span className="px-2.5 py-1 rounded-full bg-green-500 text-white text-xs font-bold shadow-lg flex items-center gap-1">
+            <Ticket size={12} /> Booked
+          </span>
+        )}
+      </div>
+
+      <button className="absolute top-3 right-3 p-2 rounded-full bg-black/40 backdrop-blur-md text-white hover:bg-red-500 transition-all transform hover:scale-110 active:scale-95 opacity-0 group-hover:opacity-100">
+        <Heart size={16} />
+      </button>
+    </div>
+    
+    <div className="p-5 flex flex-col flex-grow relative">
+      <div className="flex justify-between items-start mb-2 text-xs font-medium text-[var(--text-muted)]">
+        <span className="flex items-center gap-1.5">
+          <CalendarIcon size={14} className="text-[var(--color-primary)]" />
+          {event.date}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Clock size={14} className="text-[var(--color-secondary)]" />
+          {event.time}
+        </span>
+      </div>
+      
+      <h4 className="text-lg font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
+        {event.title}
+      </h4>
+      
+      <div className="text-sm text-[var(--text-secondary)] flex items-center gap-2 mb-4">
+        <MapPin size={14} className="shrink-0" />
+        <span className="truncate">{event.location}</span>
+      </div>
+
+      <div className="mt-auto pt-4 border-t border-[var(--border-primary)] flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider">Price</p>
+            <p className="text-lg font-bold text-[var(--text-primary)]">{event.price}</p>
+          </div>
+          {isBooked && (
+             <button className="btn btn-sm btn-secondary gap-1 group-hover:translate-x-1 transition-transform">
+               View Ticket <ArrowRight size={14} />
+             </button>
+          )}
+        </div>
+        
+        {!isBooked && (
+          <div className="grid grid-cols-2 gap-2 w-full mt-1">
+            <Link 
+              to={`/events/${event.id}`} 
+              className="btn btn-sm btn-outline border-[var(--border-primary)] hover:border-[var(--color-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] w-full justify-center"
+            >
+              Details
+            </Link>
+            <Link 
+              to={`/booking/${event.id}`} 
+              className="btn btn-sm btn-primary shadow-md shadow-primary/20 w-full justify-center"
+            >
+              Book
+            </Link>
+          </div>
+        )}
+      </div>
+    </div>
+  </motion.div>
+);
 
 // =============================================================================
-// COMPONENT
+// MAIN COMPONENT
 // =============================================================================
 
 export default function UserDashboard() {
   const { user } = useAuthStore();
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [bookingsData, setBookingsData] = useState<{
+    stats: StatItem[];
+    activeBookings: DashboardEvent[];
+    recentBookings: BookingTableItem[];
+  } | null>(null);
+  
   const [loading, setLoading] = useState(true);
 
-  // Dynamic Data Fetching Effect
+  // Fetch Recommended Events
+  const { data: recommendedEventsRaw } = useEvents(8);
+  const recommendedEvents = toEventItems(recommendedEventsRaw || []);
+
   useEffect(() => {
     const loadData = async () => {
       if (!user) return;
 
       try {
         setLoading(true);
-        // 1. Fetch User Bookings
         const bookings = await getUserBookings(user.uid);
-
-        // 2. Fetch Details for the bookings
-        const recentBookings = bookings.slice(0, 5);
         
-        const bookingsWithEventData = await Promise.all(recentBookings.map(async (b) => {
+        // Process Bookings
+        const bookingsWithEventData = await Promise.all(bookings.slice(0, 10).map(async (b) => {
             try {
                 const event = await eventService.getEventById(b.eventId);
                 return { ...b, eventDetails: event };
@@ -132,79 +235,72 @@ export default function UserDashboard() {
             }
         }));
 
-        // Calculate Stats
         const totalSpent = bookings.reduce((sum, b) => sum + (b.finalAmount || 0), 0);
-        const totalBookings = bookings.length;
         const upcomingBookings = bookings.filter(b => {
              const date = new Date(b.eventDate); 
              return !isNaN(date.getTime()) && date > new Date();
         });
 
-        // Map to UI Models
         const stats: StatItem[] = [
           {
             id: 1,
-            label: 'Total Bookings',
-            value: totalBookings.toString(),
+            label: 'Bookings',
+            value: bookings.length.toString(),
             trend: '+12%', 
             trendUp: true,
             icon: Ticket,
-            color: 'text-blue-600 dark:text-blue-400',
-            bg: 'bg-blue-50 dark:bg-blue-500/10',
-            border: 'border-blue-100 dark:border-blue-500/20',
+            variant: 'primary',
+            color: '#00A3DB'
           },
           {
             id: 2,
-            label: 'Upcoming Events',
+            label: 'Upcoming',
             value: upcomingBookings.length.toString(),
-            trend: '+2%',
+            trend: 'Next: 2d',
             trendUp: true,
             icon: CalendarIcon,
-            color: 'text-purple-600 dark:text-purple-400',
-            bg: 'bg-purple-50 dark:bg-purple-500/10',
-            border: 'border-purple-100 dark:border-purple-500/20',
+            variant: 'secondary',
+            color: '#A3D639'
           },
           {
             id: 3,
-            label: 'Total Spent',
-            value: formatCurrency(totalSpent),
+            label: 'Wallet',
+            value: formatCurrency(2450), // Mock wallet
             trend: '+5%',
             trendUp: true,
-            icon: CreditCard,
-            color: 'text-emerald-600 dark:text-emerald-400',
-            bg: 'bg-emerald-50 dark:bg-emerald-500/10',
-            border: 'border-emerald-100 dark:border-emerald-500/20',
+            icon: Wallet,
+            variant: 'info',
+            color: '#3B82F6'
           },
           {
             id: 4,
-            label: 'Favorites',
-            value: '0',
-            trend: '0%',
+            label: 'Spent',
+            value: formatCurrency(totalSpent),
+            trend: 'Last 30d',
             trendUp: false,
-            icon: Heart,
-            color: 'text-pink-600 dark:text-pink-400',
-            bg: 'bg-pink-50 dark:bg-pink-500/10',
-            border: 'border-pink-100 dark:border-pink-500/20',
+            icon: CreditCard,
+            variant: 'warning',
+            color: '#F59E0B'
           },
         ];
 
-        const upcomingEventsUI: EventItem[] = upcomingBookings.map(b => {
+        const activeBookingsUI: DashboardEvent[] = upcomingBookings.map(b => {
             const detail = bookingsWithEventData.find(ebd => ebd.id === b.id)?.eventDetails;
             const d = new Date(b.eventDate);
             return {
                 id: b.eventId,
                 title: b.eventTitle,
-                category: detail?.category || 'General',
+                category: detail?.category || 'Event',
                 date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                 time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
                 location: detail?.venue?.city || 'Online',
-                image: detail?.coverImage || 'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=800',
+                image: detail?.coverImage || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80',
                 price: formatCurrency(b.finalAmount),
+                isBooked: true
             };
         });
 
-        const recentBookingsUI: BookingTableItem[] = bookingsWithEventData.map(b => {
-             // Handle Firebase Timestamp or string date
+        const recentBookingsUI: BookingTableItem[] = bookingsWithEventData.slice(0, 5).map(b => {
              let dateStr = 'Unknown';
              if (b.bookingDate) {
                  if (typeof b.bookingDate === 'string') {
@@ -224,15 +320,14 @@ export default function UserDashboard() {
             };
         });
 
-        setData({
+        setBookingsData({
             stats,
-            upcomingEvents: upcomingEventsUI,
-            recentBookings: recentBookingsUI,
-            userName: user.displayName || 'User'
+            activeBookings: activeBookingsUI,
+            recentBookings: recentBookingsUI
         });
 
       } catch (error) {
-        logger.error('Failed to load dashboard data', error);
+        console.error('Failed to load dashboard data', error);
       } finally {
         setLoading(false);
       }
@@ -240,11 +335,10 @@ export default function UserDashboard() {
     loadData();
   }, [user]);
 
-  // Scroll Handler for Events
-  const scrollEvents = (direction: 'left' | 'right') => {
-    const container = document.getElementById('events-container');
+  const scrollContainer = (id: string, direction: 'left' | 'right') => {
+    const container = document.getElementById(id);
     if (container) {
-      const scrollAmount = direction === 'left' ? -320 : 320;
+      const scrollAmount = direction === 'left' ? -340 : 340;
       container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -253,405 +347,235 @@ export default function UserDashboard() {
 
   return (
     <motion.div
-      className="flex flex-1 w-full gap-8 p-4 md:p-0"
-      variants={containerVariants}
+      className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8"
+      variants={staggerContainer}
       initial="hidden"
       animate="visible"
     >
-      {/* ─── Left Main Content Area ─── */}
-      <div className="flex-1 flex flex-col gap-8 min-w-0">
-        {/* ─── Hero Section ─── */}
-        <motion.section variants={itemVariants} className="@container">
-          <div className="relative w-full rounded-2xl overflow-hidden min-h-[300px] flex flex-col justify-end p-8 shadow-2xl group transition-all duration-500 hover:shadow-primary-900/20">
-            {/* Background Image with Gradient Overlay */}
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-1000 group-hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-violet-900/95 via-purple-900/90 to-transparent mix-blend-multiply" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-            </div>
-
-            {/* Content */}
-            <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <div className="flex flex-col gap-3 max-w-2xl">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 w-fit"
-                >
+      <div className="flex flex-col xl:flex-row gap-8">
+        
+        {/* ─── Left Main Content Area ─── */}
+        <div className="flex-1 flex flex-col gap-8 min-w-0">
+          
+          {/* ─── Hero Section ─── */}
+          <motion.div variants={fadeInUp} className="relative rounded-3xl overflow-hidden min-h-[280px] flex items-center shadow-2xl group text-left">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-700 group-hover:scale-105" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-transparent" />
+            
+            <div className="relative z-10 p-8 md:p-12 w-full max-w-3xl">
+              <FloatingElement duration={4}>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-primary)]/20 border border-[var(--color-primary)]/30 backdrop-blur-md mb-6">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--color-primary)] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--color-primary)]"></span>
                   </span>
-                  <span className="text-xs font-medium text-white/90">Account Active</span>
-                </motion.div>
+                  <span className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-wider">Attendee Access</span>
+                </div>
+              </FloatingElement>
 
-                <h1 className="text-white text-3xl md:text-5xl font-black tracking-tight drop-shadow-lg leading-tight">
-                  Welcome back, <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-300 animate-gradient-x">
-                    Alex!
-                  </span>
-                </h1>
-
-                <p className="text-blue-50/80 text-base md:text-lg font-medium max-w-lg leading-relaxed">
-                  Ready for your next adventure? You have{' '}
-                  <span className="text-white font-bold underline decoration-purple-400 decoration-2 underline-offset-4">
-                    {data?.upcomingEvents.length} upcoming events
-                  </span>{' '}
-                  scheduled for this month.
-                </p>
-              </div>
-
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button
-                  variant="secondary"
-                  className="bg-white text-violet-700 hover:bg-blue-50 border-none shadow-xl shadow-violet-900/20 font-bold px-8 py-4 rounded-xl h-auto text-base group/btn"
-                >
-                  <span>Explore Events</span>
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" />
-                </Button>
-              </motion.div>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* ─── Stats Grid ─── */}
-        <motion.section
-          variants={itemVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        >
-          {data?.stats.map(stat => (
-            <motion.div
-              key={stat.id}
-              whileHover={{ y: -4 }}
-              transition={{ type: 'spring', stiffness: 300 }}
-            >
-              <Card
-                className={cn(
-                  'border bg-white dark:bg-neutral-800 shadow-sm hover:shadow-md transition-all duration-300',
-                  stat.border
-                )}
-              >
-                <CardContent className="p-5">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className={cn('p-2.5 rounded-xl shadow-inner', stat.bg, stat.color)}>
-                      <stat.icon size={22} strokeWidth={2.5} />
-                    </div>
-                    <div
-                      className={cn(
-                        'px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 border',
-                        stat.trendUp
-                          ? 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/20'
-                          : 'text-rose-700 bg-rose-50 border-rose-100 dark:text-rose-400 dark:bg-rose-500/10 dark:border-rose-500/20'
-                      )}
-                    >
-                      {stat.trendUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                      {stat.trend}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 dark:text-neutral-400 text-sm font-medium tracking-wide">
-                      {stat.label}
-                    </p>
-                    <p className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mt-1 tracking-tight">
-                      {stat.value}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.section>
-
-        {/* ─── Upcoming Events Carousel ─── */}
-        <motion.section variants={itemVariants}>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Ticket className="text-primary-600 size-5" />
-                Upcoming Events
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-neutral-400 mt-1">
-                Don't miss out on your scheduled activities
+              <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4">
+                Welcome back, <br/>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">
+                  {user?.displayName || 'Guest'}
+                </span>
+              </h1>
+              
+              <p className="text-gray-300 text-lg mb-8 max-w-lg leading-relaxed">
+                Discover the best events happening around you. You have <strong className="text-white font-medium">{bookingsData?.activeBookings.length} upcoming events</strong> on your schedule.
               </p>
+
+              <div className="flex flex-wrap gap-4">
+                <Link to="/events" className="btn btn-primary rounded-xl px-6 py-3 shadow-lg shadow-[var(--color-primary)]/25 font-bold hover:scale-105 transition-transform">
+                  Explore Events
+                </Link>
+                <button className="btn btn-outline border-white/20 text-white hover:bg-white/10 rounded-xl px-6 py-3 backdrop-blur-sm font-bold">
+                  View My Tickets
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => scrollEvents('left')}
-                className="size-9 rounded-full border border-slate-200 dark:border-neutral-700 flex items-center justify-center hover:bg-white dark:hover:bg-neutral-800 hover:shadow-md transition-all text-slate-600 dark:text-neutral-300"
-              >
-                <ArrowLeft size={16} />
-              </button>
-              <button
-                onClick={() => scrollEvents('right')}
-                className="size-9 rounded-full border border-slate-200 dark:border-neutral-700 flex items-center justify-center hover:bg-white dark:hover:bg-neutral-800 hover:shadow-md transition-all text-slate-600 dark:text-neutral-300"
-              >
-                <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
+          </motion.div>
 
-          <div
-            id="events-container"
-            className="flex gap-6 overflow-x-auto pb-8 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide snap-x"
-          >
-            {data?.upcomingEvents.map(event => (
-              <motion.div
-                key={event.id}
-                whileHover={{ scale: 1.02 }}
-                className="min-w-[300px] md:min-w-[340px] snap-center bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-neutral-700 shadow-sm hover:shadow-xl dark:hover:shadow-neutral-900/50 transition-all duration-300 flex flex-col group"
-              >
-                {/* Image Section */}
-                <div className="h-40 bg-gray-100 relative overflow-hidden">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-
-                  <div className="absolute top-3 right-3 bg-white/90 dark:bg-neutral-900/90 backdrop-blur text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm border border-white/20">
-                    {event.category}
-                  </div>
-
-                  <div className="absolute bottom-3 left-4 text-white">
-                    <p className="text-xs font-medium opacity-90 uppercase tracking-wider">
-                      {event.date}
-                    </p>
-                    <p className="text-sm font-bold">{event.time}</p>
-                  </div>
-                </div>
-
-                {/* Info Section */}
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div className="space-y-3">
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white line-clamp-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                      {event.title}
-                    </h4>
-                    <div className="flex items-start gap-2 text-slate-500 dark:text-neutral-400 text-sm">
-                      <MapPin size={16} className="shrink-0 mt-0.5" />
-                      <span className="line-clamp-1">{event.location}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-4 border-t border-slate-100 dark:border-neutral-700 flex items-center justify-between">
-                    <span className="text-sm font-semibold text-slate-900 dark:text-white">
-                      {event.price}
-                    </span>
-                    <button className="text-sm font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 flex items-center gap-1 hover:underline">
-                      View Ticket <ChevronRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
+          {/* ─── Stats Grid ─── */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {bookingsData?.stats.map(stat => (
+              <MetricCard key={stat.id} stat={stat} />
             ))}
           </div>
-        </motion.section>
 
-        {/* ─── Recent Bookings Table ─── */}
-        <motion.section
-          variants={itemVariants}
-          className="bg-white dark:bg-neutral-800 rounded-2xl border border-slate-200 dark:border-neutral-700 overflow-hidden shadow-sm"
-        >
-          <div className="px-6 py-5 border-b border-slate-200 dark:border-neutral-700 flex items-center justify-between bg-slate-50/50 dark:bg-neutral-800/50">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Clock className="text-slate-400" size={20} />
-              Recent Bookings
-            </h3>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-slate-500 hover:text-slate-700 dark:text-neutral-400"
-              >
-                <Filter size={16} className="mr-2" /> Filter
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="border-slate-200 dark:border-neutral-700"
-              >
-                View All
-              </Button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 dark:bg-neutral-900/50 text-slate-500 dark:text-neutral-400 text-xs uppercase tracking-wider font-semibold">
-                  <th className="px-6 py-4 rounded-tl-lg">Event Name</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4">Order ID</th>
-                  <th className="px-6 py-4">Amount</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right rounded-tr-lg">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-neutral-700">
-                {data?.recentBookings.map(booking => (
-                  <motion.tr
-                    key={booking.id}
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    className="group hover:bg-slate-50 dark:hover:bg-neutral-700/20 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className="size-10 rounded-lg bg-cover bg-center shadow-sm border border-slate-100 dark:border-neutral-700"
-                          style={{ backgroundImage: `url('${booking.image}')` }}
-                        />
-                        <span className="font-semibold text-slate-900 dark:text-white group-hover:text-primary-600 transition-colors">
-                          {booking.event}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-neutral-400">
-                      {booking.date}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      <span className="font-mono text-slate-500 dark:text-neutral-500 bg-slate-50 dark:bg-neutral-900 px-2 py-1 rounded inline-block">
-                        {booking.id}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">
-                      {booking.amount}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={cn(
-                          'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border',
-                          booking.status === 'Confirmed'
-                            ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20'
-                            : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            'size-1.5 rounded-full animate-pulse',
-                            booking.status === 'Confirmed' ? 'bg-green-500' : 'bg-amber-500'
-                          )}
-                        />
-                        {booking.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="p-2 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-neutral-700 dark:hover:text-white transition-all">
-                        <MoreVertical size={18} />
-                      </button>
-                    </td>
-                  </motion.tr>
+          {/* ─── My Agenda (Booked Events) ─── */}
+          {bookingsData?.activeBookings.length ? (
+            <motion.section variants={fadeInUp} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-[var(--text-primary)]">My Agenda</h2>
+                  <p className="text-[var(--text-secondary)] text-sm">Your confirmed upcoming events</p>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={() => scrollContainer('agenda-scroll', 'left')} className="p-2 rounded-full hover:bg-[var(--bg-secondary)] border border-[var(--border-primary)] transition-colors">
+                    <ArrowLeft size={18} />
+                  </button>
+                  <button onClick={() => scrollContainer('agenda-scroll', 'right')} className="p-2 rounded-full hover:bg-[var(--bg-secondary)] border border-[var(--border-primary)] transition-colors">
+                    <ArrowRight size={18} />
+                  </button>
+                </div>
+              </div>
+              
+              <div id="agenda-scroll" className="flex gap-6 overflow-x-auto pb-6 px-1 -mx-1 scrollbar-hide snap-x">
+                {bookingsData.activeBookings.map(event => (
+                  <EventCard key={event.id} event={event} isBooked={true} />
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </motion.section>
-      </div>
+              </div>
+            </motion.section>
+          ) : null}
 
-      {/* ─── Right Sidebar (Desktop Only) ─── */}
-      <motion.aside variants={itemVariants} className="hidden xl:flex w-80 flex-col gap-6 pt-0">
-        <div className="sticky top-28 space-y-6">
-          {/* Quick Actions Widget */}
-          <div className="bg-white dark:bg-neutral-800 rounded-2xl p-6 border border-slate-200 dark:border-neutral-700 shadow-sm relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary-500/10 to-purple-500/10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110" />
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6 relative z-10">
-              Quick Actions
-            </h3>
+          {/* ─── Recommended For You ─── */}
+          <motion.section variants={fadeInUp} className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+                  Recommended For You <Zap className="text-yellow-400 fill-yellow-400" size={20} />
+                </h2>
+                <p className="text-[var(--text-secondary)] text-sm">Curated events based on your interests</p>
+              </div>
+              <Link to="/events" className="text-[var(--color-primary)] text-sm font-bold hover:underline flex items-center gap-1">
+                View All <ChevronRight size={16} />
+              </Link>
+            </div>
 
-            <div className="grid grid-cols-1 gap-3 relative z-10">
-              {QUICK_ACTIONS.map(action => (
-                <motion.button
-                  key={action.label}
-                  whileHover={{ scale: 1.02, x: 4 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-4 w-full p-3.5 rounded-xl bg-slate-50 dark:bg-neutral-900/50 hover:bg-white dark:hover:bg-neutral-700 border border-transparent hover:border-slate-200 dark:hover:border-neutral-600 hover:shadow-md transition-all duration-200 text-left group/btn"
-                >
-                  <div
-                    className={cn(
-                      'size-10 rounded-xl bg-white dark:bg-neutral-800 flex items-center justify-center shadow-sm group-hover/btn:scale-110 transition-transform',
-                      action.color
-                    )}
-                  >
-                    <action.icon size={20} strokeWidth={2.5} />
-                  </div>
-                  <span className="font-semibold text-slate-700 dark:text-neutral-200 group-hover/btn:text-primary-600 dark:group-hover/btn:text-white transition-colors">
-                    {action.label}
-                  </span>
-                  <ChevronRight
-                    className="ml-auto text-slate-300 group-hover/btn:text-primary-500 opacity-0 group-hover/btn:opacity-100 transition-all"
-                    size={16}
-                  />
-                </motion.button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendedEvents.slice(0, 6).map(event => (
+                <EventCard 
+                  key={event.id} 
+                  event={{
+                    id: event.id,
+                    title: event.title,
+                    category: event.category,
+                    date: event.date,
+                    time: event.time,
+                    location: event.venue,
+                    image: event.image,
+                    price: formatCurrency(event.price),
+                  }} 
+                />
               ))}
             </div>
-          </div>
+          </motion.section>
 
-          {/* Calendar Widget (Applies glass-panel styling from CSS) */}
-          <div className="glass-panel bg-gradient-to-b from-slate-900 to-slate-800 dark:from-neutral-800 dark:to-neutral-900 rounded-2xl p-6 text-white shadow-xl border border-slate-700/50">
-            <div className="flex items-center justify-between mb-6">
-              <h4 className="font-bold text-lg">August 2026</h4>
-              <button className="text-slate-400 hover:text-white transition-colors">
-                <MoreVertical size={18} />
+          {/* ─── Recent Activity Table ─── */}
+          <motion.section variants={fadeInUp} className="card overflow-hidden border-[var(--border-primary)]">
+            <div className="p-6 border-b border-[var(--border-primary)] flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">Recent Activity</h3>
+                <p className="text-sm text-[var(--text-secondary)]">Your latest transactions and bookings</p>
+              </div>
+              <button className="btn btn-sm btn-ghost">View All History</button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[var(--bg-secondary)] text-[var(--text-secondary)] text-xs uppercase font-semibold">
+                  <tr>
+                    <th className="px-6 py-4">Event</th>
+                    <th className="px-6 py-4">Date</th>
+                    <th className="px-6 py-4 hidden sm:table-cell">Order ID</th>
+                    <th className="px-6 py-4">Amount</th>
+                    <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-primary)]">
+                  {bookingsData?.recentBookings.map(booking => (
+                    <tr key={booking.id} className="hover:bg-[var(--bg-secondary)]/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <img src={booking.image} alt="" className="w-10 h-10 rounded-lg object-cover" />
+                          <span className="font-semibold text-[var(--text-primary)]">{booking.event}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-[var(--text-muted)] font-medium">{booking.date}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-[var(--text-muted)] hidden sm:table-cell">{booking.id.substring(0,8)}</td>
+                      <td className="px-6 py-4 font-bold text-[var(--text-primary)]">{booking.amount}</td>
+                      <td className="px-6 py-4">
+                        <span className={cn(
+                          "px-2.5 py-1 rounded-full text-xs font-bold",
+                          booking.status === 'Confirmed' ? "bg-green-500/10 text-green-500" : 
+                          booking.status === 'Cancelled' ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"
+                        )}>
+                          {booking.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-full hover:bg-[var(--bg-tertiary)] transition-colors">
+                          <MoreVertical size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {!bookingsData?.recentBookings.length && (
+                <div className="text-center py-12 text-[var(--text-muted)]">No recent activity found.</div>
+              )}
+            </div>
+          </motion.section>
+
+        </div>
+
+        {/* ─── Right Sidebar ─── */}
+        <motion.aside variants={fadeInUp} className="hidden xl:flex w-80 flex-col gap-6">
+          <div className="sticky top-24 space-y-6">
+            
+            {/* User Profile Summary */}
+            <div className="card p-6 flex flex-col items-center text-center">
+              <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-secondary)] p-1 mb-4">
+                 <img 
+                   src={user?.photoURL || `https://ui-avatars.com/api/?name=${user?.displayName || 'User'}&background=random`} 
+                   alt="Profile" 
+                   className="w-full h-full rounded-full object-cover border-4 border-[var(--bg-card)]" 
+                 />
+                 <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-4 border-[var(--bg-card)] rounded-full"></div>
+              </div>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">{user?.displayName || 'User'}</h3>
+              <p className="text-sm text-[var(--text-secondary)] mb-4">{user?.email}</p>
+              <div className="flex gap-2 w-full">
+                <button className="btn btn-sm btn-outline flex-1 rounded-lg">Edit Profile</button>
+                <button className="btn btn-sm btn-ghost p-2 rounded-lg border border-[var(--border-primary)]"><Shield size={16}/></button>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="card p-5">
+              <h3 className="font-bold text-[var(--text-primary)] mb-4">Quick Actions</h3>
+              <div className="space-y-2">
+                {[
+                  { label: 'Browse Events', icon: Search, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                  { label: 'My Tickets', icon: Ticket, color: 'text-green-500', bg: 'bg-green-500/10' },
+                  { label: 'Wallet', icon: Wallet, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+                ].map((action, i) => (
+                  <button key={i} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[var(--bg-secondary)] transition-colors text-left group">
+                    <div className={`p-2.5 rounded-lg ${action.bg} ${action.color} group-hover:scale-110 transition-transform`}>
+                      <action.icon size={18} />
+                    </div>
+                    <span className="font-medium text-[var(--text-primary)]">{action.label}</span>
+                    <ChevronRight size={16} className="ml-auto text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notification Widget */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#00A3DB] to-[#0082b0] p-6 text-white shadow-lg">
+              <Bell size={24} className="mb-4" />
+              <h4 className="font-bold text-lg mb-1">Enable Notifications</h4>
+              <p className="text-sm text-white/80 mb-4">Get updates on your favorite events and ticket status.</p>
+              <button className="w-full py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg text-sm font-bold transition-colors">
+                Turn On
               </button>
             </div>
 
-            <div className="grid grid-cols-7 gap-y-4 gap-x-2 text-center text-sm">
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                <span key={d} className="text-slate-500 font-medium text-xs">
-                  {d}
-                </span>
-              ))}
-              {/* Calendar Days Logic (Visual Only) */}
-              {[...Array(31)].map((_, i) => {
-                const day = i + 1;
-                const isToday = day === 12;
-                const hasEvent = [5, 12, 15].includes(day);
-                return (
-                  <div key={day} className="relative flex justify-center">
-                    <span
-                      className={cn(
-                        'flex size-8 items-center justify-center rounded-full text-sm transition-all cursor-pointer hover:bg-white/10',
-                        isToday
-                          ? 'bg-primary-600 text-white font-bold shadow-lg shadow-primary-900/50'
-                          : 'text-slate-300'
-                      )}
-                    >
-                      {day}
-                    </span>
-                    {hasEvent && !isToday && (
-                      <span className="absolute -bottom-1 size-1 bg-primary-400 rounded-full" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-white/10">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer">
-                <div className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse" />
-                <div>
-                  <p className="text-sm font-medium">Summer Jazz Festival</p>
-                  <p className="text-xs text-slate-400">Today, 18:00 PM</p>
-                </div>
-              </div>
-            </div>
           </div>
+        </motion.aside>
 
-          {/* Notifications Card (Applies widget-scroll from CSS) */}
-          <div className="bg-orange-50 dark:bg-orange-500/10 rounded-2xl p-5 border border-orange-100 dark:border-orange-500/20 flex items-start gap-4 widget-scroll">
-            <div className="p-2 bg-orange-100 dark:bg-orange-500/20 rounded-lg text-orange-600 dark:text-orange-400 shrink-0">
-              <Bell size={20} />
-            </div>
-            <div>
-              <h5 className="font-bold text-orange-900 dark:text-orange-100 text-sm">New Alert</h5>
-              <p className="text-xs text-orange-800/80 dark:text-orange-200/70 mt-1 leading-relaxed">
-                Your ticket for "Neon Night Run" is ready for download.
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.aside>
+      </div>
     </motion.div>
   );
 }
@@ -662,33 +586,17 @@ export default function UserDashboard() {
 
 function DashboardSkeleton() {
   return (
-    <div className="flex flex-1 w-full gap-8 p-4">
+    <div className="p-6 md:p-8 max-w-[1600px] mx-auto flex gap-8">
       <div className="flex-1 flex flex-col gap-8">
-        {/* Hero Skeleton */}
-        <div className="w-full h-[300px] rounded-2xl bg-slate-200 dark:bg-neutral-800 animate-pulse" />
-        {/* Stats Skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <div
-              key={i}
-              className="h-32 rounded-xl bg-slate-200 dark:bg-neutral-800 animate-pulse"
-            />
-          ))}
+        <div className="skeleton w-full h-[300px] rounded-3xl" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map(i => <div key={i} className="skeleton h-36 rounded-2xl" />)}
         </div>
-        {/* Carousel Skeleton */}
-        <div className="flex gap-6 overflow-hidden">
-          {[1, 2, 3].map(i => (
-            <div
-              key={i}
-              className="min-w-[300px] h-80 rounded-2xl bg-slate-200 dark:bg-neutral-800 animate-pulse"
-            />
-          ))}
-        </div>
+        <div className="skeleton h-80 rounded-2xl" />
       </div>
-      {/* Sidebar Skeleton */}
-      <div className="hidden xl:flex w-80 flex-col gap-6">
-        <div className="h-64 rounded-2xl bg-slate-200 dark:bg-neutral-800 animate-pulse" />
-        <div className="h-80 rounded-2xl bg-slate-200 dark:bg-neutral-800 animate-pulse" />
+      <div className="hidden xl:block w-80 space-y-6">
+        <div className="skeleton h-64 rounded-2xl" />
+        <div className="skeleton h-48 rounded-2xl" />
       </div>
     </div>
   );

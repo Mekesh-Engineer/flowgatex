@@ -76,7 +76,7 @@ function AppRoutes() {
             />
           ))}
 
-          {/* Organizer routes — organizer, admin, superadmin */}
+          {/* Organizer routes — organizer, org_admin, admin, superadmin */}
           {organizerRoutes.map((route) => (
             <Route
               key={route.path}
@@ -85,6 +85,7 @@ function AppRoutes() {
                 <RoleRoute
                   allowedRoles={[
                     UserRole.ORGANIZER,
+                    UserRole.ORG_ADMIN,
                     UserRole.ADMIN,
                     UserRole.SUPER_ADMIN,
                   ]}

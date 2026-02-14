@@ -60,6 +60,7 @@ const MOCK_USERS: PlatformUser[] = [
 const ROLE_BADGE: Record<UserRole, { variant: 'info' | 'success' | 'warning' | 'default'; label: string }> = {
     [UserRole.USER]: { variant: 'info', label: 'User' },
     [UserRole.ORGANIZER]: { variant: 'success', label: 'Organizer' },
+    [UserRole.ORG_ADMIN]: { variant: 'success', label: 'Org Admin' },
     [UserRole.ADMIN]: { variant: 'warning', label: 'Admin' },
     [UserRole.SUPER_ADMIN]: { variant: 'default', label: 'Super Admin' },
 };

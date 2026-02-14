@@ -9,6 +9,7 @@ export const APP_URL = import.meta.env.VITE_APP_URL || 'http://localhost:3000';
 export enum UserRole {
   USER = 'user',
   ORGANIZER = 'organizer',
+  ORG_ADMIN = 'org_admin',
   ADMIN = 'admin',
   SUPER_ADMIN = 'superadmin',
 }

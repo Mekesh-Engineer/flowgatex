@@ -19,118 +19,218 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
+    function getUserRole() {
+      return getUserData().role;
+    }
+
+    function getUserOrgId() {
+      return getUserData().organizationId;
+    }
+
+    function getUserAccountStatus() {
+      return getUserData().accountStatus;
+    }
+
+    function isActive() {
+      return isAuthenticated() && getUserAccountStatus() == 'active';
+    }
+
     function isOrganizer() {
-      return isAuthenticated() && getUserData().role == 'organizer';
+      return isAuthenticated() && getUserRole() == 'organizer';
+    }
+
+    function isOrgAdmin() {
+      return isAuthenticated() && getUserRole() == 'org_admin';
     }
     
     function isAdmin() {
-      return isAuthenticated() && getUserData().role == 'admin';
+      return isAuthenticated() && getUserRole() == 'admin';
     }
 
     function isSuperAdmin() {
-      return isAuthenticated() && getUserData().role == 'superadmin';
+      return isAuthenticated() && getUserRole() == 'superadmin';
     }
 
-    // FIX 1: Update allowed roles to match your code ('user' instead of 'attendee')
+    function isAdminOrAbove() {
+      return isAdmin() || isSuperAdmin();
+    }
+
+    function isOrgAdminOrAbove() {
+      return isOrgAdmin() || isAdminOrAbove();
+    }
+
+    function isOrganizerOrAbove() {
+      return isOrganizer() || isOrgAdminOrAbove();
+    }
+
     function isValidRole(role) {
-      return role in ['user', 'organizer', 'admin', 'superadmin'];
+      return role in ['user', 'organizer', 'org_admin', 'admin', 'superadmin'];
+    }
+
+    // Feature flag check — reads from SettingInfo/platform
+    function getFeatureFlag(flagName) {
+      return get(path('/databases/' + database + '/documents/SettingInfo/platform')).data.featureFlags[flagName];
+    }
+
+    // Organization settings check
+    function getOrgSettings(orgId) {
+      return get(path('/databases/' + database + '/documents/SettingInfo/organization_' + orgId)).data;
     }
 
     // =========================================================================
     // COLLECTION RULES
     // =========================================================================
     
-    // Users collection
+    // ======================== USERS COLLECTION ==============================
     match /users/{userId} {
-      // FIX 3: Privacy - Only allow users to read their own data (or admins)
-      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin() || isSuperAdmin());
+      // Users can read their own data; admins can read any user
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdminOrAbove());
       
-      // Create: Allow creation if role is valid
+      // Create: Allow creation if role is valid and user is creating their own doc
       allow create: if isAuthenticated() 
                     && isOwner(userId)
                     && isValidRole(request.resource.data.role);
                     
-      // FIX 2: Security - Prevent Privilege Escalation
-      // Users can update their profile, BUT they cannot change the 'role' field
-      // request.resource.data.diff(resource.data).affectedKeys() checks what fields are changing
-      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid', 'emailVerified']))
-                    || isAdmin() 
-                    || isSuperAdmin();
+      // Update: Users can update own profile but CANNOT change role, uid, emailVerified, accountStatus
+      // Admins and SuperAdmins can change anything (including role for role assignment)
+      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'uid', 'emailVerified', 'accountStatus']))
+                    || isAdminOrAbove();
                     
-      allow delete: if isAdmin() || isSuperAdmin();
+      // Delete: Admins or the user themselves (for account deletion)
+      allow delete: if isAdminOrAbove() || isOwner(userId);
     }
     
-    // Events collection
+    // ===================== SETTINGINFO COLLECTION ===========================
+    // Platform settings — SettingInfo/platform
+    match /SettingInfo/platform {
+      // All authenticated users can read platform settings (for feature flags, etc.)
+      allow read: if isAuthenticated();
+      
+      // Only admin or super admin can write platform settings
+      allow write: if isAdminOrAbove();
+    }
+
+    // Organization settings — SettingInfo/organization_{orgId}
+    match /SettingInfo/{settingId} {
+      // Allow reading org settings if user belongs to that org, or is admin
+      allow read: if isAuthenticated() && (
+        isAdminOrAbove()
+        || (settingId.matches('organization_.*') && getUserOrgId() != null 
+            && settingId == 'organization_' + getUserOrgId())
+      );
+      
+      // Org admins can write their own org settings; platform admins can write any
+      allow write: if isAdminOrAbove()
+                   || (isOrgAdmin() && settingId.matches('organization_.*') 
+                       && getUserOrgId() != null 
+                       && settingId == 'organization_' + getUserOrgId());
+    }
+
+    // ======================= EVENTS COLLECTION ==============================
     match /events/{eventId} {
+      // Anyone can read published events
       allow read: if true; 
-      allow create: if isAuthenticated() && (isOrganizer() || isAdmin() || isSuperAdmin());
-      allow update: if isAuthenticated() && 
-        (resource.data.organizerId == request.auth.uid || isAdmin() || isSuperAdmin());
-      allow delete: if isAuthenticated() && 
-        (resource.data.organizerId == request.auth.uid || isAdmin() || isSuperAdmin());
+      
+      // Create: Organizer+ role AND eventCreation feature flag must be enabled
+      allow create: if isAuthenticated() 
+                    && isOrganizerOrAbove()
+                    && getFeatureFlag('eventCreation') == true;
+      
+      // Update: Event owner, or admin+
+      allow update: if isAuthenticated() && (
+        resource.data.organizerId == request.auth.uid 
+        || isAdminOrAbove()
+        // Org admin can update events from their org
+        || (isOrgAdmin() && resource.data.organizationId == getUserOrgId())
+      );
+      
+      // Delete: Event owner (if org permits), or admin+
+      allow delete: if isAuthenticated() && (
+        (resource.data.organizerId == request.auth.uid && getFeatureFlag('eventCreation') == true)
+        || isAdminOrAbove()
+        || (isOrgAdmin() && resource.data.organizationId == getUserOrgId())
+      );
     }
     
-    // Bookings collection
+    // ====================== BOOKINGS COLLECTION =============================
     match /bookings/{bookingId} {
-      allow read: if isAuthenticated() && 
-        (resource.data.userId == request.auth.uid || isAdmin());
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid 
+        || isAdminOrAbove()
+        // Organizers can read bookings for their events
+        || (isOrganizerOrAbove() && resource.data.organizerId == request.auth.uid)
+      );
         
-      // Ensure the booking is actually for the requesting user
+      // Users can create bookings for themselves
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       
-      allow update: if false; 
+      // Only admins can update/cancel bookings server-side
+      allow update: if isAdminOrAbove(); 
       allow delete: if false; 
     }
     
-    // Tickets collection
+    // ======================= TICKETS COLLECTION =============================
     match /tickets/{ticketId} {
-      allow read: if isAuthenticated() && 
-        (resource.data.userId == request.auth.uid || isAdmin() || isOrganizer());
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid 
+        || isAdminOrAbove() 
+        || isOrganizerOrAbove()
+      );
       allow create: if false; 
       allow update: if false; 
       allow delete: if false;
     }
     
-    // Reviews collection
+    // ======================= REVIEWS COLLECTION =============================
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
       allow update: if isOwner(resource.data.userId);
-      allow delete: if isOwner(resource.data.userId) || isAdmin();
+      allow delete: if isOwner(resource.data.userId) || isAdminOrAbove();
     }
     
-    // Analytics collection
+    // ====================== ANALYTICS COLLECTION ============================
     match /analytics/{document=**} {
-      allow read: if isAdmin() || isSuperAdmin();
+      allow read: if isAdminOrAbove() || isOrgAdminOrAbove();
       allow write: if false; 
     }
 
-    // Authorization codes collection
+    // =================== AUTHORIZATION CODES ================================
     match /authorization_codes/{codeId} {
-      // Authenticated users can query codes to validate during registration
       allow read: if isAuthenticated();
-      // Only admins / super admins can manage codes
-      allow create, update, delete: if isAdmin() || isSuperAdmin();
+      allow create, update, delete: if isAdminOrAbove();
     }
 
-    // Notifications collection
+    // ===================== NOTIFICATIONS ====================================
     match /notifications/{notificationId} {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAdmin() || isSuperAdmin() || isOrganizer();
+      allow create: if isAdminOrAbove() || isOrganizerOrAbove();
       allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // Carts collection — one document per user, keyed by userId
+    // ========================= CARTS ========================================
     match /carts/{userId} {
       allow read, write: if isAuthenticated() && isOwner(userId);
     }
 
-    // Audit logs collection
+    // ======================= AUDIT LOGS =====================================
     match /audit_logs/{logId} {
-      allow read: if isAdmin() || isSuperAdmin();
+      allow read: if isAdminOrAbove();
       allow create: if isAuthenticated();
       allow update, delete: if false;
+    }
+
+    // ====================== ORGANIZATIONS ===================================
+    match /organizations/{orgId} {
+      allow read: if isAuthenticated() && (
+        isAdminOrAbove() 
+        || getUserOrgId() == orgId
+      );
+      allow create: if isAdminOrAbove();
+      allow update: if isAdminOrAbove() 
+                    || (isOrgAdmin() && getUserOrgId() == orgId);
+      allow delete: if isSuperAdmin();
     }
   }
 }

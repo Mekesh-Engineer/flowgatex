@@ -32,6 +32,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       case UserRole.ADMIN:
       case UserRole.SUPER_ADMIN:
         return NAV_ITEMS.admin;
+      case UserRole.ORG_ADMIN:
       case UserRole.ORGANIZER:
         return NAV_ITEMS.organizer;
       default:
@@ -42,7 +43,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // ── Derived role helpers ────────────────────────────────────────────────
   const userRole = user?.role ?? UserRole.USER;
   const isAdmin = userRole === UserRole.ADMIN || userRole === UserRole.SUPER_ADMIN;
-  const isOrganizer = userRole === UserRole.ORGANIZER;
+  const isOrganizer = userRole === UserRole.ORGANIZER || userRole === UserRole.ORG_ADMIN;
   const isAttendee = !isAdmin && !isOrganizer;
   const sidebarConfig = SIDEBAR_CONFIG[userRole] ?? SIDEBAR_CONFIG[UserRole.USER];
 
