@@ -52,8 +52,8 @@ export default function DashboardHeader({
     const themeIcon = theme === 'dark' ? <Sun size={16} /> : theme === 'light' ? <Moon size={16} /> : <Monitor size={16} />;
 
     return (
-        <header className="dash-header">
-            <div className="dash-header-inner">
+        <header className="sticky top-0 z-30 flex h-16 w-full items-center border-b border-[var(--border-primary)] bg-[var(--bg-card)]/80 backdrop-blur-xl px-4 lg:px-6 transition-all">
+            <div className="flex w-full items-center justify-between">
                 {/* Left: logo + hamburger + breadcrumb */}
                 <div className="flex items-center gap-3">
                     {/* FlowGateX branding */}
@@ -74,7 +74,7 @@ export default function DashboardHeader({
                     {/* Sidebar toggle */}
                     <button
                         onClick={toggleSidebar}
-                        className="dash-header-icon-btn"
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                         aria-label="Toggle sidebar"
                     >
                         <Menu size={18} />
@@ -120,7 +120,7 @@ export default function DashboardHeader({
                     {/* Theme toggle */}
                     <button
                         onClick={() => setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'auto' : 'dark')}
-                        className="dash-header-icon-btn"
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                         aria-label="Toggle theme"
                     >
                         {themeIcon}
@@ -129,7 +129,7 @@ export default function DashboardHeader({
                     {/* Calendar */}
                     <button
                         onClick={() => setCalendarModalOpen(true)}
-                        className="dash-header-icon-btn"
+                        className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                         aria-label="Calendar"
                     >
                         <Calendar size={16} />
@@ -139,7 +139,7 @@ export default function DashboardHeader({
                     {isAttendee && (
                         <button
                             onClick={() => setCartModalOpen(true)}
-                            className="dash-header-icon-btn"
+                            className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                             aria-label="Cart"
                         >
                             <ShoppingCart size={16} />
@@ -153,7 +153,7 @@ export default function DashboardHeader({
                     <div ref={accountRef} className="relative">
                         <button
                             onClick={toggleAccountDropdown}
-                            className="flex items-center gap-2 p-1 rounded-xl hover:bg-[var(--bg-surface)] transition"
+                            className="flex items-center gap-2 p-1 rounded-xl hover:bg-[var(--bg-surface)] transition focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                             aria-expanded={accountDropdownOpen}
                             aria-label="Account menu"
                         >

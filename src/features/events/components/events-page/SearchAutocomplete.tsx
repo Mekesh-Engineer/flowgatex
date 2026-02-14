@@ -1,19 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search } from 'lucide-react';
-import { MOCK_EVENTS } from './mockData';
+import type { EventItem } from './types';
 
 interface Props {
     value: string;
     onChange: (v: string) => void;
     onSearch: () => void;
+    events?: EventItem[];
 }
 
-export default function SearchAutocomplete({ value, onChange, onSearch }: Props) {
+export default function SearchAutocomplete({ value, onChange, onSearch, events = [] }: Props) {
     const [open, setOpen] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
     const suggestions = value.length > 1
-        ? MOCK_EVENTS.filter(e =>
+        ? events.filter(e =>
             e.title.toLowerCase().includes(value.toLowerCase()) ||
             e.category.toLowerCase().includes(value.toLowerCase())
         ).slice(0, 5)
@@ -78,7 +79,7 @@ export default function SearchAutocomplete({ value, onChange, onSearch }: Props)
                                 <p className="text-sm font-semibold text-[var(--text-primary)] truncate">{s.title}</p>
                                 <p className="text-xs text-[var(--text-muted)]">{s.category} • {s.city}</p>
                             </div>
-                            <span className="ml-auto text-sm font-bold text-[var(--text-primary)] shrink-0">${s.price}</span>
+                            <span className="ml-auto text-sm font-bold text-[var(--text-primary)] shrink-0">₹{s.price}</span>
                         </button>
                     ))}
                 </div>

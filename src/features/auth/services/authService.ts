@@ -4,6 +4,7 @@ import {
   signInWithPopup,
   signOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
   updateProfile,
   reauthenticateWithCredential,
   EmailAuthProvider,
@@ -126,6 +127,17 @@ export const registerWithEmail = async (data: RegisterData): Promise<User> => {
   
   // Update profile with display name
   await updateProfile(result.user, { displayName: data.displayName });
+
+  // Send email verification
+  try {
+    await sendEmailVerification(result.user, {
+      url: `${window.location.origin}/login?verified=true`,
+      handleCodeInApp: false,
+    });
+    logger.log('📧 Verification email sent to:', data.email);
+  } catch (verifyErr) {
+    logger.warn('⚠️ Could not send verification email:', verifyErr);
+  }
   
   // Create user document in Firestore with extended profile fields
   await setDoc(doc(db!, 'users', result.user.uid), {
@@ -139,17 +151,21 @@ export const registerWithEmail = async (data: RegisterData): Promise<User> => {
     phoneNumber: data.phoneNumber || null,
     dob: data.dob || null,
     gender: data.gender || null,
+    location: data.location || null,
     emailVerified: false,
     phoneVerified: false,
-    consents: {
-      terms: false,
+    consents: data.consents || {
+      terms: data.terms || false,
       marketing: false,
       whatsapp: false,
       liveLocation: false,
     },
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
+    isDeleted: false,
   });
+
+  logger.log('✅ User document created in Firestore:', result.user.uid);
   
   return result.user;
 };

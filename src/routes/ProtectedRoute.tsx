@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import useAuth from '@/features/auth/hooks/useAuth';
+import { useAuthStore } from '@/store/zustand/stores';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
 // =============================================================================
@@ -17,7 +17,7 @@ interface ProtectedRouteProps {
 }
 
 export default function ProtectedRoute({ children, redirectTo = '/login' }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuthStore();
   const location = useLocation();
 
   // 1. Loading State: Wait for Auth check to complete

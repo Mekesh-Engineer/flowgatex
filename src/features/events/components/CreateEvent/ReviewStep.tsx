@@ -1,4 +1,4 @@
-import { Box, Typography, Button, Divider, Alert } from '@mui/material';
+import { ClipboardCheck, AlertTriangle } from 'lucide-react';
 import type { CreateEventData } from '../../types/event.types';
 
 interface Props {
@@ -9,51 +9,67 @@ interface Props {
 }
 
 export default function ReviewStep({ data, onPrev, onSubmit, isSubmitting }: Props) {
-  // Simple validation check
   const isValid = data.title && data.startDate && data.ticketTiers.length > 0;
 
   return (
-    <Box>
-      <Typography variant="h5" sx={{ mb: 2 }}>Review & Publish</Typography>
-      <Typography color="text.secondary" sx={{ mb: 4 }}>
+    <div>
+      <div className="ce-step-title">
+        <div className="ce-step-title-icon">
+          <ClipboardCheck size={20} />
+        </div>
+        Review & Publish
+      </div>
+      <p className="ce-step-subtitle">
         Please review all details before publishing your event.
-      </Typography>
+      </p>
 
       {!isValid && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          Your event seems to be missing some required fields (Title, Date, or Tickets).
-        </Alert>
+        <div className="ce-alert is-warning">
+          <AlertTriangle size={18} />
+          <span>Your event seems to be missing some required fields (Title, Date, or Tickets).</span>
+        </div>
       )}
 
-      <Box sx={{ bgcolor: 'grey.50', p: 3, borderRadius: 2, mb: 4 }}>
-        <Typography variant="subtitle1" fontWeight={600}>{data.title}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{data.subtitle}</Typography>
-        
-        <Divider sx={{ my: 2 }} />
-        
-        <Typography variant="body2">
-          <strong>Date:</strong> {new Date(data.startDate).toLocaleString()}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Venue:</strong> {data.locationType === 'online' ? 'Online' : data.venue?.name}
-        </Typography>
-        <Typography variant="body2">
-          <strong>Tickets:</strong> {data.ticketTiers.length} tiers configured
-        </Typography>
-      </Box>
+      <div className="ce-review-summary">
+        <h3 className="ce-review-summary-title">{data.title || 'Untitled Event'}</h3>
+        <p className="ce-review-summary-subtitle">{data.subtitle || 'No tagline'}</p>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-        <Button onClick={onPrev} disabled={isSubmitting}>Back</Button>
-        <Button 
-          variant="contained" 
-          onClick={onSubmit} 
+        <div className="ce-review-divider" />
+
+        <div className="ce-review-row">
+          <strong>Date</strong>
+          <span>{data.startDate ? new Date(data.startDate).toLocaleString() : 'Not set'}</span>
+        </div>
+        <div className="ce-review-row">
+          <strong>Venue</strong>
+          <span>{data.locationType === 'online' ? 'Online' : (data.venue?.name || 'Not set')}</span>
+        </div>
+        <div className="ce-review-row">
+          <strong>Tickets</strong>
+          <span>{data.ticketTiers.length} tier{data.ticketTiers.length !== 1 ? 's' : ''} configured</span>
+        </div>
+        <div className="ce-review-row">
+          <strong>Category</strong>
+          <span style={{ textTransform: 'capitalize' }}>{data.category || 'Not set'}</span>
+        </div>
+        <div className="ce-review-row">
+          <strong>Organizer</strong>
+          <span>{data.organizer.name || 'Not set'}</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.5rem' }}>
+        <button className="btn btn-ghost" onClick={onPrev} disabled={isSubmitting}>
+          Back
+        </button>
+        <button
+          className="btn btn-primary btn-lg"
+          onClick={onSubmit}
           disabled={!isValid || isSubmitting}
-          size="large"
-          className="btn-glow"
         >
-          {isSubmitting ? 'Publishing...' : 'Publish Event'}
-        </Button>
-      </Box>
-    </Box>
+          {isSubmitting ? 'Publishing...' : '🚀 Publish Event'}
+        </button>
+      </div>
+    </div>
   );
 }

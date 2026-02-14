@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,23 +8,19 @@ import {
     Mail, Lock, User, MapPin, Calendar, ArrowRight, ArrowLeft,
     AlertCircle, Loader2, Sparkles, Eye, EyeOff, ShieldCheck,
     CheckCircle2, Sun, Moon, Activity, ChevronDown, RefreshCw,
-    Play, Zap, Users, TrendingUp,
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import {
-    createUserWithEmailAndPassword,
-    sendEmailVerification,
-    updateProfile,
-} from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { sendEmailVerification } from 'firebase/auth';
 import confetti from 'canvas-confetti';
 
-import { auth, db, firebaseEnabled } from '@/lib/firebase';
+import { registerWithEmail } from '@/features/auth/services/authService';
+import { auth, firebaseEnabled } from '@/lib/firebase';
 import { logger } from '@/lib/logger';
 import { UserRole } from '@/lib/constants';
 import { useAuthStore, useThemeStore, type AuthUser } from '@/store/zustand/stores';
 import { ROLE_DASHBOARDS } from '@/routes/routes.config';
+import PromoPanel from '@/features/auth/components/PromoPanel';
 
 // =============================================================================
 // UTILS
@@ -51,7 +47,7 @@ const step1Schema = z.object({
 });
 
 const step2Schema = z.object({
-    gender: z.enum(['male', 'female', 'other'], {
+    gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say'], {
         errorMap: () => ({ message: 'Select gender' }),
     }),
     dob: z.string().refine(
@@ -68,7 +64,7 @@ const step2Schema = z.object({
         'You must be at least 13 years old',
     ),
     location: z.string().min(3, 'City/Location is required'),
-    role: z.enum(['user', 'organizer'], {
+    role: z.enum(['attendee', 'organizer'], {
         errorMap: () => ({ message: 'Select a role' }),
     }),
 });
@@ -94,97 +90,14 @@ const registrationSchema = step1Schema.merge(step2Schema).merge(
 type RegistrationFormData = z.infer<typeof registrationSchema>;
 
 // =============================================================================
-// FIREBASE REGISTRATION SERVICE
+// ROLE MAPPING: Form values → UserRole enum
 // =============================================================================
-
-interface RegistrationResult {
-    success: boolean;
-    uid: string;
-    email: string;
-    role: string;
-}
-
-async function registerWithFirebase(
-    data: RegistrationFormData,
-): Promise<RegistrationResult> {
-    if (!firebaseEnabled || !auth || !db) {
-        throw new Error(
-            'Firebase is not configured. Please set up your .env.local with valid Firebase credentials.',
-        );
-    }
-
-    const emailTrimmed = data.email.trim();
-    const displayName = `${data.firstName.trim()} ${data.lastName.trim()}`;
-
-    // 1. Create Firebase Auth user
-    const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        emailTrimmed,
-        data.password,
-    );
-    const user = userCredential.user;
-
-    // 2. Set display name
-    await updateProfile(user, { displayName });
-
-    // 3. Send email verification
-    try {
-        await sendEmailVerification(user, {
-            url: `${window.location.origin}/login?verified=true`,
-            handleCodeInApp: false,
-        });
-        logger.log('📧 Verification email sent to:', emailTrimmed);
-    } catch (verifyErr) {
-        logger.warn('⚠️ Could not send verification email:', verifyErr);
-    }
-
-    const allowedRoles = ['user', 'organizer'];
-    const firestoreRole = allowedRoles.includes(data.role) ? data.role : 'user';
-
-    const userData = {
-        uid: user.uid,
-        email: emailTrimmed,
-        displayName,
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-        phoneNumber: null,
-        photoURL: null,
-        role: firestoreRole,
-        dob: data.dob || null,
-        gender: data.gender || null,
-        location: data.location || null,
-        emailVerified: false,
-        phoneVerified: false,
-        consents: {
-            terms: data.terms,
-            marketing: false,
-            whatsapp: false,
-            liveLocation: false,
-        },
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        isDeleted: false,
-    };
-
-    try {
-        await setDoc(doc(db, 'users', user.uid), userData);
-        logger.log('✅ User document created in Firestore:', user.uid);
-    } catch (dbError) {
-        logger.error('⚠️ Firestore write failed (Auth user still created):', dbError);
-    }
-
-    return {
-        success: true,
-        uid: user.uid,
-        email: emailTrimmed,
-        role: firestoreRole,
-    };
-}
 
 function toUserRole(role: string): UserRole {
     switch (role) {
         case 'organizer':
             return UserRole.ORGANIZER;
+        case 'attendee':
         default:
             return UserRole.USER;
     }
@@ -207,182 +120,6 @@ function scrollToFirstError(containerRef: React.RefObject<HTMLDivElement | null>
         }
     }
 }
-
-// =============================================================================
-// PROMO PANEL WITH VIDEO
-// =============================================================================
-
-const PromoPanel = () => {
-    const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
-
-    useEffect(() => {
-        const video = videoRef.current;
-        if (video) {
-            video.play().catch((err) => {
-                logger.warn('Video autoplay failed:', err);
-            });
-        }
-    }, []);
-
-    const features = [
-        {
-            icon: Zap,
-            title: 'Lightning Fast',
-            description: 'Streamlined check-ins in seconds',
-        },
-        {
-            icon: Users,
-            title: 'Real-Time Insights',
-            description: 'Monitor attendance as it happens',
-        },
-        {
-            icon: TrendingUp,
-            title: 'Smart Analytics',
-            description: 'Data-driven event optimization',
-        },
-    ];
-
-    return (
-        <div className="relative w-full h-full overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-            {/* Video Background */}
-            <div className="absolute inset-0 z-0">
-                <video
-                    ref={videoRef}
-                    className={cn(
-                        'absolute inset-0 w-full h-full object-cover transition-opacity duration-1000',
-                        isVideoLoaded ? 'opacity-30' : 'opacity-0',
-                    )}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    onLoadedData={() => setIsVideoLoaded(true)}
-                    poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect fill='%231e293b' width='100' height='100'/%3E%3C/svg%3E"
-                >
-                    {/* Replace these with your actual video sources */}
-                    <source
-                        src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-44911-large.mp4"
-                        type="video/mp4"
-                    />
-                    <source
-                        src="https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-futuristic-devices-44911-large.webm"
-                        type="video/webm"
-                    />
-                </video>
-
-                {/* Video Loading Placeholder */}
-                {!isVideoLoaded && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
-                        <div className="flex flex-col items-center gap-3">
-                            <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
-                            <p className="text-sm text-slate-400">Loading experience...</p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Gradient Overlays */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-transparent to-slate-900/40" />
-            </div>
-
-            {/* Content Layer */}
-            <div className="relative z-10 h-full flex flex-col justify-between p-8 lg:p-12">
-                {/* Top Section */}
-                <div className="space-y-6">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                    >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-                            <Play className="w-4 h-4 text-[var(--color-primary)]" />
-                            <span className="text-sm font-medium text-white">
-                                Join 10,000+ Event Organizers
-                            </span>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
-                        className="space-y-4"
-                    >
-                        <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight">
-                            Transform Your
-                            <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-blue-400">
-                                Event Experience
-                            </span>
-                        </h1>
-                        <p className="text-lg lg:text-xl text-slate-300 max-w-lg leading-relaxed">
-                            Seamless check-ins, powerful analytics, and real-time insights
-                            for events of any size.
-                        </p>
-                    </motion.div>
-                </div>
-
-                {/* Features Grid */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.5 }}
-                    className="grid gap-4"
-                >
-                    {features.map((feature, index) => (
-                        <motion.div
-                            key={feature.title}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
-                            className="group flex items-start gap-4 p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300"
-                        >
-                            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--color-primary)] to-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                <feature.icon className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-semibold mb-1">
-                                    {feature.title}
-                                </h3>
-                                <p className="text-sm text-slate-400">
-                                    {feature.description}
-                                </p>
-                            </div>
-                        </motion.div>
-                    ))}
-                </motion.div>
-
-                {/* Bottom Stats */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.9 }}
-                    className="grid grid-cols-3 gap-4 pt-6 border-t border-white/10"
-                >
-                    {[
-                        { value: '500K+', label: 'Attendees' },
-                        { value: '15K+', label: 'Events' },
-                        { value: '99.9%', label: 'Uptime' },
-                    ].map((stat) => (
-                        <div key={stat.label} className="text-center">
-                            <div className="text-2xl lg:text-3xl font-bold text-white mb-1">
-                                {stat.value}
-                            </div>
-                            <div className="text-xs lg:text-sm text-slate-400">
-                                {stat.label}
-                            </div>
-                        </div>
-                    ))}
-                </motion.div>
-            </div>
-
-            {/* Decorative Elements */}
-            <div className="absolute top-20 right-20 w-72 h-72 bg-[var(--color-primary)] rounded-full blur-[120px] opacity-20 pointer-events-none" />
-            <div className="absolute bottom-20 left-20 w-72 h-72 bg-blue-500 rounded-full blur-[120px] opacity-20 pointer-events-none" />
-        </div>
-    );
-};
 
 // =============================================================================
 // SUB-COMPONENTS
@@ -574,6 +311,16 @@ const PasswordStrengthMeter = ({ password }: { password: string }) => {
     );
 };
 
+function ReviewRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+    return (
+        <div className="flex items-center gap-3 text-sm">
+            <Icon size={14} className="shrink-0" style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
+            <span className="text-[var(--text-muted)] w-24 shrink-0">{label}</span>
+            <span className="text-[var(--text-primary)] font-medium truncate">{value}</span>
+        </div>
+    );
+}
+
 function fireConfetti() {
     const duration = 2500;
     const end = Date.now() + duration;
@@ -598,12 +345,33 @@ function fireConfetti() {
 }
 
 // =============================================================================
+// FIREBASE ERROR MESSAGES
+// =============================================================================
+
+const FIREBASE_ERROR_MAP: Record<string, string> = {
+    'auth/email-already-in-use':
+        'An account with this email already exists. Try signing in instead.',
+    'auth/invalid-email': 'Please enter a valid email address.',
+    'auth/weak-password':
+        'Password is too weak. Please use at least 8 characters.',
+    'auth/network-request-failed':
+        'Network error. Please check your internet connection.',
+    'auth/too-many-requests':
+        'Too many requests. Please wait a moment and try again.',
+    'auth/operation-not-allowed':
+        'Email/password sign-up is not enabled in Firebase Console.',
+    'firebase/not-configured':
+        'Firebase is not configured. Please set up your .env.local with valid Firebase credentials.',
+};
+
+// =============================================================================
 // MAIN PAGE COMPONENT
 // =============================================================================
 
 export default function RegisterPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
     const setUser = useAuthStore((s) => s.setUser);
     const { isDarkMode, toggleTheme } = useThemeStore();
 
@@ -655,7 +423,11 @@ export default function RegisterPage() {
         if (location.state && (location.state as { email?: string }).email) {
             setValue('email', (location.state as { email: string }).email);
         }
-    }, [location.state, setValue]);
+        const roleParam = searchParams.get('role');
+        if (roleParam === 'organizer' || roleParam === 'attendee') {
+            setValue('role', roleParam);
+        }
+    }, [location.state, setValue, searchParams]);
 
     const passwordValue = useWatch({ control, name: 'password' });
     const emailValue = useWatch({ control, name: 'email' });
@@ -703,19 +475,46 @@ export default function RegisterPage() {
         [step],
     );
 
+    // =========================================================================
+    // SUBMIT — delegates to authService.registerWithEmail
+    // =========================================================================
+
     const onSubmit = useCallback(
         async (data: RegistrationFormData) => {
             setIsLoading(true);
             setFormError(null);
             try {
-                const result = await registerWithFirebase(data);
-                logger.log('✅ Registration successful:', result.uid);
+                const displayName = `${data.firstName.trim()} ${data.lastName.trim()}`;
+                const userRole = toUserRole(data.role);
 
-                const userRole = toUserRole(result.role);
+                // Delegate registration to authService (handles Firebase Auth +
+                // Firestore document creation + email verification)
+                const firebaseUser = await registerWithEmail({
+                    email: data.email.trim(),
+                    password: data.password,
+                    displayName,
+                    firstName: data.firstName.trim(),
+                    lastName: data.lastName.trim(),
+                    role: userRole,
+                    dob: data.dob || undefined,
+                    gender: data.gender || undefined,
+                    location: data.location || undefined,
+                    terms: data.terms,
+                    consents: {
+                        terms: data.terms,
+                        marketing: false,
+                        whatsapp: false,
+                        liveLocation: false,
+                    },
+                });
+
+                logger.log('✅ Registration successful:', firebaseUser.uid);
+
+                // Update local auth store
                 const authUser: AuthUser = {
-                    uid: result.uid,
-                    email: result.email,
-                    displayName: `${data.firstName.trim()} ${data.lastName.trim()}`,
+                    uid: firebaseUser.uid,
+                    email: data.email.trim(),
+                    displayName,
                     firstName: data.firstName.trim(),
                     lastName: data.lastName.trim(),
                     photoURL: null,
@@ -733,7 +532,7 @@ export default function RegisterPage() {
                 };
                 setUser(authUser);
 
-                setRegisteredEmail(result.email);
+                setRegisteredEmail(data.email.trim());
                 setRegisteredRole(data.role);
                 setRegistrationComplete(true);
 
@@ -742,21 +541,8 @@ export default function RegisterPage() {
                 const err = error as { code?: string; message?: string };
                 logger.error('❌ Registration failed:', err);
 
-                const messageMap: Record<string, string> = {
-                    'auth/email-already-in-use':
-                        'An account with this email already exists. Try signing in instead.',
-                    'auth/invalid-email': 'Please enter a valid email address.',
-                    'auth/weak-password':
-                        'Password is too weak. Please use at least 8 characters.',
-                    'auth/network-request-failed':
-                        'Network error. Please check your internet connection.',
-                    'auth/too-many-requests':
-                        'Too many requests. Please wait a moment and try again.',
-                    'auth/operation-not-allowed':
-                        'Email/password sign-up is not enabled in Firebase Console.',
-                };
                 setFormError(
-                    messageMap[err.code || ''] ||
+                    FIREBASE_ERROR_MAP[err.code || ''] ||
                     err.message ||
                     'Registration failed. Please try again.',
                 );
@@ -989,7 +775,7 @@ export default function RegisterPage() {
                                 <p className="text-[var(--text-secondary)] text-sm max-w-sm">
                                     Your{' '}
                                     <span className="font-semibold capitalize" style={{ color: 'var(--color-primary)' }}>
-                                        {registeredRole === 'user' ? 'attendee' : registeredRole}
+                                        {registeredRole === 'attendee' ? 'attendee' : registeredRole}
                                     </span>{' '}
                                     account has been created successfully. A verification email
                                     has been sent to{' '}
@@ -1148,7 +934,8 @@ export default function RegisterPage() {
                                                         options={[
                                                             { value: 'male', label: 'Male' },
                                                             { value: 'female', label: 'Female' },
-                                                            { value: 'other', label: 'Other' },
+                                                            { value: 'non-binary', label: 'Non-binary' },
+                                                            { value: 'prefer-not-to-say', label: 'Prefer not to say' },
                                                         ]}
                                                         registration={register('gender')}
                                                         error={errors.gender}
@@ -1176,7 +963,7 @@ export default function RegisterPage() {
                                                     label="I am a..."
                                                     id="reg-role"
                                                     options={[
-                                                        { value: 'user', label: 'Attendee' },
+                                                        { value: 'attendee', label: 'Attendee' },
                                                         { value: 'organizer', label: 'Event Organizer' },
                                                     ]}
                                                     registration={register('role')}
@@ -1215,9 +1002,7 @@ export default function RegisterPage() {
                                                             className={cn(
                                                                 'absolute right-4 text-[var(--text-muted)] hover:text-[var(--color-primary)] transition-colors',
                                                                 'focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] rounded',
-                                                                errors.password
-                                                                    ? 'top-[calc(1.5rem+14px)]'
-                                                                    : 'top-[calc(1.5rem+14px)]',
+                                                                'top-[calc(1.5rem+14px)]',
                                                             )}
                                                             style={{
                                                                 marginTop: '0.125rem',
@@ -1437,9 +1222,7 @@ export default function RegisterPage() {
             </div>
 
             {/* ============ RIGHT SIDE — VIDEO PROMO PANEL ============ */}
-            <div className="hidden lg:block lg:w-1/2 lg:h-screen lg:sticky lg:top-0 relative overflow-hidden">
-                <PromoPanel />
-            </div>
+            <PromoPanel />
 
             {/* ============ MOBILE BRANDING ============ */}
             <div className="lg:hidden w-full py-6 px-6 bg-[var(--bg-base)] border-t border-[var(--border-primary)]">
@@ -1458,25 +1241,6 @@ export default function RegisterPage() {
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
-
-// Helper for review screen
-function ReviewRow({
-    icon: Icon,
-    label,
-    value,
-}: {
-    icon: React.ElementType;
-    label: string;
-    value: string;
-}) {
-    return (
-        <div className="flex items-center gap-3 text-sm">
-            <Icon size={14} className="shrink-0" style={{ color: 'var(--color-primary)' }} aria-hidden="true" />
-            <span className="text-[var(--text-muted)] w-24 shrink-0">{label}</span>
-            <span className="text-[var(--text-primary)] font-medium truncate">{value}</span>
         </div>
     );
 }

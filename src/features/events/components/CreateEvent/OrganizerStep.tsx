@@ -1,4 +1,4 @@
-import { Box, Typography, TextField, Grid } from '@mui/material';
+import { User, Globe, Instagram } from 'lucide-react';
 import type { CreateEventData } from '../../types/event.types';
 
 interface Props {
@@ -12,49 +12,77 @@ export default function OrganizerStep({ data, onUpdate }: Props) {
   };
 
   const handleSocialChange = (field: string, value: string) => {
-    onUpdate({ 
-      organizer: { 
-        ...data.organizer, 
-        socials: { ...data.organizer.socials, [field]: value } 
-      } 
+    onUpdate({
+      organizer: {
+        ...data.organizer,
+        socials: { ...data.organizer.socials, [field]: value }
+      }
     });
   };
 
   return (
-    <Box>
-      <Typography variant="h5" sx={{ mb: 3 }}>Organizer Information</Typography>
+    <div>
+      <div className="ce-step-title">
+        <div className="ce-step-title-icon">
+          <User size={20} />
+        </div>
+        Organizer Information
+      </div>
+      <p className="ce-step-subtitle">Tell attendees who's behind this event.</p>
 
-      <TextField
-        fullWidth label="Organizer Name"
-        value={data.organizer.name}
-        onChange={(e) => handleOrgChange('name', e.target.value)}
-        sx={{ mb: 3 }}
-      />
-      
-      <TextField
-        fullWidth label="Contact Email"
-        value={data.organizer.email}
-        onChange={(e) => handleOrgChange('email', e.target.value)}
-        sx={{ mb: 3 }}
-      />
+      <div className="form-row">
+        <label className="label label-required">Organizer Name</label>
+        <input
+          className="input"
+          type="text"
+          placeholder="Your name or organization"
+          value={data.organizer.name}
+          onChange={(e) => handleOrgChange('name', e.target.value)}
+        />
+      </div>
 
-      <Typography variant="subtitle2" sx={{ mb: 2 }}>Social Links</Typography>
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            fullWidth label="Website"
+      <div className="form-row">
+        <label className="label label-required">Contact Email</label>
+        <input
+          className="input"
+          type="email"
+          placeholder="contact@example.com"
+          value={data.organizer.email}
+          onChange={(e) => handleOrgChange('email', e.target.value)}
+        />
+      </div>
+
+      <label className="label" style={{ marginBottom: '0.75rem', marginTop: '0.5rem' }}>Social Links</label>
+      <div className="form-grid form-grid-2">
+        <div className="form-row">
+          <label className="label">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+              <Globe size={14} /> Website
+            </span>
+          </label>
+          <input
+            className="input"
+            type="url"
+            placeholder="https://yoursite.com"
             value={data.organizer.socials.website || ''}
             onChange={(e) => handleSocialChange('website', e.target.value)}
           />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
-            fullWidth label="Instagram"
+        </div>
+        <div className="form-row">
+          <label className="label">
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+              <Instagram size={14} /> Instagram
+            </span>
+          </label>
+          <input
+            className="input"
+            type="text"
+            placeholder="@handle"
             value={data.organizer.socials.instagram || ''}
             onChange={(e) => handleSocialChange('instagram', e.target.value)}
           />
-        </Grid>
-      </Grid>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 }

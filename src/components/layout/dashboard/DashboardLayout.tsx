@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import useAuth from '@/features/auth/hooks/useAuth';
+import { useAuthStore } from '@/store/zustand/stores';
 import { NAV_ITEMS, UserRole } from '@/lib/constants';
 
 import DashboardHeader from './DashboardHeader';
@@ -24,7 +24,7 @@ import type { Theme, Breadcrumb, DashboardLayoutProps } from './DashboardLayout.
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // ── Auth & role-aware nav ──────────────────────────────────────────────
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const location = useLocation();
 
   const sidebarNavItems = useMemo(() => {
@@ -194,32 +194,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <>
-      <DashboardHeader
-        toggleSidebar={toggleSidebar}
-        sidebarOpen={sidebarOpen}
-        breadcrumbs={breadcrumbs}
-        searchInputRef={searchInputRef}
-        searchFocused={searchFocused}
-        setSearchFocused={setSearchFocused}
-        isAttendee={isAttendee}
-        isOrganizer={isOrganizer}
-        isAdmin={isAdmin}
-        setCartModalOpen={setCartModalOpen}
-        setCalendarModalOpen={setCalendarModalOpen}
-        user={user}
-        getRoleBadgeClass={getRoleBadgeClass}
-        getRoleDisplayName={getRoleDisplayName}
-        accountRef={accountRef}
-        toggleAccountDropdown={toggleAccountDropdown}
-        accountDropdownOpen={accountDropdownOpen}
-        setAccountDropdownOpen={setAccountDropdownOpen}
-        theme={theme}
-        setTheme={setTheme}
-      />
-
-      <MobileBreadcrumb breadcrumbs={breadcrumbs} />
-
+    <div className="flex h-screen bg-[var(--bg-base)] overflow-hidden">
+      {/* Sidebar */}
       <DashboardSidebar
         sidebarOpen={sidebarOpen}
         desktopSidebarOpen={desktopSidebarOpen}
@@ -236,21 +212,45 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         setSidebarOpen={setSidebarOpen}
       />
 
-      <main className={`dash-main ${desktopSidebarOpen ? 'sidebar-visible' : ''}`}>
-        <div className="dash-main-card">
-          <div className="dash-main-body">
-            <div className="dash-main-row">
-              <div className="dash-main-primary">
-                {children ?? <Outlet />}
-              </div>
-            </div>
-          </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+        <DashboardHeader
+          toggleSidebar={toggleSidebar}
+          sidebarOpen={sidebarOpen}
+          breadcrumbs={breadcrumbs}
+          searchInputRef={searchInputRef}
+          searchFocused={searchFocused}
+          setSearchFocused={setSearchFocused}
+          isAttendee={isAttendee}
+          isOrganizer={isOrganizer}
+          isAdmin={isAdmin}
+          setCartModalOpen={setCartModalOpen}
+          setCalendarModalOpen={setCalendarModalOpen}
+          user={user}
+          getRoleBadgeClass={getRoleBadgeClass}
+          getRoleDisplayName={getRoleDisplayName}
+          accountRef={accountRef}
+          toggleAccountDropdown={toggleAccountDropdown}
+          accountDropdownOpen={accountDropdownOpen}
+          setAccountDropdownOpen={setAccountDropdownOpen}
+          theme={theme}
+          setTheme={setTheme}
+        />
+
+        <div className="md:hidden">
+          <MobileBreadcrumb breadcrumbs={breadcrumbs} />
         </div>
-      </main>
+
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-[var(--border-primary)] scrollbar-track-transparent">
+          <div className="max-w-[1600px] mx-auto w-full">
+            {children ?? <Outlet />}
+          </div>
+        </main>
+      </div>
 
       <CalendarModal isOpen={calendarModalOpen} onClose={() => setCalendarModalOpen(false)} />
       <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} />
-    </>
+    </div>
   );
 }
 

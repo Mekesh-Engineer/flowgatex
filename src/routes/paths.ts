@@ -21,6 +21,7 @@ export const ROUTES = {
 
   // User / Attendee (protected)
   DASHBOARD: '/dashboard',
+  EVENT_DETAILS: '/events/:id',
   CHECKOUT: '/checkout',
   BOOKING_SUCCESS: '/booking-success',
   PROFILE: '/profile',
@@ -34,8 +35,8 @@ export const ROUTES = {
   ORGANIZER: '/organizer',
   CREATE_EVENT: '/organizer/events/create',
   ORGANIZER_EVENTS: '/organizer/events',
-  EVENT_ANALYTICS: '/organizer/analytics',
-  ATTENDEE_MANAGEMENT: '/organizer/attendees',
+  EVENT_ANALYTICS: '/organizer/events/:id/analytics',
+  ATTENDEE_MANAGEMENT: '/organizer/events/:id/attendees',
   PAYOUTS: '/organizer/payouts',
   IOT_DEVICES: '/organizer/devices',
   MARKETING: '/organizer/marketing',

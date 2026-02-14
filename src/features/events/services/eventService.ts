@@ -9,7 +9,6 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
   limit,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -67,29 +66,45 @@ export const eventService = {
     return { id: snap.id, ...snap.data() } as CreateEventData & { id: string };
   },
 
-  /** Get published events, newest first. */
+  /**
+   * Get published events, newest first.
+   * NOTE: We avoid `orderBy` with `where` to prevent the need for a composite
+   * Firestore index. Sorting is done client-side instead.
+   */
   getEvents: async (count = 50): Promise<(CreateEventData & { id: string })[]> => {
     const db = getDb();
     const q = query(
       collection(db, EVENTS_COLLECTION),
       where('status', '==', 'published'),
-      orderBy('createdAt', 'desc'),
       limit(count),
     );
     const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as CreateEventData & { id: string });
+    const events = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as CreateEventData & { id: string });
+    // Client-side sort by createdAt, newest first
+    return events.sort((a, b) => {
+      const ta = a.createdAt?.seconds ?? 0;
+      const tb = b.createdAt?.seconds ?? 0;
+      return tb - ta;
+    });
   },
 
-  /** Get all events (any status) belonging to a specific organizer. */
+  /**
+   * Get all events (any status) belonging to a specific organizer.
+   * Sorted client-side to avoid composite index requirement.
+   */
   getEventsByOrganizer: async (organizerId: string): Promise<(CreateEventData & { id: string })[]> => {
     const db = getDb();
     const q = query(
       collection(db, EVENTS_COLLECTION),
       where('organizerId', '==', organizerId),
-      orderBy('createdAt', 'desc'),
     );
     const snap = await getDocs(q);
-    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as CreateEventData & { id: string });
+    const events = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as CreateEventData & { id: string });
+    return events.sort((a, b) => {
+      const ta = a.createdAt?.seconds ?? 0;
+      const tb = b.createdAt?.seconds ?? 0;
+      return tb - ta;
+    });
   },
 
   // ── Update ──────────────────────────────────────────────────────
@@ -123,23 +138,52 @@ export const eventService = {
 
   // ── Utilities ───────────────────────────────────────────────────
 
-  /** Parse a JSON file into CreateEventData (basic validation). */
-  parseEventJson: async (file: File): Promise<CreateEventData> => {
+  /**
+   * Parse a JSON file that contains either a single event object or an array
+   * of event objects. Returns an array regardless.
+   */
+  parseEventJsonFile: async (file: File): Promise<CreateEventData[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
           const json = JSON.parse(e.target?.result as string);
-          if (!json.title || !json.startDate) {
-            throw new Error('Missing required event fields (title, startDate)');
+          const events: CreateEventData[] = Array.isArray(json) ? json : [json];
+
+          if (events.length === 0) {
+            throw new Error('JSON file contains no events');
           }
-          resolve(json as CreateEventData);
-        } catch {
-          reject(new Error('Invalid JSON file format'));
+
+          // Basic validation on every event
+          for (let i = 0; i < events.length; i++) {
+            if (!events[i].title || !events[i].startDate) {
+              throw new Error(
+                `Event #${i + 1} is missing required fields (title, startDate)`
+              );
+            }
+          }
+
+          resolve(events);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Unknown error';
+          reject(new Error(`Invalid JSON file: ${msg}`));
         }
       };
       reader.onerror = () => reject(new Error('Error reading file'));
       reader.readAsText(file);
     });
+  },
+
+  /** Publish an array of events to Firestore. Returns an array of created doc IDs. */
+  publishBulkEvents: async (
+    events: CreateEventData[],
+    userId: string
+  ): Promise<string[]> => {
+    const ids: string[] = [];
+    for (const ev of events) {
+      const id = await eventService.publishEvent(ev, userId);
+      ids.push(id);
+    }
+    return ids;
   },
 };

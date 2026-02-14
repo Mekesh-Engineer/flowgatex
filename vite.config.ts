@@ -76,11 +76,11 @@ export default defineConfig({
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com https://unpkg.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com;
-        font-src 'self' https://fonts.gstatic.com;
-        img-src 'self' data: https: blob:;
-        connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com wss://*.firebaseio.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://maps.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com https://maps.gstatic.com;
+        img-src 'self' data: https: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com;
+        connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com wss://*.firebaseio.com https://maps.googleapis.com https://maps.gstatic.com;
         frame-src 'self' https://*.firebaseapp.com https://accounts.google.com;
       `.replace(/\s+/g, ' ').trim(),
     },

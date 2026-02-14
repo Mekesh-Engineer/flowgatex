@@ -1,9 +1,9 @@
-import { Box, Typography, Button, Divider } from '@mui/material';
-import { CheckCircle, Download, Calendar } from 'lucide-react';
+import { CheckCircle, Download, Calendar, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import type { Booking } from '../types/booking.types';
+import Button from '@/components/common/Button';
 
 interface BookingConfirmationProps {
   booking: Booking;
@@ -11,104 +11,81 @@ interface BookingConfirmationProps {
 
 function BookingConfirmation({ booking }: BookingConfirmationProps) {
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', textAlign: 'center', py: 4 }}>
-      <Box
-        sx={{
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          backgroundColor: 'success.main',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mx: 'auto',
-          mb: 3,
-        }}
-      >
-        <CheckCircle size={40} color="white" />
-      </Box>
+    <div className="max-w-2xl mx-auto text-center py-6">
+      <div className="mb-8 flex flex-col items-center">
+          <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/30 mb-6">
+            <CheckCircle size={40} className="text-white" />
+          </div>
+          <h1 className="text-4xl font-black text-[var(--text-primary)] mb-2 tracking-tight">Booking Confirmed!</h1>
+          <p className="text-[var(--text-muted)] text-lg">Your tickets have been sent to your email.</p>
+      </div>
 
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-        Booking Confirmed!
-      </Typography>
-      <Typography color="text.secondary" sx={{ mb: 4 }}>
-        Your tickets have been sent to your email
-      </Typography>
+      <div className="bg-[var(--bg-card)] rounded-3xl border border-[var(--border-primary)] overflow-hidden shadow-xl text-left relative">
+        {/* Ticket Header Decor */}
+        <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]" />
 
-      <Box
-        sx={{
-          p: 4,
-          borderRadius: 4,
-          backgroundColor: 'background.paper',
-          border: '1px solid',
-          borderColor: 'divider',
-          textAlign: 'left',
-        }}
-      >
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          {booking.eventTitle}
-        </Typography>
+        <div className="p-8">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6">{booking.eventTitle}</h2>
 
-        <Box sx={{ display: 'flex', gap: 4, mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Calendar size={18} className="text-primary-400" />
-            <Typography variant="body2">{formatDateTime(booking.eventDate)}</Typography>
-          </Box>
-        </Box>
+            <div className="flex items-center gap-2 mb-6 text-[var(--text-secondary)]">
+                <Calendar size={20} className="text-[var(--color-primary)]" />
+                <span className="font-medium text-lg">
+                    {typeof booking.eventDate === 'string' 
+                        ? new Date(booking.eventDate).toLocaleDateString() 
+                        : 'Date Not Available'}
+                </span>
+            </div>
 
-        <Divider sx={{ my: 3 }} />
+            <div className="h-px bg-[var(--border-primary)] w-full my-6 bg-dashed" />
 
-        {/* QR Codes */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 2 }}>
-            Your Tickets
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-            {booking.tickets.map((ticket) =>
-              ticket.qrCodes?.map((qr, index) => (
-                <Box
-                  key={qr}
-                  sx={{
-                    p: 2,
-                    borderRadius: 2,
-                    backgroundColor: 'white',
-                    textAlign: 'center',
-                  }}
-                >
-                  <QRCodeSVG value={qr} size={100} />
-                  <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'black' }}>
-                    {ticket.tierName} #{index + 1}
-                  </Typography>
-                </Box>
-              ))
-            )}
-          </Box>
-        </Box>
+            {/* QR Codes */}
+            <div className="mb-6">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--text-muted)] mb-4">Your Tickets</h3>
+              <div className="flex gap-4 flex-wrap justify-center sm:justify-start">
+                {booking.tickets.map((ticket) =>
+                  ticket.qrCodes?.map((qr, index) => (
+                    <div
+                      key={qr}
+                      className="p-3 rounded-xl bg-white border border-gray-200 text-center shadow-sm"
+                    >
+                      <QRCodeSVG value={qr} size={100} />
+                      <span className="block mt-2 text-xs font-bold text-gray-900">
+                        {ticket.tierName} #{index + 1}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
 
-        <Divider sx={{ my: 3 }} />
+            <div className="h-px bg-[var(--border-primary)] w-full my-6 bg-dashed" />
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-          <Typography>Booking ID</Typography>
-          <Typography fontWeight={600}>{booking.id}</Typography>
-        </Box>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[var(--text-secondary)]">Booking ID</span>
+              <span className="font-mono font-medium text-[var(--text-primary)] bg-[var(--bg-surface)] px-2 py-1 rounded">{booking.id}</span>
+            </div>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Typography>Total Paid</Typography>
-          <Typography fontWeight={600} color="primary.main">
-            {formatCurrency(booking.finalAmount)}
-          </Typography>
-        </Box>
-      </Box>
+            <div className="flex justify-between items-center">
+              <span className="text-[var(--text-secondary)]">Total Paid</span>
+              <span className="text-2xl font-black text-[var(--color-primary)]">
+                {formatCurrency(booking.finalAmount)}
+              </span>
+            </div>
+        </div>
+      </div>
 
-      <Box sx={{ display: 'flex', gap: 2, mt: 4, justifyContent: 'center' }}>
-        <Button variant="outlined" startIcon={<Download size={18} />}>
+      <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center">
+        <Button variant="secondary" className="gap-2">
+          <Download size={18} />
           Download Tickets
         </Button>
-        <Button component={Link} to="/dashboard" variant="contained">
-          View My Bookings
-        </Button>
-      </Box>
-    </Box>
+        <Link to="/dashboard">
+             <Button variant="primary" className="gap-2 w-full sm:w-auto">
+               View My Bookings <ArrowRight size={18} />
+             </Button>
+        </Link>
+      </div>
+    </div>
   );
 }
 

@@ -1,7 +1,8 @@
 import { type Dispatch, type SetStateAction } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import type { FilterState } from './types';
-import { CATEGORIES, SORT_OPTIONS, PRICE_RANGES, DEFAULT_FILTER_STATE } from './constants';
+import { SORT_OPTIONS, PRICE_RANGES, DEFAULT_FILTER_STATE } from './constants';
+import { EVENT_CATEGORIES } from '@/lib/constants';
 
 interface Props {
     filters: FilterState;
@@ -54,19 +55,19 @@ export default function SidebarFilters({ filters, setFilters }: Props) {
             <div>
                 <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Categories</h4>
                 <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {CATEGORIES.map((cat) => (
+                    {EVENT_CATEGORIES.map((cat) => (
                         <label
-                            key={cat}
+                            key={cat.id}
                             className="flex items-center gap-2.5 text-sm cursor-pointer group"
                         >
                             <input
                                 type="checkbox"
-                                checked={filters.categories.includes(cat)}
-                                onChange={() => toggleCategory(cat)}
+                                checked={filters.categories.includes(cat.id)}
+                                onChange={() => toggleCategory(cat.id)}
                                 className="h-4 w-4 rounded border-[var(--border-primary)] text-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
                             />
                             <span className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-                                {cat}
+                                {cat.label}
                             </span>
                         </label>
                     ))}

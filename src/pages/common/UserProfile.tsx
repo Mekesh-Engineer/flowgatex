@@ -16,7 +16,7 @@ import {
   Smartphone
 } from 'lucide-react';
 
-import useAuth from '@/features/auth/hooks/useAuth';
+import { useAuthStore } from '@/store/zustand/stores';
 import { UserRole } from '@/lib/constants';
 import { updateUserProfile, changePassword, deleteUserAccount } from '@/features/auth/services/authService';
 import { logger } from '@/lib/logger';
@@ -53,7 +53,7 @@ const getRoleBadgeColor = (role: UserRole) => {
 // =============================================================================
 
 export default function UserProfile() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>('personal');
   const [isLoading, setIsLoading] = useState(false);
 

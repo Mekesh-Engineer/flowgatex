@@ -1,107 +1,106 @@
-import { Card, CardContent, CardMedia, Box, Typography, Chip, Stack } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { Calendar, MapPin, Users } from 'lucide-react';
-import { formatDate, formatCurrency } from '@/lib/utils';
-import type { Event } from '../types/event.types';
+import { MapPin, Users, Star, Ticket, Clock } from 'lucide-react';
+import type { EventItem } from './events-page/types';
 
 interface EventCardProps {
-  event: Event;
+  event: EventItem;
 }
 
 function EventCard({ event }: EventCardProps) {
-  const lowestPrice = Math.min(...event.ticketTiers.map((t) => t.price));
-  const totalTickets = event.ticketTiers.reduce((sum, t) => sum + t.available, 0);
+  // Format price
+  const formattedPrice = event.price === 0 
+    ? 'Free' 
+    : new Intl.NumberFormat('en-IN', { 
+        style: 'currency', 
+        currency: event.currency || 'INR', 
+        maximumFractionDigits: 0 
+      }).format(event.price);
 
   return (
-    <Card
-      component={Link}
-      to={`/events/${event.id}`}
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        textDecoration: 'none',
-        transition: 'all 0.3s',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          borderColor: 'primary.main',
-          boxShadow: '0 0 20px rgba(34, 211, 238, 0.15)',
-        },
-      }}
-    >
-      <Box sx={{ position: 'relative' }}>
-        <CardMedia
-          component="img"
-          height="180"
-          image={event.images[0] || '/placeholder-event.jpg'}
+    <div className="group relative flex flex-col bg-[var(--bg-card)] rounded-2xl border border-[var(--border-primary)] overflow-hidden hover:shadow-2xl hover:border-[var(--color-primary)]/50 transition-all duration-300 h-full">
+      {/* Image Section */}
+      <div className="relative h-48 overflow-hidden shrink-0">
+        <img
+          src={event.image}
           alt={event.title}
-          sx={{ objectFit: 'cover' }}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          loading="lazy"
         />
-        {event.featured && (
-          <Chip
-            label="Featured"
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 12,
-              left: 12,
-              backgroundColor: 'primary.main',
-              color: 'primary.contrastText',
-            }}
-          />
-        )}
-        <Chip
-          label={event.category}
-          size="small"
-          sx={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            textTransform: 'capitalize',
-          }}
-        />
-      </Box>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+        
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex flex-col gap-2">
+          {event.featured && (
+            <span className="bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-lg backdrop-blur-sm">
+              <Star size={10} fill="currentColor" /> Featured
+            </span>
+          )}
+        </div>
 
-      <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, lineHeight: 1.3 }}>
-          {event.title}
-        </Typography>
+        <span className="absolute top-3 right-3 bg-white/90 dark:bg-black/60 backdrop-blur-md text-xs font-bold px-2.5 py-1 rounded-lg text-[var(--text-primary)] capitalize shadow-sm border border-white/20">
+          {event.category}
+        </span>
 
-        <Stack spacing={1} sx={{ mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Calendar size={16} className="text-primary-400" />
-            <Typography variant="body2" color="text.secondary">
-              {formatDate(event.dates.start, 'MMM DD, YYYY • h:mm A')}
-            </Typography>
-          </Box>
+        {/* Floating Date/Time on Image (Optional, keeps it clean) */}
+        <div className="absolute bottom-3 left-3 text-white">
+          <p className="font-bold text-lg leading-tight drop-shadow-md">{event.date}</p>
+        </div>
+      </div>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <MapPin size={16} className="text-primary-400" />
-            <Typography variant="body2" color="text.secondary" noWrap>
-              {event.venue.name}, {event.venue.city}
-            </Typography>
-          </Box>
+      {/* Content Section */}
+      <div className="p-5 flex flex-col gap-3 flex-grow">
+        <Link to={`/events/${event.id}`} className="group/title">
+          <h3 className="text-lg font-bold text-[var(--text-primary)] group-hover/title:text-[var(--color-primary)] transition-colors line-clamp-1" title={event.title}>
+            {event.title}
+          </h3>
+        </Link>
+        
+        {/* Meta Info */}
+        <div className="flex flex-col gap-2 text-xs text-[var(--text-muted)]">
+          <div className="flex items-center gap-2">
+            <MapPin size={14} className="text-[var(--color-primary)] shrink-0" />
+            <span className="truncate">{event.city || event.location}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Clock size={14} className="text-[var(--color-primary)] shrink-0" />
+            <span>{event.time}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Users size={14} className="text-[var(--color-primary)] shrink-0" />
+            <span>{event.attendees} attending</span>
+          </div>
+        </div>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Users size={16} className="text-primary-400" />
-            <Typography variant="body2" color="text.secondary">
-              {totalTickets} tickets available
-            </Typography>
-          </Box>
-        </Stack>
+        {/* Divider */}
+        <div className="my-auto pt-4 border-t border-[var(--border-primary)] border-dashed opacity-50" />
 
-        <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            From
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: 'primary.main' }}>
-            {formatCurrency(lowestPrice)}
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
+        {/* Footer: Price + Actions */}
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Starting from</p>
+            <p className="text-xl font-bold text-[var(--text-primary)]">{formattedPrice}</p>
+          </div>
+        </div>
+
+        {/* Buttons Grid */}
+        <div className="grid grid-cols-2 gap-3 mt-1">
+          <Link
+            to={`/events/${event.id}`}
+            className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[var(--border-primary)] text-[var(--text-primary)] text-sm font-semibold hover:bg-[var(--bg-surface)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all"
+          >
+           View Details
+          </Link>
+          
+          <Link
+            to={`/booking/${event.id}`}
+            className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all"
+          >
+            <Ticket size={16} />
+            Book
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
 

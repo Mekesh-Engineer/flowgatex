@@ -15,6 +15,14 @@ export interface RegisterData {
   phoneNumber?: string;
   dob?: string;
   gender?: string;
+  location?: string;
+  terms?: boolean;
+  consents?: {
+    terms?: boolean;
+    marketing?: boolean;
+    whatsapp?: boolean;
+    liveLocation?: boolean;
+  };
 }
 
 export interface AuthUser {

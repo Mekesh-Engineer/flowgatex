@@ -1,4 +1,4 @@
-import { Box, Typography, TextField, Grid, MenuItem, FormControlLabel, Switch } from '@mui/material';
+import { MapPin, Video, ParkingCircle } from 'lucide-react';
 import type { CreateEventData } from '../../types/event.types';
 
 interface Props {
@@ -25,121 +25,184 @@ export default function VenueStep({ data, onUpdate }: Props) {
   };
 
   return (
-    <Box>
-      <Typography variant="h5" sx={{ mb: 3 }}>Venue / Location</Typography>
+    <div>
+      <div className="ce-step-title">
+        <div className="ce-step-title-icon">
+          <MapPin size={20} />
+        </div>
+        Venue / Location
+      </div>
+      <p className="ce-step-subtitle">Where will your event take place?</p>
 
-      <TextField
-        select fullWidth label="Location Type"
-        value={data.locationType}
-        onChange={(e) => onUpdate({ locationType: e.target.value as any })}
-        sx={{ mb: 3 }}
-      >
-        <MenuItem value="physical">In-Person (Physical Venue)</MenuItem>
-        <MenuItem value="online">Online / Virtual</MenuItem>
-        <MenuItem value="tba">To Be Announced</MenuItem>
-      </TextField>
+      <div className="form-row">
+        <label className="label label-required">Location Type</label>
+        <select
+          className="select"
+          value={data.locationType}
+          onChange={(e) => onUpdate({ locationType: e.target.value as any })}
+        >
+          <option value="physical">In-Person (Physical Venue)</option>
+          <option value="online">Online / Virtual</option>
+          <option value="tba">To Be Announced</option>
+        </select>
+      </div>
 
-      {/* ── Physical venue fields ──────────────────────────────────── */}
+      {/* Physical venue fields */}
       {data.locationType === 'physical' && (
         <>
-          <TextField
-            fullWidth label="Venue Name"
-            value={data.venue?.name || ''}
-            onChange={(e) => handleVenueChange('name', e.target.value)}
-            sx={{ mb: 3 }}
-          />
+          <div className="form-row">
+            <label className="label label-required">Venue Name</label>
+            <input
+              className="input"
+              type="text"
+              placeholder="Name of the venue"
+              value={data.venue?.name || ''}
+              onChange={(e) => handleVenueChange('name', e.target.value)}
+            />
+          </div>
 
-          <TextField
-            fullWidth label="Address"
-            value={data.venue?.address || ''}
-            onChange={(e) => handleVenueChange('address', e.target.value)}
-            sx={{ mb: 3 }}
-          />
+          <div className="form-row">
+            <label className="label">Address</label>
+            <input
+              className="input"
+              type="text"
+              placeholder="Street address"
+              value={data.venue?.address || ''}
+              onChange={(e) => handleVenueChange('address', e.target.value)}
+            />
+          </div>
 
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                fullWidth label="City"
+          <div className="form-grid form-grid-3">
+            <div className="form-row">
+              <label className="label">City</label>
+              <input
+                className="input"
+                type="text"
                 value={data.venue?.city || ''}
                 onChange={(e) => handleVenueChange('city', e.target.value)}
               />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                fullWidth label="State"
+            </div>
+            <div className="form-row">
+              <label className="label">State</label>
+              <input
+                className="input"
+                type="text"
                 value={data.venue?.state || ''}
                 onChange={(e) => handleVenueChange('state', e.target.value)}
               />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                fullWidth label="ZIP / Pin Code"
+            </div>
+            <div className="form-row">
+              <label className="label">ZIP / Pin Code</label>
+              <input
+                className="input"
+                type="text"
                 value={data.venue?.zipCode || ''}
                 onChange={(e) => handleVenueChange('zipCode', e.target.value)}
               />
-            </Grid>
-          </Grid>
+            </div>
+          </div>
 
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth label="Country"
+          <div className="form-grid form-grid-2">
+            <div className="form-row">
+              <label className="label">Country</label>
+              <input
+                className="input"
+                type="text"
                 value={data.venue?.country || ''}
                 onChange={(e) => handleVenueChange('country', e.target.value)}
               />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                fullWidth label="Capacity" type="number"
+            </div>
+            <div className="form-row">
+              <label className="label">Capacity</label>
+              <input
+                className="input"
+                type="number"
+                placeholder="Max attendees"
                 value={data.venue?.capacity ?? ''}
                 onChange={(e) => handleVenueChange('capacity', e.target.value ? Number(e.target.value) : undefined)}
               />
-            </Grid>
-          </Grid>
+            </div>
+          </div>
 
-          <FormControlLabel
-            control={
-              <Switch
+          <div className="form-grid form-grid-2">
+            <div className="form-row">
+              <label className="label">Latitude</label>
+              <input
+                className="input"
+                type="number"
+                placeholder="e.g. 37.7749"
+                value={data.venue?.mapCoordinates?.lat ?? ''}
+                onChange={(e) => handleVenueChange('mapCoordinates', { ...data.venue?.mapCoordinates, lat: parseFloat(e.target.value) || 0 })}
+              />
+            </div>
+            <div className="form-row">
+               <label className="label">Longitude</label>
+               <input
+                 className="input"
+                 type="number"
+                 placeholder="e.g. -122.4194"
+                 value={data.venue?.mapCoordinates?.lng ?? ''}
+                 onChange={(e) => handleVenueChange('mapCoordinates', { ...(data.venue?.mapCoordinates || { lat: 0 }), lng: parseFloat(e.target.value) || 0 })}
+               />
+            </div>
+          </div>
+
+          <div className="ce-toggle-row">
+            <label className="ce-toggle">
+              <input
+                type="checkbox"
                 checked={data.venue?.hasParking ?? false}
                 onChange={(e) => handleVenueChange('hasParking', e.target.checked)}
               />
-            }
-            label="Parking available at venue"
-          />
+              <div className="ce-toggle-track" />
+            </label>
+            <span className="ce-toggle-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+              <ParkingCircle size={14} /> Parking available at venue
+            </span>
+          </div>
         </>
       )}
 
-      {/* ── Online fields ──────────────────────────────────────────── */}
+      {/* Online fields */}
       {data.locationType === 'online' && (
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              select fullWidth label="Platform"
+        <div className="form-grid form-grid-2">
+          <div className="form-row">
+            <label className="label">
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+                <Video size={14} /> Platform
+              </span>
+            </label>
+            <select
+              className="select"
               value={data.onlineDetails?.platform || 'zoom'}
               onChange={(e) => handleOnlineChange('platform', e.target.value)}
             >
               {PLATFORMS.map((p) => (
-                <MenuItem key={p.value} value={p.value}>{p.label}</MenuItem>
+                <option key={p.value} value={p.value}>{p.label}</option>
               ))}
-            </TextField>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              fullWidth label="Meeting Link"
+            </select>
+          </div>
+          <div className="form-row">
+            <label className="label">Meeting Link</label>
+            <input
+              className="input"
+              type="url"
               placeholder="https://..."
               value={data.onlineDetails?.link || ''}
               onChange={(e) => handleOnlineChange('link', e.target.value)}
             />
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       )}
 
-      {/* ── TBA message ────────────────────────────────────────────── */}
+      {/* TBA message */}
       {data.locationType === 'tba' && (
-        <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
-          Location details will be shared with attendees later.
-        </Typography>
+        <div style={{ padding: '2rem 0', textAlign: 'center' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+            Location details will be shared with attendees later.
+          </p>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

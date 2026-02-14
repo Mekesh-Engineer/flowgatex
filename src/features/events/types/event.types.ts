@@ -36,6 +36,7 @@ export interface EventSession {
   id: string;
   title: string;
   time: string; // e.g., "10:00 AM - 11:00 AM"
+  date?: string; // ISO Date String (e.g., "2024-10-14")
   speaker: string;
   description?: string;
 }
@@ -134,6 +135,11 @@ export interface CreateEventData {
   createdAt?: any;
   updatedAt?: any;
   organizerId?: string;
+  stats?: {
+    ticketsSold: number;
+    revenue: number;
+    capacity: number;
+  };
 }
 
 // --- Initial State ---

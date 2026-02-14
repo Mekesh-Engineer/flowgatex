@@ -1,52 +1,5 @@
 import { Smartphone, BarChart3, ShieldCheck, Globe2, Users2, Zap, Search, Ticket, QrCode, PartyPopper } from 'lucide-react';
 
-export const TRENDING_EVENTS = [
-  {
-    id: 't1',
-    title: 'Electronic Dreams Tour',
-    category: 'music',
-    image: 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?q=80&w=2070',
-    date: 'Mar 15, 2026',
-    venue: 'Neon Stadium',
-    price: 6500,
-    trending: '+45%',
-    likes: 2340
-  },
-  {
-    id: 't2',
-    title: 'AI & Robotics Expo',
-    category: 'technology',
-    image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?q=80&w=2070',
-    date: 'Mar 22, 2026',
-    venue: 'Tech Pavilion',
-    price: 12000,
-    trending: '+32%',
-    likes: 1890
-  },
-  {
-    id: 't3',
-    title: 'Urban Street Art Festival',
-    category: 'arts',
-    image: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?q=80&w=2070',
-    date: 'Apr 5, 2026',
-    venue: 'Downtown District',
-    price: 2500,
-    trending: '+28%',
-    likes: 1560
-  },
-  {
-    id: 't4',
-    title: 'Gaming Championship Finals',
-    category: 'gaming',
-    image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070',
-    date: 'Apr 12, 2026',
-    venue: 'E-Sports Arena',
-    price: 4500,
-    trending: '+67%',
-    likes: 4210
-  }
-];
-
 export const FEATURES_GRID = [
   {
     title: "Smart Access Control",

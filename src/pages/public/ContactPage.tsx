@@ -494,16 +494,20 @@ export default function ContactPage() {
 
   return (
     <div
-      className="bg-[var(--bg-base)] text-[var(--text-primary)] font-sans selection:bg-[var(--color-primary)] selection:text-white"
+      className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans selection:bg-[var(--color-primary)] selection:text-white transition-colors duration-300"
       role="main"
       aria-label="Contact FlowGateX"
     >
       {/* ═══════════════════════════════════════════════════════════════════════
           1. HERO SECTION
           ═══════════════════════════════════════════════════════════════════════ */}
-      <section className="relative py-16 md:py-24 px-6 text-center overflow-hidden">
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-primary)]/5 via-transparent to-transparent pointer-events-none" aria-hidden="true" />
+      <section className="relative py-20 md:py-28 px-4 sm:px-6 lg:px-8 text-center overflow-hidden bg-gradient-to-br from-[var(--bg-surface)] via-[var(--bg-primary)] to-[var(--bg-surface)]">
+        {/* Background effects */}
+        <div className="absolute top-0 right-0 -z-0 h-[500px] w-[500px] rounded-full bg-[var(--color-primary)] opacity-5 blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -z-0 h-[500px] w-[500px] rounded-full bg-[var(--color-secondary)] opacity-5 blur-[100px] pointer-events-none" />
+        <div className="absolute inset-0 opacity-5 pointer-events-none">
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--text-muted) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+        </div>
 
         <motion.div initial="hidden" animate="visible" className="relative z-10 max-w-4xl mx-auto">
           <motion.div variants={fadeUp} custom={0} className="mb-6">
@@ -553,8 +557,8 @@ export default function ContactPage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           2. MAIN CONTACT GRID — Left: Info, Right: Form
           ═══════════════════════════════════════════════════════════════════════ */}
-      <AnimatedSection className="py-12 md:py-20 px-6" id="contact-form">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+      <AnimatedSection className="py-20 md:py-24 px-4 sm:px-6 lg:px-8 bg-[var(--bg-primary)] relative overflow-hidden transition-colors duration-300" id="contact-form">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 relative z-10">
 
           {/* Left Column — Contact Info & Support Options */}
           <motion.div variants={fadeUp} custom={0} className="lg:col-span-5 space-y-8">
@@ -787,7 +791,7 @@ export default function ContactPage() {
                 <button
                   type="submit"
                   disabled={formStatus === 'submitting' || formStatus === 'success'}
-                  className="w-full bg-gradient-to-r from-[var(--color-primary)] to-cyan-500 hover:from-[var(--color-primary-focus)] hover:to-cyan-600 text-white py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-[var(--color-primary)]/25 disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)]"
+                  className="w-full relative overflow-hidden bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-focus)] hover:from-[var(--color-primary-focus)] hover:to-[var(--color-primary)] text-white py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-[var(--shadow-primary)] disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)] hover:-translate-y-0.5"
                 >
                   {formStatus === 'submitting' ? (
                     <>
@@ -814,14 +818,15 @@ export default function ContactPage() {
       {/* ═══════════════════════════════════════════════════════════════════════
           3. FAQ ACCORDION
           ═══════════════════════════════════════════════════════════════════════ */}
-      <AnimatedSection className="py-16 md:py-24 px-6 bg-[var(--bg-surface)]" id="faq">
-        <div className="max-w-4xl mx-auto">
+      <AnimatedSection className="py-20 md:py-24 px-4 sm:px-6 lg:px-8 bg-[var(--bg-secondary)] border-t border-[var(--border-primary)] relative overflow-hidden transition-colors duration-300" id="faq">
+        <div className="absolute top-0 right-0 -z-0 h-[400px] w-[400px] rounded-full bg-[var(--color-primary)] opacity-[0.03] blur-[100px] pointer-events-none" />
+        <div className="max-w-4xl mx-auto relative z-10">
           <motion.div variants={fadeUp} custom={0} className="text-center mb-12">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-[var(--color-primary)] bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 mb-4">
               <HelpCircle size={12} /> FAQ
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)] mb-3">Frequently Asked Questions</h2>
-            <p className="text-[var(--text-secondary)]">Quick answers to common queries. Can't find what you need? Use the form above.</p>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--text-primary)] tracking-tight mb-4">Frequently Asked{' '}<span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">Questions</span></h2>
+            <p className="text-base md:text-lg text-[var(--text-secondary)] leading-relaxed">Quick answers to common queries. Can&apos;t find what you need? Use the form above.</p>
           </motion.div>
 
           <motion.div variants={fadeUp} custom={1} className="space-y-3">

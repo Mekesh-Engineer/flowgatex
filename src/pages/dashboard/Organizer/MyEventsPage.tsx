@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -31,9 +31,12 @@ import Pagination from '@/components/common/Pagination';
 import Modal from '@/components/common/Modal';
 import StatsCard from '@/components/common/StatsCard';
 import { EventStatus } from '@/lib/constants';
+import { useAuthStore } from '@/store/zustand/stores';
+import { useOrganizerEvents } from '@/features/events/hooks/useEvents';
+import type { CreateEventData } from '@/features/events/types/event.types';
 
 // =============================================================================
-// TYPES & MOCK DATA
+// TYPES
 // =============================================================================
 
 interface OrgEvent {
@@ -50,24 +53,31 @@ interface OrgEvent {
     category: string;
 }
 
-const MOCK_EVENTS: OrgEvent[] = Array.from({ length: 16 }, (_, i) => ({
-    id: `evt-${i + 1}`,
-    title: [
-        'Tech Summit 2026', 'Jazz Night Live', 'AI Innovators Conference', 'Summer Music Festival',
-        'Design Thinking Workshop', 'Startup Pitch Day', 'Food & Wine Expo', 'Marathon City Run',
-        'Photography Masterclass', 'Blockchain Summit', 'Open Mic Night', 'Art Gallery Opening',
-        'Yoga Retreat Weekend', 'Game Dev Meetup', 'Cybersecurity Forum', 'Culinary Masterclass',
-    ][i],
-    image: `https://images.unsplash.com/photo-${1492684223066 + i * 555}-81342ee5ff30?auto=format&fit=crop&q=80&w=800`,
-    date: `${['Mar', 'Apr', 'May', 'Jun'][i % 4]} ${3 + i * 2}, 2026`,
-    time: `${9 + (i % 9)}:00 AM`,
-    venue: ['Convention Center, SF', 'Blue Note, NY', 'Moscone Hall, SF', 'Central Park, NY'][i % 4],
-    status: i < 6 ? EventStatus.PUBLISHED : i < 10 ? EventStatus.DRAFT : i < 13 ? EventStatus.COMPLETED : EventStatus.CANCELLED,
-    ticketsSold: Math.floor(Math.random() * 300) + 20,
-    ticketsTotal: 300 + i * 20,
-    revenue: Math.floor(Math.random() * 15000) + 500,
-    category: ['Tech', 'Music', 'Business', 'Food', 'Arts', 'Sports'][i % 6],
-}));
+/**
+ * Map a CreateEventData (Firebase) → OrgEvent (UI display shape for organizer).
+ */
+function toOrgEvent(event: CreateEventData & { id: string }): OrgEvent {
+    const startDate = new Date(event.startDate);
+    const totalCapacity = event.ticketTiers.reduce((s, t) => s + t.quantity, 0);
+    const totalSold = event.ticketTiers.reduce((s, t) => s + t.sold, 0);
+    const lowestPrice = event.ticketTiers.length > 0
+        ? Math.min(...event.ticketTiers.map(t => t.price))
+        : 0;
+
+    return {
+        id: event.id,
+        title: event.title,
+        image: event.coverImage || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800',
+        date: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        time: startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+        venue: event.venue ? `${event.venue.name}, ${event.venue.city}` : (event.locationType === 'online' ? 'Online' : 'TBA'),
+        status: event.status || EventStatus.DRAFT,
+        ticketsSold: totalSold,
+        ticketsTotal: totalCapacity,
+        revenue: totalSold * lowestPrice,
+        category: event.category || 'other',
+    };
+}
 
 const statusVariant = (s: string) => {
     switch (s) {
@@ -89,7 +99,11 @@ const itemVariants = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 
 // =============================================================================
 
 export default function MyEventsPage() {
-    const [loading, setLoading] = useState(true);
+    const { user } = useAuthStore();
+    const { data: rawEvents, isLoading: loading } = useOrganizerEvents(user?.uid || '');
+
+    const allEvents = useMemo(() => (rawEvents ?? []).map(toOrgEvent), [rawEvents]);
+
     const [tab, setTab] = useState('all');
     const [search, setSearch] = useState('');
     const [sort, setSort] = useState<'recent' | 'alpha' | 'date'>('recent');
@@ -99,10 +113,8 @@ export default function MyEventsPage() {
     const [actionMenuId, setActionMenuId] = useState<string | null>(null);
     const [quickView, setQuickView] = useState<OrgEvent | null>(null);
 
-    useEffect(() => { const t = setTimeout(() => setLoading(false), 600); return () => clearTimeout(t); }, []);
-
     const filtered = useMemo(() => {
-        let list = MOCK_EVENTS;
+        let list = [...allEvents];
         if (tab !== 'all') list = list.filter(e => e.status === tab);
         if (search.trim()) {
             const q = search.toLowerCase();
@@ -111,7 +123,7 @@ export default function MyEventsPage() {
         if (sort === 'alpha') list = [...list].sort((a, b) => a.title.localeCompare(b.title));
         else if (sort === 'date') list = [...list].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         return list;
-    }, [tab, search, sort]);
+    }, [allEvents, tab, search, sort]);
 
     const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
     const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -125,7 +137,7 @@ export default function MyEventsPage() {
     };
 
     const tabs = [
-        { id: 'all', label: 'All', badge: String(MOCK_EVENTS.length) },
+        { id: 'all', label: 'All', badge: String(allEvents.length) },
         { id: EventStatus.PUBLISHED, label: 'Published' },
         { id: EventStatus.DRAFT, label: 'Draft' },
         { id: EventStatus.COMPLETED, label: 'Ended' },
@@ -133,10 +145,10 @@ export default function MyEventsPage() {
     ];
 
     const stats = {
-        total: MOCK_EVENTS.length,
-        published: MOCK_EVENTS.filter(e => e.status === EventStatus.PUBLISHED).length,
-        totalRevenue: MOCK_EVENTS.reduce((s, e) => s + e.revenue, 0),
-        totalSold: MOCK_EVENTS.reduce((s, e) => s + e.ticketsSold, 0),
+        total: allEvents.length,
+        published: allEvents.filter(e => e.status === EventStatus.PUBLISHED).length,
+        totalRevenue: allEvents.reduce((s, e) => s + e.revenue, 0),
+        totalSold: allEvents.reduce((s, e) => s + e.ticketsSold, 0),
     };
 
     return (
@@ -222,9 +234,9 @@ export default function MyEventsPage() {
                                     <div className="mt-3">
                                         <div className="flex justify-between text-xs text-gray-500 dark:text-neutral-400 mb-1">
                                             <span>{event.ticketsSold}/{event.ticketsTotal} sold</span>
-                                            <span>{Math.round((event.ticketsSold / event.ticketsTotal) * 100)}%</span>
+                                            <span>{event.ticketsTotal > 0 ? Math.round((event.ticketsSold / event.ticketsTotal) * 100) : 0}%</span>
                                         </div>
-                                        <ProgressBar value={(event.ticketsSold / event.ticketsTotal) * 100} size="sm" />
+                                        <ProgressBar value={event.ticketsTotal > 0 ? (event.ticketsSold / event.ticketsTotal) * 100 : 0} size="sm" />
                                     </div>
                                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-neutral-700">
                                         <span className="font-bold text-gray-900 dark:text-white">{formatCurrency(event.revenue)}</span>
@@ -290,7 +302,7 @@ export default function MyEventsPage() {
                         <div className="grid grid-cols-3 gap-4 bg-gray-50 dark:bg-neutral-700/40 rounded-xl p-4">
                             <div><p className="text-xs text-gray-400">Revenue</p><p className="font-bold text-gray-900 dark:text-white">{formatCurrency(quickView.revenue)}</p></div>
                             <div><p className="text-xs text-gray-400">Tickets Sold</p><p className="font-bold text-gray-900 dark:text-white">{quickView.ticketsSold}/{quickView.ticketsTotal}</p></div>
-                            <div><p className="text-xs text-gray-400">Sell Rate</p><p className="font-bold text-gray-900 dark:text-white">{Math.round((quickView.ticketsSold / quickView.ticketsTotal) * 100)}%</p></div>
+                            <div><p className="text-xs text-gray-400">Sell Rate</p><p className="font-bold text-gray-900 dark:text-white">{quickView.ticketsTotal > 0 ? Math.round((quickView.ticketsSold / quickView.ticketsTotal) * 100) : 0}%</p></div>
                         </div>
                         <div className="flex gap-3">
                             <Link to={`/organizer/events/${quickView.id}/analytics`} className="flex-1"><Button variant="primary" className="w-full"><BarChart3 size={15} className="mr-1.5" /> Analytics</Button></Link>

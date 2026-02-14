@@ -28,67 +28,6 @@ interface CalendarModalProps {
 }
 
 // =============================================================================
-// MOCK DATA — Sample booked events
-// =============================================================================
-
-const MOCK_EVENTS: CalendarEvent[] = [
-  {
-    id: '1',
-    title: 'Tech Conference 2026',
-    date: new Date(2026, 1, 8),
-    startTime: '09:00',
-    endTime: '17:00',
-    type: 'default',
-    location: 'Convention Center Hall A',
-  },
-  {
-    id: '2',
-    title: 'Team Standup',
-    date: new Date(2026, 1, 10),
-    startTime: '10:00',
-    endTime: '10:30',
-    type: 'success',
-    location: 'Virtual Meeting',
-  },
-  {
-    id: '3',
-    title: 'Startup Pitch Night',
-    date: new Date(2026, 1, 15),
-    startTime: '18:00',
-    endTime: '21:00',
-    type: 'warning',
-    location: 'Innovation Hub',
-  },
-  {
-    id: '4',
-    title: 'Product Launch',
-    date: new Date(2026, 1, 20),
-    startTime: '14:00',
-    endTime: '16:00',
-    type: 'info',
-    location: 'Main Auditorium',
-  },
-  {
-    id: '5',
-    title: 'Workshop: React Best Practices',
-    date: new Date(2026, 1, 22),
-    startTime: '09:30',
-    endTime: '12:30',
-    type: 'default',
-    location: 'Training Room B',
-  },
-  {
-    id: '6',
-    title: 'Networking Event',
-    date: new Date(2026, 1, 25),
-    startTime: '19:00',
-    endTime: '22:00',
-    type: 'success',
-    location: 'Rooftop Lounge',
-  },
-];
-
-// =============================================================================
 // UTILITIES
 // =============================================================================
 
@@ -133,7 +72,7 @@ function formatDateForDisplay(date: Date): string {
 export default function CalendarModal({
   isOpen,
   onClose,
-  events = MOCK_EVENTS,
+  events = [],
   title = 'Event Calendar',
 }: CalendarModalProps) {
   const [currentDate, setCurrentDate] = useState(new Date());

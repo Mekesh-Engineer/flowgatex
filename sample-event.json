@@ -1,0 +1,59 @@
+{
+  "title": "Tech Summit 2026",
+  "subtitle": "The Future of AI & Cloud",
+  "category": "tech",
+  "type": "in-person",
+  "language": ["English", "Hindi"],
+  "ageRestriction": "all",
+  "format": "single",
+  "startDate": "2026-03-15T09:00:00.000Z",
+  "endDate": "2026-03-15T18:00:00.000Z",
+  "timezone": "Asia/Kolkata",
+  "registrationDeadline": "2026-03-14T23:59:00.000Z",
+  "isRecurring": false,
+  "locationType": "physical",
+  "venue": {
+    "name": "KEC Convention Hall",
+    "address": "123 Main St",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "zipCode": "600001",
+    "country": "India",
+    "capacity": 500,
+    "hasParking": true
+  },
+  "ticketTiers": [
+    {
+      "id": "tier-1",
+      "name": "General Admission",
+      "price": 499,
+      "quantity": 300,
+      "sold": 0,
+      "description": "Standard entry with all sessions",
+      "benefits": ["All sessions", "Lunch included"],
+      "minPerOrder": 1,
+      "maxPerOrder": 5,
+      "visibility": "public"
+    }
+  ],
+  "promoCodes": [],
+  "description": "Join us for a full-day summit exploring AI, cloud computing, and emerging tech trends.",
+  "highlights": [],
+  "agenda": [],
+  "coverImage": "",
+  "gallery": [],
+  "videoUrl": "",
+  "organizer": {
+    "name": "FlowGate Events",
+    "email": "events@flowgate.io",
+    "socials": {
+      "website": "https://flowgate.io",
+      "instagram": "@flowgate"
+    }
+  },
+  "refundPolicy": "partial",
+  "hasTerms": false,
+  "tags": ["tech", "summit"],
+  "isPrivate": false,
+  "isFeatured": false
+}

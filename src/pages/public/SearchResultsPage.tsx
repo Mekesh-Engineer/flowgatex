@@ -1,13 +1,23 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Grid3X3, List, MapPin, Calendar, Clock, ChevronRight, Sparkles } from 'lucide-react';
+import { Grid3X3, List, MapPin, Calendar, Clock, ChevronRight, ChevronLeft, Sparkles, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import Button from '@/components/common/Button';
-import EmptyState from '@/components/common/EmptyState';
-import Pagination from '@/components/common/Pagination';
 import SearchInput from '@/components/common/SearchInput';
-import { Skeleton } from '@/components/common/Skeleton';
+
+// =============================================================================
+// ANIMATION VARIANTS
+// =============================================================================
+
+const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+};
+
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
+};
 
 // =============================================================================
 // MOCK DATA
@@ -90,25 +100,32 @@ export default function SearchResultsPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
+        <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans transition-colors duration-300">
             {/* ─── Search Hero ─── */}
-            <section className="relative bg-gradient-to-br from-[var(--bg-surface)] via-[var(--bg-base)] to-[var(--bg-surface)] border-b border-[var(--border-primary)] pt-10 pb-8 px-4 lg:px-8">
-                <div className="max-w-5xl mx-auto space-y-6">
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+            <section className="relative bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] pt-12 pb-10 overflow-hidden transition-colors duration-300">
+                {/* Background decorations */}
+                <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--color-primary)] rounded-full blur-[120px] opacity-5 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-72 h-72 bg-[var(--color-secondary)] rounded-full blur-[100px] opacity-5 pointer-events-none" />
+                <div className="absolute inset-0 opacity-5 pointer-events-none">
+                    <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--text-muted) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+                </div>
+
+                <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+                        <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-[1.1]">
                             Search{' '}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">
                                 Results
                             </span>
                         </h1>
                         {query && (
-                            <p className="text-[var(--text-muted)] text-sm mt-2">
+                            <p className="text-[var(--text-muted)] text-sm mt-3 font-light">
                                 Showing results for "<span className="text-[var(--color-primary)] font-medium">{query}</span>"
                             </p>
                         )}
                     </motion.div>
 
-                    <div className="flex gap-3">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5 }} className="flex gap-3">
                         <SearchInput
                             value={searchValue}
                             onChange={setSearchValue}
@@ -117,16 +134,20 @@ export default function SearchResultsPage() {
                             size="lg"
                             className="flex-1"
                         />
-                        <Button onClick={() => handleSearch(searchValue)} className="shrink-0">
-                            Search
-                        </Button>
-                    </div>
+                        <button
+                            onClick={() => handleSearch(searchValue)}
+                            className="relative shrink-0 px-6 py-3 rounded-xl font-semibold text-white bg-[var(--color-primary)] overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-[var(--shadow-primary)] group"
+                        >
+                            <span className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-focus)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <span className="relative flex items-center gap-2"><Search size={16} /> Search</span>
+                        </button>
+                    </motion.div>
 
                     {/* Suggested searches */}
                     {!query && (
-                        <div className="flex flex-wrap gap-2">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="flex flex-wrap gap-2">
                             <span className="text-xs text-[var(--text-muted)] self-center mr-1">
-                                <Sparkles size={14} className="inline mr-1" />
+                                <Sparkles size={14} className="inline mr-1 text-[var(--color-secondary)]" />
                                 Try:
                             </span>
                             {SUGGESTED_SEARCHES.map((s) => (
@@ -136,34 +157,34 @@ export default function SearchResultsPage() {
                                         setSearchValue(s);
                                         handleSearch(s);
                                     }}
-                                    className="px-3 py-1.5 text-xs rounded-full border border-[var(--border-primary)] text-[var(--text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors"
+                                    className="px-3.5 py-1.5 text-xs font-medium rounded-full border border-[var(--border-primary)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-faint)] transition-all duration-300"
                                 >
                                     {s}
                                 </button>
                             ))}
-                        </div>
+                        </motion.div>
                     )}
                 </div>
             </section>
 
             {/* ─── Results ─── */}
-            <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
                 {/* Toolbar */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-8">
                     <p className="text-sm text-[var(--text-muted)]">
                         <span className="font-bold text-[var(--text-primary)]">{filteredResults.length}</span> events found
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 p-1 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border-primary)]">
                         {(['grid', 'list'] as const).map((mode) => (
                             <button
                                 key={mode}
                                 onClick={() => setViewMode(mode)}
                                 aria-pressed={viewMode === mode}
                                 className={cn(
-                                    'p-2 rounded-lg border transition-all',
+                                    'p-2 rounded-md transition-all duration-300',
                                     viewMode === mode
-                                        ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
-                                        : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border-primary)] hover:border-[var(--color-primary)]'
+                                        ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--shadow-primary)]'
+                                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                                 )}
                             >
                                 {mode === 'grid' ? <Grid3X3 size={16} /> : <List size={16} />}
@@ -175,23 +196,32 @@ export default function SearchResultsPage() {
                 {loading ? (
                     <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'space-y-4'}>
                         {Array.from({ length: 6 }).map((_, i) => (
-                            <Skeleton key={i} className={viewMode === 'grid' ? 'h-80' : 'h-32'} rounded="2xl" />
+                            <div key={i} className={cn('bg-[var(--bg-card)] rounded-2xl animate-pulse border border-[var(--border-primary)]', viewMode === 'grid' ? 'h-80' : 'h-32')} />
                         ))}
                     </div>
                 ) : filteredResults.length === 0 ? (
-                    <EmptyState
-                        variant="search"
-                        title="No events found"
-                        description={`We couldn't find any events matching "${query}". Try different keywords.`}
-                        action={
-                            <Button onClick={() => { setSearchValue(''); handleSearch(''); }}>
-                                Clear Search
-                            </Button>
-                        }
-                    />
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-20">
+                        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--bg-secondary)] border border-[var(--border-primary)] mb-6">
+                            <Search size={32} className="text-[var(--text-muted)]" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-2">No events found</h2>
+                        <p className="text-[var(--text-muted)] mb-6 max-w-md mx-auto">
+                            We couldn't find any events matching "{query}". Try different keywords.
+                        </p>
+                        <button
+                            onClick={() => { setSearchValue(''); handleSearch(''); }}
+                            className="relative px-6 py-3 rounded-xl text-white font-semibold bg-[var(--color-primary)] overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-[var(--shadow-primary)] group"
+                        >
+                            <span className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-focus)] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <span className="relative">Clear Search</span>
+                        </button>
+                    </motion.div>
                 ) : (
                     <>
                         <motion.div
+                            initial="hidden"
+                            animate="visible"
+                            variants={staggerContainer}
                             layout
                             className={
                                 viewMode === 'grid'
@@ -199,77 +229,77 @@ export default function SearchResultsPage() {
                                     : 'flex flex-col gap-4'
                             }
                         >
-                            {paginatedResults.map((event, i) => (
+                            {paginatedResults.map((event) => (
                                 <motion.div
                                     key={event.id}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.05 }}
+                                    variants={fadeInUp}
+                                    whileHover={{ y: viewMode === 'grid' ? -6 : -2 }}
                                 >
                                     <Link to={`/events/${event.id}`}>
                                         {viewMode === 'grid' ? (
-                                            <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group">
-                                                <div className="h-48 bg-gray-100 dark:bg-neutral-700 relative overflow-hidden">
+                                            <div className="group rounded-2xl overflow-hidden bg-[var(--bg-card)] border border-[var(--border-primary)] hover:border-[var(--color-primary)] shadow-lg hover:shadow-xl transition-all duration-300">
+                                                <div className="h-48 relative overflow-hidden">
                                                     <img
                                                         src={event.image}
                                                         alt={event.title}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                                         onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800'; }}
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                                    <span className="absolute top-3 right-3 px-2.5 py-1 bg-white/90 dark:bg-neutral-900/90 text-xs font-bold rounded-lg">
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent" />
+                                                    <span className="absolute top-3 right-3 px-2.5 py-1 bg-[var(--bg-card)]/90 backdrop-blur-sm text-xs font-bold rounded-full text-[var(--text-primary)] border border-[var(--border-primary)]">
                                                         {event.category}
                                                     </span>
-                                                    <div className="absolute bottom-3 left-4 text-white">
-                                                        <p className="text-xs opacity-90">{event.date}</p>
-                                                        <p className="text-sm font-bold">{event.time}</p>
+                                                    <div className="absolute bottom-3 left-4">
+                                                        <span className="px-2.5 py-0.5 rounded-full bg-[var(--color-primary-faint)] text-[var(--color-primary)] text-xs font-bold border border-[var(--color-primary)]/10">
+                                                            {event.date} &middot; {event.time}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div className="p-5">
-                                                    <h3 className="text-base font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors line-clamp-1">
+                                                    <h3 className="text-base font-bold text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
                                                         {event.title}
                                                     </h3>
-                                                    <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-neutral-400 mt-2">
+                                                    <div className="flex items-center gap-1.5 text-sm text-[var(--text-muted)] mt-2">
                                                         <MapPin size={14} />
                                                         <span className="line-clamp-1">{event.location}</span>
                                                     </div>
-                                                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-neutral-700">
-                                                        <span className="font-bold text-gray-900 dark:text-white">
+                                                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-[var(--border-primary)]">
+                                                        <span className="font-bold text-lg text-[var(--text-primary)]">
                                                             ${event.price}
                                                         </span>
-                                                        <span className="text-xs text-gray-500 dark:text-neutral-400">
+                                                        <span className="text-xs text-[var(--text-muted)] font-medium">
                                                             {event.attendees} attending
                                                         </span>
                                                     </div>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-4 flex gap-4 hover:shadow-md transition-all group">
+                                            <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border-primary)] hover:border-[var(--color-primary)] p-4 flex gap-4 hover:shadow-lg transition-all duration-300 group">
                                                 <img
                                                     src={event.image}
                                                     alt={event.title}
-                                                    className="w-24 h-24 rounded-xl object-cover shrink-0"
+                                                    className="w-24 h-24 rounded-xl object-cover shrink-0 group-hover:scale-105 transition-transform duration-500"
                                                     onError={(e) => { (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=200'; }}
                                                 />
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-start justify-between">
-                                                        <h3 className="font-bold text-gray-900 dark:text-white group-hover:text-primary-600 transition-colors line-clamp-1">
+                                                        <h3 className="font-bold text-[var(--text-primary)] group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
                                                             {event.title}
                                                         </h3>
-                                                        <span className="text-sm font-bold text-gray-900 dark:text-white shrink-0 ml-4">
+                                                        <span className="text-sm font-bold text-[var(--text-primary)] shrink-0 ml-4">
                                                             ${event.price}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-3 mt-2 text-sm text-gray-500 dark:text-neutral-400">
+                                                    <div className="flex items-center gap-3 mt-2 text-sm text-[var(--text-muted)]">
                                                         <span className="flex items-center gap-1"><Calendar size={13} /> {event.date}</span>
                                                         <span className="flex items-center gap-1"><Clock size={13} /> {event.time}</span>
                                                         <span className="flex items-center gap-1"><MapPin size={13} /> {event.location}</span>
                                                     </div>
-                                                    <span className="inline-block mt-2 px-2 py-0.5 text-xs font-medium bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-full">
+                                                    <span className="inline-block mt-2 px-2.5 py-0.5 text-xs font-semibold bg-[var(--color-primary-faint)] text-[var(--color-primary)] rounded-full border border-[var(--color-primary)]/10">
                                                         {event.category}
                                                     </span>
                                                 </div>
-                                                <ChevronRight size={20} className="text-gray-300 dark:text-neutral-600 self-center shrink-0" />
+                                                <ChevronRight size={20} className="text-[var(--text-muted)] self-center shrink-0 group-hover:text-[var(--color-primary)] transition-colors" />
                                             </div>
                                         )}
                                     </Link>
@@ -277,12 +307,45 @@ export default function SearchResultsPage() {
                             ))}
                         </motion.div>
 
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={setCurrentPage}
-                            className="mt-10"
-                        />
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <nav className="mt-12 flex justify-center" aria-label="Pagination">
+                                <div className="flex items-center gap-1.5">
+                                    <button
+                                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        aria-label="Previous page"
+                                        className="size-10 flex items-center justify-center rounded-lg border border-[var(--border-primary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronLeft size={18} />
+                                    </button>
+
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                                        <button
+                                            key={p}
+                                            onClick={() => setCurrentPage(p)}
+                                            aria-label={`Page ${p}`}
+                                            aria-current={currentPage === p ? 'page' : undefined}
+                                            className={`size-10 flex items-center justify-center rounded-lg text-sm font-semibold transition-all ${currentPage === p
+                                                ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--shadow-primary)]'
+                                                : 'border border-[var(--border-primary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+                                                }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    ))}
+
+                                    <button
+                                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                        aria-label="Next page"
+                                        className="size-10 flex items-center justify-center rounded-lg border border-[var(--border-primary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronRight size={18} />
+                                    </button>
+                                </div>
+                            </nav>
+                        )}
                     </>
                 )}
             </main>

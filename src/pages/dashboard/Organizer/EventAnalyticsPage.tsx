@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import dayjs from 'dayjs';
 import {
     ArrowLeft,
     Download,
@@ -15,311 +16,389 @@ import {
     Heart,
     Eye as EyeIcon,
     ArrowUpRight,
-    Calendar,
+    ArrowDownRight,
+    Calendar
 } from 'lucide-react';
-import { cn, formatCurrency } from '@/lib/utils';
-import Button from '@/components/common/Button';
-import StatsCard from '@/components/common/StatsCard';
-import ProgressBar from '@/components/common/ProgressBar';
-import { Skeleton, SkeletonCard } from '@/components/common/Skeleton';
+import { cn, formatCurrency, formatDate } from '@/lib/utils';
+import { useEventById } from '@/features/events/hooks/useEvents';
+import LoadingScreen from '@/components/common/LoadingScreen';
 
-// =============================================================================
-// MOCK DATA
-// =============================================================================
+// ─── Animation Variants ──────────────────────────────────────────────────────
 
-const EVENT_INFO = {
-    title: 'Tech Summit 2026',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=200',
-    date: 'Apr 15, 2026',
+const containerVariants = { 
+    hidden: { opacity: 0 }, 
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } } 
 };
 
-const OVERVIEW = {
-    ticketsSold: 842,
-    ticketsTotal: 1000,
-    totalRevenue: 63150,
-    conversionRate: 14.8,
-    avgTicketPrice: 75,
+const itemVariants = { 
+    hidden: { opacity: 0, y: 20 }, 
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } } 
 };
 
-const DAILY_SALES = Array.from({ length: 14 }, (_, i) => ({
-    day: `Mar ${15 + i}`,
-    tickets: Math.floor(Math.random() * 60) + 10,
-    revenue: Math.floor(Math.random() * 4500) + 500,
-}));
+// ─── Helper Components ───────────────────────────────────────────────────────
 
-const TICKET_TIERS = [
-    { name: 'Early Bird', sold: 200, total: 200, revenue: 10000, color: 'bg-green-500' },
-    { name: 'General', sold: 450, total: 500, revenue: 33750, color: 'bg-primary-500' },
-    { name: 'VIP', sold: 142, total: 200, revenue: 14200, color: 'bg-violet-500' },
-    { name: 'Platinum', sold: 50, total: 100, revenue: 5200, color: 'bg-amber-500' },
-];
+const MetricCard = ({ label, value, icon: Icon, trend, colorClass }: any) => (
+    <motion.div 
+        variants={itemVariants}
+        whileHover={{ y: -5, boxShadow: 'var(--shadow-glow)' }}
+        className="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-2xl p-6 transition-all duration-300 relative overflow-hidden group"
+    >
+        {/* Decorative background blob */}
+        <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-5 blur-2xl transition-opacity group-hover:opacity-10 ${colorClass.replace('text-', 'bg-')}`} />
 
-const TRAFFIC_SOURCES = [
-    { source: 'Direct', visitors: 2340, pct: 38, color: 'bg-primary-500' },
-    { source: 'Social Media', visitors: 1870, pct: 30, color: 'bg-pink-500' },
-    { source: 'Search', visitors: 1240, pct: 20, color: 'bg-amber-500' },
-    { source: 'Referral', visitors: 745, pct: 12, color: 'bg-green-500' },
-];
+        <div className="flex justify-between items-start mb-4 relative z-10">
+            <div className={`p-3 rounded-xl ${colorClass} bg-opacity-10 backdrop-blur-sm`}>
+                <Icon size={22} className={colorClass.replace('bg-', 'text-')} />
+            </div>
+            {trend && (
+                <span className={`text-xs font-bold px-2 py-1 rounded-full border flex items-center gap-1 ${trend > 0 ? 'text-[var(--color-success)] bg-[var(--color-success)]/10 border-[var(--color-success)]/20' : 'text-[var(--color-error)] bg-[var(--color-error)]/10 border-[var(--color-error)]/20'}`}>
+                    {trend > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                    {Math.abs(trend)}%
+                </span>
+            )}
+        </div>
+        
+        <div className="relative z-10">
+            <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-1 tracking-tight">{value}</h3>
+            <p className="text-xs text-[var(--text-muted)] font-medium">{label}</p>
+        </div>
+    </motion.div>
+);
 
-const FUNNEL_STEPS = [
-    { label: 'Page Views', value: 6195, pct: 100, color: 'bg-gray-400 dark:bg-neutral-500' },
-    { label: 'Clicked "Buy"', value: 2478, pct: 40, color: 'bg-primary-400' },
-    { label: 'Checkout Started', value: 1239, pct: 20, color: 'bg-primary-500' },
-    { label: 'Purchased', value: 842, pct: 13.6, color: 'bg-green-500' },
-];
-
-const DEMOGRAPHICS = {
-    age: [
-        { group: '18-24', pct: 22 },
-        { group: '25-34', pct: 38 },
-        { group: '35-44', pct: 24 },
-        { group: '45-54', pct: 11 },
-        { group: '55+', pct: 5 },
-    ],
-    gender: [
-        { label: 'Male', pct: 55, color: 'bg-primary-500' },
-        { label: 'Female', pct: 40, color: 'bg-pink-500' },
-        { label: 'Other', pct: 5, color: 'bg-amber-500' },
-    ],
-};
-
-const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.06 } } };
-const itemVariants = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 200, damping: 22 } } };
-
-// =============================================================================
-// COMPONENT
-// =============================================================================
+// ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function EventAnalyticsPage() {
-    const { id: _eventId } = useParams<{ id: string }>();
-    const [loading, setLoading] = useState(true);
+    const { id } = useParams<{ id: string }>();
+    const { data: event, isLoading, error } = useEventById(id || '');
+    
     const [period, setPeriod] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
-    const [salesView, setSalesView] = useState<'tickets' | 'revenue'>('tickets');
+    const [salesView, setSalesView] = useState<'tickets' | 'revenue'>('revenue');
 
-    useEffect(() => { const t = setTimeout(() => setLoading(false), 600); return () => clearTimeout(t); }, []);
+    // ─── Derived Real-Time Data ───
+    
+    const overview = useMemo(() => {
+        if (!event) return null;
 
-    if (loading) {
-        return (
-            <div className="space-y-6">
-                <div className="flex items-center gap-4"><Skeleton className="h-16 w-16" rounded="xl" /><div className="space-y-2"><Skeleton className="h-6 w-48" /><Skeleton className="h-4 w-32" /></div></div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} className="h-28" />)}</div>
-                <SkeletonCard className="h-72" />
+        const ticketsSold = event.ticketTiers?.reduce((acc, t) => acc + (t.sold || 0), 0) || event.stats?.ticketsSold || 0;
+        const totalCapacity = event.ticketTiers?.reduce((acc, t) => acc + (t.quantity || 0), 0) || event.stats?.capacity || 100;
+        const revenue = event.ticketTiers?.reduce((acc, t) => acc + (t.sold * t.price), 0) || event.stats?.revenue || 0;
+        
+        // Calculate average ticket price
+        const avgPrice = ticketsSold > 0 ? revenue / ticketsSold : 0;
+        
+        // Calculate conversion rate (Mocked based on sales for now)
+        const conversionRate = ticketsSold > 0 ? ((ticketsSold / (ticketsSold * 8)) * 100).toFixed(1) : 0;
+
+        return {
+            ticketsSold,
+            totalCapacity,
+            revenue,
+            avgPrice,
+            conversionRate
+        };
+    }, [event]);
+
+    // Mock Sales Chart Data (Simulated based on real totals)
+    const chartData = useMemo(() => {
+        if (!overview) return [];
+        const days = 14;
+        const data = [];
+        let remainingRevenue = overview.revenue;
+        let remainingTickets = overview.ticketsSold;
+
+        for (let i = 0; i < days; i++) {
+            // Distribute randomly
+            const isLast = i === days - 1;
+            const dailyRev = isLast ? remainingRevenue : Math.floor(remainingRevenue * (Math.random() * 0.3));
+            const dailyTix = isLast ? remainingTickets : Math.floor(remainingTickets * (Math.random() * 0.3));
+            
+            remainingRevenue -= dailyRev;
+            remainingTickets -= dailyTix;
+
+            data.unshift({
+                day: dayjs().subtract(i, 'day').format('MMM DD'),
+                revenue: Math.max(0, dailyRev),
+                tickets: Math.max(0, dailyTix)
+            });
+        }
+        return data;
+    }, [overview]);
+
+    if (isLoading) return <LoadingScreen />;
+    if (error || !event) return (
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            <div className="bg-[var(--bg-surface)] p-6 rounded-full mb-4">
+                <BarChart3 size={48} className="text-[var(--text-muted)]" />
             </div>
-        );
-    }
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">Event Not Found</h2>
+            <p className="text-[var(--text-secondary)] mt-2">We couldn't load analytics for this event.</p>
+            <Link to="/organizer/events" className="mt-6 text-[var(--color-primary)] font-bold hover:underline">Return to Events</Link>
+        </div>
+    );
 
     return (
-        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
+        <motion.div 
+            variants={containerVariants} 
+            initial="hidden" 
+            animate="visible" 
+            className="space-y-8 pb-12 font-sans text-[var(--text-primary)]"
+        >
             {/* ── Header ── */}
-            <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
-                    <Link to="/organizer/events" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-700 transition-colors"><ArrowLeft size={20} className="text-gray-500" /></Link>
-                    <img src={EVENT_INFO.image} alt="" className="w-14 h-14 rounded-xl object-cover" />
-                    <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{EVENT_INFO.title}</h1>
-                        <p className="text-sm text-gray-500 dark:text-neutral-400 flex items-center gap-1"><Calendar size={13} /> {EVENT_INFO.date}</p>
+                    <Link 
+                        to="/organizer/events" 
+                        className="p-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-primary)] hover:bg-[var(--bg-hover)] transition-all group"
+                    >
+                        <ArrowLeft size={20} className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]" />
+                    </Link>
+                    <div className="flex items-center gap-4">
+                         <div 
+                            className="w-14 h-14 rounded-xl bg-[var(--bg-surface)] bg-cover bg-center border border-[var(--border-primary)] shadow-sm" 
+                            style={{ backgroundImage: `url(${event.coverImage || '/placeholder-event.jpg'})` }}
+                        />
+                        <div>
+                            <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">{event.title}</h1>
+                            <p className="text-sm text-[var(--text-secondary)] flex items-center gap-1.5 mt-0.5">
+                                <Calendar size={14} /> 
+                                {formatDate(event.startDate)}
+                            </p>
+                        </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="flex bg-gray-100 dark:bg-neutral-700 rounded-xl p-1">
+                
+                <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex bg-[var(--bg-surface)] p-1 rounded-xl border border-[var(--border-primary)]">
                         {(['7d', '30d', '90d', 'all'] as const).map(p => (
-                            <button key={p} onClick={() => setPeriod(p)} className={cn('px-3 py-1.5 rounded-lg text-xs font-medium transition-colors', period === p ? 'bg-white dark:bg-neutral-600 shadow-sm text-primary-600' : 'text-gray-500')}>{p === 'all' ? 'All' : p}</button>
+                            <button 
+                                key={p} 
+                                onClick={() => setPeriod(p)} 
+                                className={cn(
+                                    'px-4 py-2 rounded-lg text-xs font-bold transition-all', 
+                                    period === p ? 'bg-[var(--bg-card)] text-[var(--color-primary)] shadow-sm border border-[var(--border-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
+                                )}
+                            >
+                                {p === 'all' ? 'All Time' : p.toUpperCase()}
+                            </button>
                         ))}
                     </div>
-                    <Button variant="ghost" size="sm"><Download size={14} className="mr-1.5" /> Export</Button>
+                    <button className="flex items-center gap-2 bg-[var(--color-primary)] text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-[var(--color-primary)]/20 hover:bg-[var(--color-primary-focus)] transition-all">
+                        <Download size={16} /> 
+                        <span className="hidden sm:inline">Export Report</span>
+                    </button>
                 </div>
             </motion.div>
 
             {/* ── Overview Cards ── */}
-            <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatsCard label="Tickets Sold" value={`${OVERVIEW.ticketsSold}/${OVERVIEW.ticketsTotal}`} icon={<Ticket size={20} />} trend="+12% vs last week" trendUp />
-                <StatsCard label="Total Revenue" value={formatCurrency(OVERVIEW.totalRevenue)} icon={<DollarSign size={20} />} trend="+8.5%" trendUp color="text-green-600 dark:text-green-400" bgColor="bg-green-50 dark:bg-green-500/10" borderColor="border-green-100 dark:border-green-500/20" />
-                <StatsCard label="Conversion Rate" value={`${OVERVIEW.conversionRate}%`} icon={<TrendingUp size={20} />} trend="+2.1%" trendUp color="text-amber-600 dark:text-amber-400" bgColor="bg-amber-50 dark:bg-amber-500/10" borderColor="border-amber-100 dark:border-amber-500/20" />
-                <StatsCard label="Avg. Ticket Price" value={formatCurrency(OVERVIEW.avgTicketPrice)} icon={<BarChart3 size={20} />} color="text-violet-600 dark:text-violet-400" bgColor="bg-violet-50 dark:bg-violet-500/10" borderColor="border-violet-100 dark:border-violet-500/20" />
+            <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <MetricCard 
+                    label="Tickets Sold" 
+                    value={`${overview?.ticketsSold} / ${overview?.totalCapacity}`} 
+                    icon={Ticket} 
+                    trend={12} 
+                    colorClass="text-[var(--color-primary)]" 
+                />
+                <MetricCard 
+                    label="Total Revenue" 
+                    value={formatCurrency(overview?.revenue || 0)} 
+                    icon={DollarSign} 
+                    trend={8.5} 
+                    colorClass="text-[var(--color-success)]" 
+                />
+                <MetricCard 
+                    label="Conversion Rate" 
+                    value={`${overview?.conversionRate}%`} 
+                    icon={TrendingUp} 
+                    trend={2.1} 
+                    colorClass="text-[var(--color-warning)]" 
+                />
+                <MetricCard 
+                    label="Avg. Ticket Price" 
+                    value={formatCurrency(overview?.avgPrice || 0)} 
+                    icon={BarChart3} 
+                    colorClass="text-[var(--color-secondary)]" 
+                />
             </motion.div>
 
-            {/* ── Sales Over Time ── */}
-            <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6">
-                <div className="flex items-center justify-between mb-5">
-                    <h2 className="font-bold text-gray-900 dark:text-white">Sales Over Time</h2>
-                    <div className="flex bg-gray-100 dark:bg-neutral-700 rounded-lg p-0.5">
-                        <button onClick={() => setSalesView('tickets')} className={cn('px-3 py-1 rounded-md text-xs font-medium transition-colors', salesView === 'tickets' ? 'bg-white dark:bg-neutral-600 shadow-sm text-primary-600' : 'text-gray-500')}>Tickets</button>
-                        <button onClick={() => setSalesView('revenue')} className={cn('px-3 py-1 rounded-md text-xs font-medium transition-colors', salesView === 'revenue' ? 'bg-white dark:bg-neutral-600 shadow-sm text-primary-600' : 'text-gray-500')}>Revenue</button>
+            {/* ── Content Grid: Charts & Tables ── */}
+            <div className="grid grid-cols-12 gap-8">
+                
+                {/* ── Sales Over Time Chart ── */}
+                <motion.div 
+                    variants={itemVariants} 
+                    className="col-span-12 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-sm"
+                >
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-lg font-bold text-[var(--text-primary)]">Sales Performance</h2>
+                            <p className="text-sm text-[var(--text-muted)]">Daily revenue and ticket sales trends</p>
+                        </div>
+                        <div className="flex bg-[var(--bg-surface)] rounded-lg p-1 border border-[var(--border-primary)]">
+                            <button 
+                                onClick={() => setSalesView('tickets')} 
+                                className={cn('px-3 py-1.5 rounded-md text-xs font-bold transition-all', salesView === 'tickets' ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]')}
+                            >
+                                Tickets
+                            </button>
+                            <button 
+                                onClick={() => setSalesView('revenue')} 
+                                className={cn('px-3 py-1.5 rounded-md text-xs font-bold transition-all', salesView === 'revenue' ? 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]')}
+                            >
+                                Revenue
+                            </button>
+                        </div>
                     </div>
-                </div>
-                {/* Simple bar chart */}
-                <div className="flex items-end gap-1.5 h-48">
-                    {DAILY_SALES.map((d, i) => {
-                        const maxVal = salesView === 'tickets' ? 70 : 5000;
-                        const val = salesView === 'tickets' ? d.tickets : d.revenue;
-                        const pct = Math.min((val / maxVal) * 100, 100);
-                        return (
-                            <div key={i} className="flex-1 flex flex-col items-center gap-1 group" title={`${d.day}: ${salesView === 'tickets' ? d.tickets + ' tickets' : formatCurrency(d.revenue)}`}>
-                                <span className="text-[10px] text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">{salesView === 'tickets' ? d.tickets : `$${d.revenue}`}</span>
-                                <div className="w-full bg-primary-100 dark:bg-primary-500/20 rounded-t-md overflow-hidden" style={{ height: '100%' }}>
-                                    <div className="w-full bg-primary-500 rounded-t-md transition-all duration-500 hover:bg-primary-600" style={{ height: `${pct}%`, marginTop: `${100 - pct}%` }} />
+                    
+                    {/* Chart Visualization */}
+                    <div className="relative h-64 w-full flex items-end justify-between gap-2 px-2">
+                        {chartData.map((d, i) => {
+                            const val = salesView === 'tickets' ? d.tickets : d.revenue;
+                            const maxVal = Math.max(...chartData.map(cd => salesView === 'tickets' ? cd.tickets : cd.revenue)) || 1;
+                            const heightPct = (val / maxVal) * 100;
+                            
+                            return (
+                                <div key={i} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end relative">
+                                    {/* Tooltip */}
+                                    <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-[var(--bg-surface)] border border-[var(--border-primary)] px-2 py-1 rounded-lg text-xs font-bold shadow-lg whitespace-nowrap z-10 pointer-events-none">
+                                        {salesView === 'tickets' ? `${d.tickets} tickets` : formatCurrency(d.revenue)}
+                                    </div>
+                                    
+                                    <div className="w-full relative rounded-t-lg overflow-hidden bg-[var(--bg-surface)] h-full max-h-[85%]">
+                                        <motion.div 
+                                            initial={{ height: 0 }}
+                                            animate={{ height: `${heightPct}%` }}
+                                            transition={{ duration: 0.8, delay: i * 0.05 }}
+                                            className={cn(
+                                                "w-full absolute bottom-0 transition-colors duration-300 rounded-t-lg opacity-80 group-hover:opacity-100", 
+                                                salesView === 'tickets' ? "bg-[var(--color-primary)]" : "bg-[var(--color-success)]"
+                                            )} 
+                                        />
+                                    </div>
+                                    <span className="text-[10px] text-[var(--text-muted)] font-medium truncate w-full text-center">{d.day}</span>
                                 </div>
-                                <span className="text-[9px] text-gray-400 truncate w-full text-center">{d.day.split(' ')[1]}</span>
-                            </div>
-                        );
-                    })}
-                </div>
-            </motion.div>
+                            );
+                        })}
+                    </div>
+                </motion.div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* ── Ticket Tier Breakdown ── */}
-                <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6">
-                    <h2 className="font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2"><PieChart size={16} /> Ticket Tiers</h2>
+                {/* ── Ticket Tiers Breakdown ── */}
+                <motion.div 
+                    variants={itemVariants} 
+                    className="col-span-12 lg:col-span-6 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-sm"
+                >
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
+                        <Ticket size={20} className="text-[var(--color-primary)]" />
+                        Ticket Tiers Breakdown
+                    </h2>
+                    
+                    <div className="space-y-6">
+                        {event.ticketTiers && event.ticketTiers.length > 0 ? (
+                            event.ticketTiers.map((tier) => {
+                                const sold = tier.sold || 0;
+                                const total = tier.quantity || 100;
+                                const pct = (sold / total) * 100;
+                                const revenue = sold * tier.price;
+                                
+                                return (
+                                    <div key={tier.name} className="group">
+                                        <div className="flex justify-between items-end mb-2">
+                                            <div>
+                                                <span className="font-bold text-sm text-[var(--text-primary)] block">{tier.name}</span>
+                                                <span className="text-xs text-[var(--text-muted)]">{formatCurrency(revenue)} revenue</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="text-xs font-bold text-[var(--text-primary)]">{sold}</span>
+                                                <span className="text-xs text-[var(--text-muted)]"> / {total} sold</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full h-2.5 bg-[var(--bg-surface)] rounded-full overflow-hidden border border-[var(--border-primary)]">
+                                            <motion.div 
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${pct}%` }}
+                                                transition={{ duration: 1, delay: 0.2 }}
+                                                className="h-full rounded-full bg-[var(--color-primary)] group-hover:bg-[var(--color-primary-focus)] transition-colors"
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        ) : (
+                            <div className="text-center py-8 text-[var(--text-muted)] italic">
+                                No ticket tier data available.
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+
+                {/* ── Mocked Demographics & Sources (Since backend doesn't support yet) ── */}
+                <motion.div 
+                    variants={itemVariants} 
+                    className="col-span-12 lg:col-span-6 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-2xl p-6 shadow-sm"
+                >
+                    <h2 className="text-lg font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
+                        <Globe size={20} className="text-[var(--color-secondary)]" />
+                        Traffic Sources
+                    </h2>
+                    
                     <div className="space-y-4">
-                        {TICKET_TIERS.map((tier) => (
-                            <div key={tier.name}>
-                                <div className="flex justify-between text-sm mb-1">
-                                    <span className="font-medium text-gray-900 dark:text-white">{tier.name}</span>
-                                    <span className="text-gray-500 dark:text-neutral-400">{tier.sold}/{tier.total} • {formatCurrency(tier.revenue)}</span>
+                        {[
+                            { source: 'Direct', val: 38, color: 'bg-[var(--color-primary)]' },
+                            { source: 'Social Media', val: 30, color: 'bg-[var(--color-secondary)]' },
+                            { source: 'Search', val: 20, color: 'bg-[var(--color-warning)]' },
+                            { source: 'Referral', val: 12, color: 'bg-[var(--color-success)]' }
+                        ].map((src) => (
+                            <div key={src.source} className="flex items-center gap-4">
+                                <div className={`w-3 h-3 rounded-full ${src.color} shadow-sm`} />
+                                <span className="flex-1 text-sm font-medium text-[var(--text-secondary)]">{src.source}</span>
+                                <div className="flex-1">
+                                    <div className="w-full h-2 bg-[var(--bg-surface)] rounded-full overflow-hidden">
+                                        <motion.div 
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${src.val}%` }}
+                                            className={`h-full rounded-full ${src.color}`} 
+                                        />
+                                    </div>
                                 </div>
-                                <div className="w-full h-2.5 bg-gray-100 dark:bg-neutral-700 rounded-full overflow-hidden">
-                                    <div className={cn('h-full rounded-full transition-all duration-700', tier.color)} style={{ width: `${(tier.sold / tier.total) * 100}%` }} />
-                                </div>
+                                <span className="text-sm font-bold text-[var(--text-primary)] w-12 text-right">{src.val}%</span>
                             </div>
                         ))}
                     </div>
-                    <div className="mt-5 pt-4 border-t border-gray-100 dark:border-neutral-700 flex justify-between text-sm font-bold text-gray-900 dark:text-white">
-                        <span>Total</span>
-                        <span>{formatCurrency(TICKET_TIERS.reduce((s, t) => s + t.revenue, 0))}</span>
+                    
+                    <div className="mt-8 pt-6 border-t border-[var(--border-primary)] grid grid-cols-2 gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-[var(--bg-surface)] rounded-lg text-[var(--text-muted)]"><Users size={18} /></div>
+                            <div>
+                                <p className="text-xs text-[var(--text-muted)]">Top Age Group</p>
+                                <p className="font-bold text-[var(--text-primary)]">25 - 34</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-[var(--bg-surface)] rounded-lg text-[var(--text-muted)]"><PieChart size={18} /></div>
+                            <div>
+                                <p className="text-xs text-[var(--text-muted)]">Gender Split</p>
+                                <p className="font-bold text-[var(--text-primary)]">55% Male</p>
+                            </div>
+                        </div>
                     </div>
                 </motion.div>
-
-                {/* ── Traffic Sources ── */}
-                <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6">
-                    <h2 className="font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2"><Globe size={16} /> Traffic Sources</h2>
-                    <div className="space-y-3">
-                        {TRAFFIC_SOURCES.map((src) => (
-                            <div key={src.source} className="flex items-center gap-3">
-                                <div className={cn('w-3 h-3 rounded-full', src.color)} />
-                                <span className="flex-1 text-sm text-gray-700 dark:text-neutral-300">{src.source}</span>
-                                <span className="text-sm font-medium text-gray-900 dark:text-white">{src.visitors.toLocaleString()}</span>
-                                <span className="text-xs text-gray-400 w-10 text-right">{src.pct}%</span>
-                            </div>
-                        ))}
-                    </div>
-                    {/* Simple horizontal stacked bar */}
-                    <div className="flex h-4 rounded-full overflow-hidden mt-5">
-                        {TRAFFIC_SOURCES.map(src => (
-                            <div key={src.source} className={cn('h-full transition-all', src.color)} style={{ width: `${src.pct}%` }} title={`${src.source}: ${src.pct}%`} />
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
-
-            {/* ── Sales Funnel ── */}
-            <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6">
-                <h2 className="font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2"><TrendingUp size={16} /> Sales Funnel</h2>
-                <div className="space-y-3">
-                    {FUNNEL_STEPS.map((step, i) => (
-                        <div key={step.label} className="flex items-center gap-4">
-                            <span className="w-36 text-sm text-gray-700 dark:text-neutral-300">{step.label}</span>
-                            <div className="flex-1 h-8 bg-gray-100 dark:bg-neutral-700 rounded-lg overflow-hidden">
-                                <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${step.pct}%` }}
-                                    transition={{ delay: i * 0.15, duration: 0.6 }}
-                                    className={cn('h-full rounded-lg flex items-center justify-end pr-3', step.color)}
-                                >
-                                    <span className="text-xs font-bold text-white">{step.value.toLocaleString()}</span>
-                                </motion.div>
-                            </div>
-                            <span className="text-xs text-gray-400 w-12 text-right">{step.pct}%</span>
-                            {i > 0 && (
-                                <span className="text-xs text-amber-600 dark:text-amber-400 w-12 text-right">
-                                    {((FUNNEL_STEPS[i].value / FUNNEL_STEPS[i - 1].value) * 100).toFixed(1)}%
-                                </span>
-                            )}
+                
+                {/* ── Bottom Stats ── */}
+                <motion.div variants={itemVariants} className="col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                    {[
+                        { icon: EyeIcon, val: '6,195', label: 'Page Views', color: 'text-[var(--text-secondary)]' },
+                        { icon: Heart, val: '348', label: 'Favorites', color: 'text-[var(--color-secondary)]' },
+                        { icon: Share2, val: '127', label: 'Shares', color: 'text-[var(--color-primary)]' },
+                        { icon: ArrowUpRight, val: `${overview?.conversionRate}%`, label: 'Conversion', color: 'text-[var(--color-success)]' }
+                    ].map((stat, i) => (
+                        <div key={i} className="bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-2xl p-5 text-center shadow-sm hover:border-[var(--color-primary)]/30 transition-colors">
+                            <stat.icon className={`mx-auto mb-2 ${stat.color}`} size={24} />
+                            <p className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">{stat.val}</p>
+                            <p className="text-xs text-[var(--text-muted)] font-medium uppercase">{stat.label}</p>
                         </div>
                     ))}
-                </div>
-            </motion.div>
-
-            {/* ── Demographics ── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6">
-                    <h2 className="font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2"><Users size={16} /> Age Distribution</h2>
-                    <div className="space-y-3">
-                        {DEMOGRAPHICS.age.map((a) => (
-                            <div key={a.group} className="flex items-center gap-3">
-                                <span className="w-14 text-sm text-gray-500 dark:text-neutral-400">{a.group}</span>
-                                <div className="flex-1">
-                                    <ProgressBar value={a.pct} max={40} size="md" label={`${a.pct}%`} showValue={false} />
-                                </div>
-                                <span className="text-sm font-medium text-gray-900 dark:text-white w-10 text-right">{a.pct}%</span>
-                            </div>
-                        ))}
-                    </div>
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-6">
-                    <h2 className="font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2"><PieChart size={16} /> Gender Split</h2>
-                    <div className="flex items-center gap-6">
-                        {/* Simple donut representation */}
-                        <div className="relative w-32 h-32 flex-shrink-0">
-                            <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                                {DEMOGRAPHICS.gender.reduce<{ elements: JSX.Element[]; offset: number }>((acc, g) => {
-                                    const el = (
-                                        <circle
-                                            key={g.label}
-                                            cx="18" cy="18" r="15.915"
-                                            fill="none"
-                                            stroke={g.label === 'Male' ? '#0ea5e9' : g.label === 'Female' ? '#ec4899' : '#f59e0b'}
-                                            strokeWidth="3.5"
-                                            strokeDasharray={`${g.pct} ${100 - g.pct}`}
-                                            strokeDashoffset={`-${acc.offset}`}
-                                            strokeLinecap="round"
-                                        />
-                                    );
-                                    return { elements: [...acc.elements, el], offset: acc.offset + g.pct };
-                                }, { elements: [], offset: 0 }).elements}
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xl font-bold text-gray-900 dark:text-white">{OVERVIEW.ticketsSold}</span>
-                            </div>
-                        </div>
-                        <div className="space-y-3 flex-1">
-                            {DEMOGRAPHICS.gender.map(g => (
-                                <div key={g.label} className="flex items-center gap-3 justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className={cn('w-3 h-3 rounded-full', g.color)} />
-                                        <span className="text-sm text-gray-700 dark:text-neutral-300">{g.label}</span>
-                                    </div>
-                                    <span className="font-semibold text-gray-900 dark:text-white">{g.pct}%</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </motion.div>
             </div>
-
-            {/* ── Engagement ── */}
-            <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-5 text-center">
-                    <EyeIcon className="mx-auto text-gray-400 mb-2" size={22} />
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">6,195</p>
-                    <p className="text-xs text-gray-500 dark:text-neutral-400">Page Views</p>
-                </div>
-                <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-5 text-center">
-                    <Heart className="mx-auto text-pink-400 mb-2" size={22} />
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">348</p>
-                    <p className="text-xs text-gray-500 dark:text-neutral-400">Favorites</p>
-                </div>
-                <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-5 text-center">
-                    <Share2 className="mx-auto text-primary-400 mb-2" size={22} />
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">127</p>
-                    <p className="text-xs text-gray-500 dark:text-neutral-400">Shares</p>
-                </div>
-                <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-5 text-center">
-                    <ArrowUpRight className="mx-auto text-green-500 mb-2" size={22} />
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">14.8%</p>
-                    <p className="text-xs text-gray-500 dark:text-neutral-400">Conversion</p>
-                </div>
-            </motion.div>
         </motion.div>
     );
 }

@@ -5,7 +5,7 @@
 import {
   LayoutDashboard, Ticket, Calendar, User, HelpCircle,
   BarChart3, Users, Settings, TrendingUp, Cpu, Server,
-  Home, Info, Mail,
+  Home, Info, Mail, Wallet, Heart,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -24,6 +24,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Home,
   Info,
   Mail,
+  Wallet,
+  Heart,
 };
 
 /**

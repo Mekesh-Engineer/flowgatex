@@ -47,6 +47,7 @@
 @import '../styles/features/qr-scanner.css';
 @import '../styles/features/login.css';
 @import '../styles/features/register.css';
+@import '../styles/features/create-event.css';
 
 /* ============================================================================
    Tailwind CSS Framework

@@ -81,16 +81,20 @@ export const NAV_ITEMS = {
   ],
   user: [
     { label: 'Dashboard', path: '/dashboard', icon: 'LayoutDashboard' },
-    { label: 'My Tickets', path: '/dashboard/tickets', icon: 'Ticket' },
-    { label: 'Event Catalog', path: '/events', icon: 'Calendar' },
-    { label: 'Profile', path: '/profile', icon: 'User' },
-    { label: 'Support', path: '/support', icon: 'HelpCircle' },
+    { label: 'My Bookings', path: '/dashboard/bookings', icon: 'Ticket' },
+    { label: 'Favorites', path: '/dashboard/favorites', icon: 'Heart' },
+    { label: 'Wallet', path: '/dashboard/wallet', icon: 'Wallet' },
+    { label: 'Settings', path: '/dashboard/settings', icon: 'Settings' },
+    { label: 'Support', path: '/dashboard/support', icon: 'HelpCircle' },
   ],
   organizer: [
     { label: 'Dashboard', path: '/organizer', icon: 'LayoutDashboard' },
-    { label: 'Events', path: '/organizer/events', icon: 'Calendar' },
-    { label: 'Analytics', path: '/organizer/analytics', icon: 'BarChart3' },
-    { label: 'Attendees', path: '/organizer/attendees', icon: 'Users' },
+    { label: 'Create Event', path: '/organizer/events/create', icon: 'PlusCircle' },
+    { label: 'My Events', path: '/organizer/events', icon: 'Calendar' },
+    { label: 'Attendees', path: '/organizer/events/:id/attendees', icon: 'Users' },     // Dynamic link handling required in Sidebar or parent
+    { label: 'Payouts', path: '/organizer/payouts', icon: 'DollarSign' },
+    { label: 'IoT Devices', path: '/organizer/devices', icon: 'Cpu' },
+    { label: 'Marketing', path: '/organizer/marketing', icon: 'Megaphone' },
     { label: 'Settings', path: '/organizer/settings', icon: 'Settings' },
   ],
   admin: [

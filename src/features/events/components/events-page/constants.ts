@@ -26,15 +26,7 @@ export const PRICE_RANGES = [
   { label: '$500+', min: 500, max: 10000 },
 ] as const;
 
-export const CATEGORIES = [
-  'Music & Festivals',
-  'Technology',
-  'Business',
-  'Sports & Fitness',
-  'Arts & Culture',
-  'Food & Drink',
-  'Education',
-  'Health & Wellness',
-  'Networking',
-  'Entertainment',
-] as const;
+
+export const CATEGORIES = ['Music', 'Tech', 'Business', 'Sports', 'Arts', 'Workshop', 'Other'] as const;
+
+export const EVENT_TYPES = ['all', 'online', 'offline'] as const;

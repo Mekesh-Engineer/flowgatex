@@ -1,11 +1,24 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, Variants } from 'framer-motion';
-import { TrendingUp, ArrowRight, Heart, Calendar, MapPin, Eye, Ticket } from 'lucide-react';
-import { TRENDING_EVENTS } from '../../data/mockData';
+import { TrendingUp, ArrowRight, Heart, Calendar, MapPin, Eye, Ticket, Loader2 } from 'lucide-react';
 import { fadeInUp, staggerContainer } from '../ui/SharedComponents';
+import { useEvents } from '@/features/events/hooks/useEvents';
+import { toEventItems } from '@/features/events/utils/eventMapper';
 
-const TrendingCard = ({ event, variants }: { event: typeof TRENDING_EVENTS[0], variants: Variants }) => {
+interface TrendingEvent {
+    id: string;
+    title: string;
+    category: string;
+    image: string;
+    date: string;
+    venue: string;
+    price: number;
+    trending: string;
+    likes: number;
+}
+
+const TrendingCard = ({ event, variants }: { event: TrendingEvent, variants: Variants }) => {
     const [isLiked, setIsLiked] = useState(false);
 
     return (
@@ -60,6 +73,23 @@ const TrendingCard = ({ event, variants }: { event: typeof TRENDING_EVENTS[0], v
 };
 
 export const TrendingSection = () => {
+    const { data: rawEvents, isLoading } = useEvents(8);
+
+    // Map Firebase events → trending card format
+    const trendingEvents: TrendingEvent[] = (rawEvents ?? []).length > 0
+        ? toEventItems(rawEvents ?? []).slice(0, 4).map((e, i) => ({
+            id: e.id,
+            title: e.title,
+            category: e.category,
+            image: e.image,
+            date: e.date,
+            venue: e.venue,
+            price: e.price,
+            trending: [`+${45 + i * 11}%`, `+${32 + i * 8}%`, `+${28 + i * 15}%`, `+${67 - i * 12}%`][i] || '+20%',
+            likes: e.attendees || Math.floor(1500 + Math.random() * 3000),
+        }))
+        : [];
+
     return (
         <section className="py-24 bg-[var(--bg-primary)] relative overflow-hidden transition-colors duration-300">
             <div className="absolute inset-0 opacity-5 pointer-events-none">
@@ -81,9 +111,19 @@ export const TrendingSection = () => {
                     </Link>
                 </motion.div>
 
-                <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {TRENDING_EVENTS.map((event) => <TrendingCard key={event.id} event={event} variants={fadeInUp} />)}
-                </motion.div>
+                {isLoading ? (
+                    <div className="flex items-center justify-center py-16">
+                        <Loader2 size={32} className="animate-spin text-[var(--color-primary)]" />
+                    </div>
+                ) : trendingEvents.length === 0 ? (
+                    <div className="text-center py-16">
+                        <p className="text-[var(--text-muted)] text-lg">No trending events at the moment. Check back soon!</p>
+                    </div>
+                ) : (
+                    <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {trendingEvents.map((event) => <TrendingCard key={event.id} event={event} variants={fadeInUp} />)}
+                    </motion.div>
+                )}
             </div>
         </section>
     );

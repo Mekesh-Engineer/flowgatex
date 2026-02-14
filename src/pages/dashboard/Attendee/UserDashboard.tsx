@@ -1,30 +1,32 @@
 import { useState, useEffect } from 'react';
 import { logger } from '@/lib/logger';
-import type { LucideIcon } from 'lucide-react';
 import {
   Ticket,
   Calendar as CalendarIcon,
   CreditCard,
   Heart,
+  Search,
+  Wallet,
+  QrCode,
   ArrowRight,
   ArrowLeft,
   MapPin,
   Clock,
   MoreVertical,
-  Search,
-  Wallet,
-  QrCode,
   TrendingUp,
   TrendingDown,
   Bell,
   ChevronRight,
   Filter,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import Button from '@/components/common/Button';
 import { Card, CardContent } from '@/components/common/Card';
-
+import { useAuthStore } from '@/store/zustand/stores';
+import { getUserBookings } from '@/features/booking/services/bookingService';
+import { eventService } from '@/features/events/services/eventService';
 // Ensure this file exists in your project with the styles defined previously
 import '@/styles/features/userdashboard.css';
 
@@ -45,7 +47,7 @@ interface StatItem {
 }
 
 interface EventItem {
-  id: number;
+  id: string;
   title: string;
   category: string;
   date: string;
@@ -55,7 +57,7 @@ interface EventItem {
   price: string;
 }
 
-interface BookingItem {
+interface BookingTableItem {
   id: string;
   event: string;
   date: string;
@@ -67,7 +69,8 @@ interface BookingItem {
 interface DashboardData {
   stats: StatItem[];
   upcomingEvents: EventItem[];
-  recentBookings: BookingItem[];
+  recentBookings: BookingTableItem[];
+  userName: string;
 }
 
 // =============================================================================
@@ -91,129 +94,6 @@ const itemVariants = {
   },
 };
 
-// =============================================================================
-// MOCK API SERVICE (Simulating Backend)
-// =============================================================================
-
-const fetchDashboardData = (): Promise<DashboardData> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve({
-        stats: [
-          {
-            id: 1,
-            label: 'Total Bookings',
-            value: '12',
-            trend: '+12%',
-            trendUp: true,
-            icon: Ticket,
-            color: 'text-blue-600 dark:text-blue-400',
-            bg: 'bg-blue-50 dark:bg-blue-500/10',
-            border: 'border-blue-100 dark:border-blue-500/20',
-          },
-          {
-            id: 2,
-            label: 'Upcoming Events',
-            value: '3',
-            trend: '+2%',
-            trendUp: true,
-            icon: CalendarIcon,
-            color: 'text-purple-600 dark:text-purple-400',
-            bg: 'bg-purple-50 dark:bg-purple-500/10',
-            border: 'border-purple-100 dark:border-purple-500/20',
-          },
-          {
-            id: 3,
-            label: 'Total Spent',
-            value: '$450',
-            trend: '+5%',
-            trendUp: true,
-            icon: CreditCard,
-            color: 'text-emerald-600 dark:text-emerald-400',
-            bg: 'bg-emerald-50 dark:bg-emerald-500/10',
-            border: 'border-emerald-100 dark:border-emerald-500/20',
-          },
-          {
-            id: 4,
-            label: 'Favorites',
-            value: '8',
-            trend: '-1%',
-            trendUp: false,
-            icon: Heart,
-            color: 'text-pink-600 dark:text-pink-400',
-            bg: 'bg-pink-50 dark:bg-pink-500/10',
-            border: 'border-pink-100 dark:border-pink-500/20',
-          },
-        ],
-        upcomingEvents: [
-          {
-            id: 1,
-            title: 'Summer Jazz Festival',
-            category: 'Music',
-            date: 'Aug 12',
-            time: '18:00',
-            location: 'Central Park, NY',
-            image:
-              'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=800',
-            price: '$120',
-          },
-          {
-            id: 2,
-            title: 'Global Tech Summit 2024',
-            category: 'Technology',
-            date: 'Sep 05',
-            time: '09:00',
-            location: 'Moscone Center, SF',
-            image:
-              'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=800',
-            price: '$299',
-          },
-          {
-            id: 3,
-            title: 'Neon Night Run',
-            category: 'Sports',
-            date: 'Oct 15',
-            time: '20:00',
-            location: 'Downtown District',
-            image:
-              'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800',
-            price: '$45',
-          },
-        ],
-        recentBookings: [
-          {
-            id: 'ORD-7729',
-            event: 'Summer Jazz Festival',
-            date: 'Aug 12, 2024',
-            amount: '$120.00',
-            status: 'Confirmed',
-            image:
-              'https://images.unsplash.com/photo-1511192336575-5a79af67a629?auto=format&fit=crop&q=80&w=100',
-          },
-          {
-            id: 'ORD-8102',
-            event: 'Global Tech Summit',
-            date: 'Sep 05, 2024',
-            amount: '$299.00',
-            status: 'Pending',
-            image:
-              'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=100',
-          },
-          {
-            id: 'ORD-6651',
-            event: 'Design Systems Workshop',
-            date: 'Jul 20, 2024',
-            amount: '$45.00',
-            status: 'Confirmed',
-            image:
-              'https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&q=80&w=100',
-          },
-        ],
-      });
-    }, 1200); // Simulate network delay
-  });
-};
-
 const QUICK_ACTIONS = [
   { label: 'Find Events', icon: Search, color: 'text-blue-500' },
   { label: 'My Tickets', icon: Ticket, color: 'text-purple-500' },
@@ -226,15 +106,131 @@ const QUICK_ACTIONS = [
 // =============================================================================
 
 export default function UserDashboard() {
+  const { user } = useAuthStore();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Dynamic Data Fetching Effect
   useEffect(() => {
     const loadData = async () => {
+      if (!user) return;
+
       try {
-        const dashboardData = await fetchDashboardData();
-        setData(dashboardData);
+        setLoading(true);
+        // 1. Fetch User Bookings
+        const bookings = await getUserBookings(user.uid);
+
+        // 2. Fetch Details for the bookings
+        const recentBookings = bookings.slice(0, 5);
+        
+        const bookingsWithEventData = await Promise.all(recentBookings.map(async (b) => {
+            try {
+                const event = await eventService.getEventById(b.eventId);
+                return { ...b, eventDetails: event };
+            } catch {
+                return { ...b, eventDetails: null };
+            }
+        }));
+
+        // Calculate Stats
+        const totalSpent = bookings.reduce((sum, b) => sum + (b.finalAmount || 0), 0);
+        const totalBookings = bookings.length;
+        const upcomingBookings = bookings.filter(b => {
+             const date = new Date(b.eventDate); 
+             return !isNaN(date.getTime()) && date > new Date();
+        });
+
+        // Map to UI Models
+        const stats: StatItem[] = [
+          {
+            id: 1,
+            label: 'Total Bookings',
+            value: totalBookings.toString(),
+            trend: '+12%', 
+            trendUp: true,
+            icon: Ticket,
+            color: 'text-blue-600 dark:text-blue-400',
+            bg: 'bg-blue-50 dark:bg-blue-500/10',
+            border: 'border-blue-100 dark:border-blue-500/20',
+          },
+          {
+            id: 2,
+            label: 'Upcoming Events',
+            value: upcomingBookings.length.toString(),
+            trend: '+2%',
+            trendUp: true,
+            icon: CalendarIcon,
+            color: 'text-purple-600 dark:text-purple-400',
+            bg: 'bg-purple-50 dark:bg-purple-500/10',
+            border: 'border-purple-100 dark:border-purple-500/20',
+          },
+          {
+            id: 3,
+            label: 'Total Spent',
+            value: formatCurrency(totalSpent),
+            trend: '+5%',
+            trendUp: true,
+            icon: CreditCard,
+            color: 'text-emerald-600 dark:text-emerald-400',
+            bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+            border: 'border-emerald-100 dark:border-emerald-500/20',
+          },
+          {
+            id: 4,
+            label: 'Favorites',
+            value: '0',
+            trend: '0%',
+            trendUp: false,
+            icon: Heart,
+            color: 'text-pink-600 dark:text-pink-400',
+            bg: 'bg-pink-50 dark:bg-pink-500/10',
+            border: 'border-pink-100 dark:border-pink-500/20',
+          },
+        ];
+
+        const upcomingEventsUI: EventItem[] = upcomingBookings.map(b => {
+            const detail = bookingsWithEventData.find(ebd => ebd.id === b.id)?.eventDetails;
+            const d = new Date(b.eventDate);
+            return {
+                id: b.eventId,
+                title: b.eventTitle,
+                category: detail?.category || 'General',
+                date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                location: detail?.venue?.city || 'Online',
+                image: detail?.coverImage || 'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=800',
+                price: formatCurrency(b.finalAmount),
+            };
+        });
+
+        const recentBookingsUI: BookingTableItem[] = bookingsWithEventData.map(b => {
+             // Handle Firebase Timestamp or string date
+             let dateStr = 'Unknown';
+             if (b.bookingDate) {
+                 if (typeof b.bookingDate === 'string') {
+                     dateStr = new Date(b.bookingDate).toLocaleDateString();
+                 } else if (typeof b.bookingDate === 'object' && 'seconds' in b.bookingDate) {
+                     dateStr = new Date((b.bookingDate as any).seconds * 1000).toLocaleDateString();
+                 }
+             }
+             
+             return {
+                id: b.id,
+                event: b.eventTitle,
+                date: dateStr,
+                amount: formatCurrency(b.finalAmount),
+                status: (b.status.charAt(0).toUpperCase() + b.status.slice(1)) as any,
+                image: b.eventDetails?.coverImage || 'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=100'
+            };
+        });
+
+        setData({
+            stats,
+            upcomingEvents: upcomingEventsUI,
+            recentBookings: recentBookingsUI,
+            userName: user.displayName || 'User'
+        });
+
       } catch (error) {
         logger.error('Failed to load dashboard data', error);
       } finally {
@@ -242,7 +238,7 @@ export default function UserDashboard() {
       }
     };
     loadData();
-  }, []);
+  }, [user]);
 
   // Scroll Handler for Events
   const scrollEvents = (direction: 'left' | 'right') => {

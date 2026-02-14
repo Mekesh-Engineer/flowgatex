@@ -102,7 +102,6 @@ export const publicRoutes: RouteObject[] = [
   { path: ROUTES.ABOUT, element: <AboutPage /> },
   { path: ROUTES.CONTACT, element: <ContactPage /> },
   { path: ROUTES.EVENTS, element: <EventsPage /> },
-  { path: '/events/:id', element: <EventDetailsPage /> },
   { path: ROUTES.SEARCH, element: <SearchResultsPage /> },
   { path: ROUTES.CATEGORY, element: <CategoryPage /> },
 ];
@@ -129,6 +128,7 @@ export const authRoutes: RouteObject[] = [
 // =============================================================================
 export const protectedRoutes: RouteObject[] = [
   { path: ROUTES.DASHBOARD, element: <UserDashboard /> },
+  { path: ROUTES.EVENT_DETAILS, element: <EventDetailsPage /> },
   { path: ROUTES.CHECKOUT, element: <CheckoutPage /> },
   { path: ROUTES.BOOKING_SUCCESS, element: <BookingSuccessPage /> },
 

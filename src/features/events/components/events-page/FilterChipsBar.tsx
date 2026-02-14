@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import type { FilterState } from './types';
-import { CATEGORIES } from './constants';
+import { EVENT_CATEGORIES } from '@/lib/constants';
 
 interface Props {
     filters: FilterState;
@@ -20,28 +20,33 @@ export default function FilterChipsBar({ filters, onToggleCategory, onSetDate, o
     return (
         <div className="flex flex-wrap items-center gap-2">
             {/* Quick category chips */}
-            {CATEGORIES.slice(0, 6).map((cat) => {
-                const active = filters.categories.includes(cat);
+            {/* Quick category chips */}
+            {EVENT_CATEGORIES.slice(0, 5).map((cat) => {
+                const active = filters.categories.includes(cat.id);
                 return (
                     <button
-                        key={cat}
-                        onClick={() => onToggleCategory(cat)}
+                        key={cat.id}
+                        onClick={() => onToggleCategory(cat.id)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${active
                                 ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-sm'
                                 : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'
                             }`}
                     >
-                        {cat}
+                        {cat.label}
                     </button>
                 );
             })}
 
             {/* Date chip */}
-            {['Today', 'This Week', 'This Month'].map((label) => (
+            {([
+              { value: 'today', label: 'Today' },
+              { value: 'this-week', label: 'This Week' },
+              { value: 'this-month', label: 'This Month' },
+            ]).map(({ value, label }) => (
                 <button
-                    key={label}
-                    onClick={() => onSetDate(filters.dateRange === label ? '' : label)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${filters.dateRange === label
+                    key={value}
+                    onClick={() => onSetDate(filters.dateRange === value ? '' : value)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${filters.dateRange === value
                             ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
                             : 'bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border-primary)] hover:border-[var(--color-primary)]'
                         }`}
@@ -51,17 +56,21 @@ export default function FilterChipsBar({ filters, onToggleCategory, onSetDate, o
             ))}
 
             {/* Active filter tags */}
-            {filters.categories.map((cat) => (
-                <span
-                    key={`active-${cat}`}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs font-medium"
-                >
-                    {cat}
-                    <button onClick={() => onToggleCategory(cat)} aria-label={`Remove ${cat}`}>
-                        <X size={12} />
-                    </button>
-                </span>
-            ))}
+            {/* Active filter tags */}
+            {filters.categories.map((catId) => {
+                const label = EVENT_CATEGORIES.find((c) => c.id === catId)?.label || catId;
+                return (
+                    <span
+                        key={`active-${catId}`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-xs font-medium"
+                    >
+                        {label}
+                        <button onClick={() => onToggleCategory(catId)} aria-label={`Remove ${label}`}>
+                            <X size={12} />
+                        </button>
+                    </span>
+                );
+            })}
 
             {hasActiveFilters && (
                 <button

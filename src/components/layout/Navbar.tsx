@@ -5,7 +5,7 @@ import {
   Menu, X, Bell, Search, ChevronDown, LogIn,
   Sparkles, Command,
 } from 'lucide-react';
-import useAuth from '@/features/auth/hooks/useAuth';
+import { useAuthStore } from '@/store/zustand/stores';
 import { UserRole } from '@/lib/constants';
 import { logout } from '@/features/auth/services/authService';
 
@@ -38,7 +38,7 @@ function Navbar() {
   const location = useLocation();
 
   // Auth
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuthStore();
 
   // State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

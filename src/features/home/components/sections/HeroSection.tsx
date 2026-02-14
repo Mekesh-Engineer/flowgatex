@@ -2,12 +2,13 @@ import { useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Music, Trophy, Cpu, ArrowRight, Sparkles, Calendar, Globe, Mic2, Search, Filter, MapPin, ChevronDown } from 'lucide-react';
-import useAuth from '@/features/auth/hooks/useAuth';
+import { useAuthStore } from '@/store/zustand/stores';
+import { UserRole } from '@/lib/constants';
 import { GridCanvas, ParticleCanvas } from '../canvas/CanvasEffects';
 import { FloatingElement, PulsingDot, GlowingBorder, fadeInUp } from '../ui/SharedComponents';
 
 export const HeroSection = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, user } = useAuthStore();
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const heroRef = useRef<HTMLElement>(null);
 
@@ -101,14 +102,27 @@ export const HeroSection = () => {
                     </p>
 
                     <motion.div className="flex flex-col sm:flex-row gap-4 justify-center pt-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                        <Link to={isAuthenticated ? "/dashboard" : "/events"} className="group relative px-10 py-4 rounded-xl text-base font-bold text-white overflow-hidden shadow-2xl shadow-[var(--shadow-primary)] transition-all transform hover:-translate-y-1">
+                        <Link 
+                            to={isAuthenticated ? (
+                                user?.role === UserRole.ORGANIZER ? '/organizer' :
+                                user?.role === UserRole.ADMIN ? '/admin' :
+                                user?.role === UserRole.SUPER_ADMIN ? '/superadmin' :
+                                '/dashboard'
+                            ) : '#'} 
+                            onClick={(e) => !isAuthenticated && e.preventDefault()}
+                            className={`group relative px-10 py-4 rounded-xl text-base font-bold text-white overflow-hidden shadow-2xl shadow-[var(--shadow-primary)] transition-all transform ${isAuthenticated ? 'hover:-translate-y-1' : 'opacity-60 cursor-not-allowed pointer-events-none'}`}
+                            aria-disabled={!isAuthenticated}
+                        >
                             <span className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-focus)] group-hover:from-[var(--color-primary-focus)] group-hover:to-[var(--color-primary)] transition-all duration-300" />
                             <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <span className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-primary)] bg-[length:200%_100%] animate-shimmer" />
                             </span>
-                            <span className="relative flex items-center gap-2">{isAuthenticated ? "Go to Dashboard" : "Explore Events"} <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></span>
+                            <span className="relative flex items-center gap-2">
+                                Go to Dashboard 
+                                <ArrowRight size={18} className={`transition-transform ${isAuthenticated ? 'group-hover:translate-x-1' : ''}`} />
+                            </span>
                         </Link>
-                        <Link to="/auth/register" className="group px-10 py-4 rounded-xl text-base font-bold text-[var(--text-primary)] border-2 border-[var(--border-primary)] hover:border-[var(--color-primary)] bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] transition-all flex items-center justify-center gap-2">
+                        <Link to="/register?role=organizer" className="group px-10 py-4 rounded-xl text-base font-bold text-[var(--text-primary)] border-2 border-[var(--border-primary)] hover:border-[var(--color-primary)] bg-[var(--bg-card)] hover:bg-[var(--bg-hover)] transition-all flex items-center justify-center gap-2">
                             <Sparkles size={18} className="text-[var(--color-secondary)]" /> Become an Organizer
                         </Link>
                     </motion.div>

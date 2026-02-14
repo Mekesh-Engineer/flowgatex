@@ -1,5 +1,4 @@
-import { Box, Typography, TextField, Button, Grid, IconButton, Paper, MenuItem } from '@mui/material';
-import { Plus, Trash2 } from 'lucide-react';
+import { Ticket, Plus, Trash2 } from 'lucide-react';
 import type { CreateEventData, TicketTier } from '../../types/event.types';
 
 interface Props {
@@ -34,87 +33,114 @@ export default function TicketsStep({ data, onUpdate }: Props) {
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5">Tickets &amp; Pricing</Typography>
-        <Button startIcon={<Plus size={16} />} variant="outlined" onClick={addTier}>Add Tier</Button>
-      </Box>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <div className="ce-step-title">
+          <div className="ce-step-title-icon">
+            <Ticket size={20} />
+          </div>
+          Tickets & Pricing
+        </div>
+        <button className="btn btn-outline" onClick={addTier}>
+          <Plus size={16} />
+          Add Tier
+        </button>
+      </div>
+      <p className="ce-step-subtitle">Define your ticket types and pricing.</p>
 
       {data.ticketTiers.map((tier, index) => (
-        <Paper key={tier.id} variant="outlined" sx={{ p: 3, mb: 3, position: 'relative' }}>
-          <IconButton
-            size="small"
-            onClick={() => removeTier(index)}
-            sx={{ position: 'absolute', top: 10, right: 10, color: 'error.main' }}
-          >
-            <Trash2 size={16} />
-          </IconButton>
+        <div key={tier.id} className="ce-ticket-card">
+          <div className="ce-ticket-card-header">
+            <span>Tier {index + 1}</span>
+            <button className="ce-ticket-card-remove" onClick={() => removeTier(index)} title="Remove tier">
+              <Trash2 size={14} />
+            </button>
+          </div>
 
-          <Grid container spacing={3} sx={{ mb: 2 }}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                fullWidth label="Tier Name"
+          <div className="form-grid form-grid-3">
+            <div className="form-row">
+              <label className="label">Tier Name</label>
+              <input
+                className="input"
+                type="text"
                 value={tier.name}
                 onChange={(e) => updateTier(index, 'name', e.target.value)}
               />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4 }}>
-              <TextField
-                fullWidth label="Price (₹)" type="number"
+            </div>
+            <div className="form-row">
+              <label className="label">Price (₹)</label>
+              <input
+                className="input"
+                type="number"
+                min="0"
                 value={tier.price}
                 onChange={(e) => updateTier(index, 'price', parseFloat(e.target.value) || 0)}
               />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4 }}>
-              <TextField
-                fullWidth label="Quantity" type="number"
+            </div>
+            <div className="form-row">
+              <label className="label">Quantity</label>
+              <input
+                className="input"
+                type="number"
+                min="1"
                 value={tier.quantity}
                 onChange={(e) => updateTier(index, 'quantity', parseInt(e.target.value) || 0)}
               />
-            </Grid>
-          </Grid>
+            </div>
+          </div>
 
-          <Grid container spacing={3} sx={{ mb: 2 }}>
-            <Grid size={{ xs: 6, sm: 4 }}>
-              <TextField
-                fullWidth label="Min per Order" type="number"
+          <div className="form-grid form-grid-3">
+            <div className="form-row">
+              <label className="label">Min per Order</label>
+              <input
+                className="input"
+                type="number"
+                min="1"
                 value={tier.minPerOrder}
                 onChange={(e) => updateTier(index, 'minPerOrder', parseInt(e.target.value) || 1)}
               />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 4 }}>
-              <TextField
-                fullWidth label="Max per Order" type="number"
+            </div>
+            <div className="form-row">
+              <label className="label">Max per Order</label>
+              <input
+                className="input"
+                type="number"
+                min="1"
                 value={tier.maxPerOrder}
                 onChange={(e) => updateTier(index, 'maxPerOrder', parseInt(e.target.value) || 10)}
               />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <TextField
-                select fullWidth label="Visibility"
+            </div>
+            <div className="form-row">
+              <label className="label">Visibility</label>
+              <select
+                className="select"
                 value={tier.visibility}
                 onChange={(e) => updateTier(index, 'visibility', e.target.value)}
               >
-                <MenuItem value="public">Public</MenuItem>
-                <MenuItem value="hidden">Hidden</MenuItem>
-              </TextField>
-            </Grid>
-          </Grid>
+                <option value="public">Public</option>
+                <option value="hidden">Hidden</option>
+              </select>
+            </div>
+          </div>
 
-          <TextField
-            fullWidth label="Description (Optional)"
-            value={tier.description || ''}
-            onChange={(e) => updateTier(index, 'description', e.target.value)}
-            size="small"
-          />
-        </Paper>
+          <div className="form-row">
+            <label className="label">Description (Optional)</label>
+            <input
+              className="input input-sm"
+              type="text"
+              placeholder="What does this tier include?"
+              value={tier.description || ''}
+              onChange={(e) => updateTier(index, 'description', e.target.value)}
+            />
+          </div>
+        </div>
       ))}
 
       {data.ticketTiers.length === 0 && (
-        <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
-          No ticket tiers created. Add one to get started.
-        </Typography>
+        <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+          No ticket tiers created. Click "Add Tier" to get started.
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

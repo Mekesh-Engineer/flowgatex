@@ -28,12 +28,6 @@ import {
 // 4. Organizer Routes - Organizers, Admins, Super Admins
 // 5. Admin Routes - Admins and Super Admins
 // 6. Super Admin Routes - Super Admins only
-//
-// Test Credentials:
-// - User: mekesh.officials@gmail.com / Mekesh@attendee1236
-// - Organizer: mekeshkumarm.23eee@kongu.edu / Mekesh@organizer1236
-// - Admin: mekeshkumar1236@gmail.com / Mekesh@admin1236
-// - Super Admin: mekesh.engineer@gmail.com / Mekesh@superadmin1236
 // =============================================================================
 
 function AppRoutes() {

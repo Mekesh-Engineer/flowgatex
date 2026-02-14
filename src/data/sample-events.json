@@ -1,0 +1,160 @@
+[
+  {
+    "title": "Tech Summit 2024",
+    "subtitle": "The premier gathering for developers, innovators, and tech leaders to explore the future of AI, cloud computing, and digital transformation.",
+    "category": "tech",
+    "type": "in-person",
+    "language": [
+      "English"
+    ],
+    "ageRestriction": "all",
+    "format": "multi",
+    "startDate": "2024-10-14T09:00:00.000Z",
+    "endDate": "2024-10-21T18:00:00.000Z",
+    "timezone": "America/Los_Angeles",
+    "registrationDeadline": "2024-10-13T23:59:59.000Z",
+    "isRecurring": false,
+    "locationType": "physical",
+    "venue": {
+      "name": "Moscone Center",
+      "address": "747 Howard St",
+      "city": "San Francisco",
+      "state": "CA",
+      "zipCode": "94103",
+      "country": "USA",
+      "hasParking": true,
+      "capacity": 5000,
+      "mapCoordinates": {
+        "lat": 37.7842,
+        "lng": -122.4016
+      }
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-vip",
+        "name": "VIP Access",
+        "price": 249,
+        "quantity": 100,
+        "sold": 88,
+        "description": "Front row seating, VIP lounge access, and exclusive after-party.",
+        "benefits": [
+          "Lounge Access",
+          "Front Row",
+          "After Party"
+        ],
+        "minPerOrder": 1,
+        "maxPerOrder": 5,
+        "visibility": "public"
+      },
+      {
+        "id": "tier-ga",
+        "name": "General Admission",
+        "price": 129,
+        "quantity": 2000,
+        "sold": 450,
+        "description": "Full access to all keynotes, breakout sessions, and expo hall.",
+        "benefits": [
+          "Keynote Access",
+          "Expo Hall"
+        ],
+        "minPerOrder": 1,
+        "maxPerOrder": 10,
+        "visibility": "public"
+      },
+      {
+        "id": "tier-student",
+        "name": "Student",
+        "price": 79,
+        "quantity": 500,
+        "sold": 120,
+        "description": "Valid student ID required at check-in.",
+        "benefits": [
+          "Full Access"
+        ],
+        "minPerOrder": 1,
+        "maxPerOrder": 2,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "<p>Join us for the most anticipated technology event of the year. Tech Summit 2024 brings together over 5,000 industry leaders, developers, and visionaries for a week of inspiration and innovation. Whether you're a seasoned CTO or a budding startup founder, this summit offers unparalleled opportunities to network, learn, and grow.</p><p>This year's theme, 'Architecting the Future,' focuses on the pivotal role of AI and sustainable computing. We have curated a lineup of keynote speakers from top tech giants, hands-on workshops, and interactive panel discussions that will challenge your thinking and expand your skillset.</p>",
+    "highlights": [
+      "Access to 50+ keynote sessions and 100+ breakout workshops.",
+      "Exclusive networking events with investors and industry pioneers.",
+      "Hands-on labs featuring the latest SDKs and hardware."
+    ],
+    "agenda": [
+      {
+        "id": "s1",
+        "title": "Opening Keynote: The Age of AI",
+        "time": "09:00 AM - 10:30 AM",
+        "date": "2024-10-14T09:00:00.000Z",
+        "speaker": "Sarah Connor, CTO of Skynet Systems",
+        "description": "An in-depth look at how artificial intelligence is reshaping our world."
+      },
+      {
+        "id": "s2",
+        "title": "Cloud Native Architecture Patterns",
+        "time": "11:00 AM - 12:30 PM",
+        "date": "2024-10-14T11:00:00.000Z",
+        "speaker": "David Chen, Principal Engineer",
+        "description": "Best practices for building scalable, resilient applications."
+      },
+      {
+        "id": "s3",
+        "title": "Panel: Ethics in Machine Learning",
+        "time": "01:30 PM - 03:00 PM",
+        "date": "2024-10-14T13:30:00.000Z",
+        "speaker": "Various Speakers",
+        "description": "Discussing the moral implications of autonomous systems."
+      },
+      {
+        "id": "s4",
+        "title": "Workshop: Rust for Web Developers",
+        "time": "09:00 AM - 12:00 PM",
+        "date": "2024-10-15T09:00:00.000Z",
+        "speaker": "Jane Doe, Rust Evangelist",
+        "description": "Hands-on coding session to learn Rust fundamentals for web development."
+      },
+      {
+        "id": "s5",
+        "title": "Scaling Data Pipelines",
+        "time": "01:00 PM - 02:30 PM",
+        "date": "2024-10-15T13:00:00.000Z",
+        "speaker": "Michael Scott, Data Engineering Lead",
+        "description": "Architectural strategies for handling petabyte-scale data ingestion and processing."
+      },
+      {
+        "id": "s6",
+        "title": "The Future of WebAssembly",
+        "time": "10:00 AM - 11:30 AM",
+        "date": "2024-10-16T10:00:00.000Z",
+        "speaker": "Alice Johnson, W3C Member",
+        "description": "Exploring new capabilities coming to Wasm and how it will impact web applications."
+      }
+    ],
+    "coverImage": "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070&auto=format&fit=crop",
+    "gallery": [],
+    "organizer": {
+      "name": "FlowGate Events",
+      "email": "events@flowgate.com",
+      "about": "Global leader in tech conferences and summits.",
+      "socials": {
+        "website": "https://flowgatex.com",
+        "twitter": "@flowgatex",
+        "instagram": "@flowgate_tech"
+      }
+    },
+    "refundPolicy": "partial",
+    "hasTerms": true,
+    "tags": [
+      "AI",
+      "Cloud",
+      "Tech",
+      "Networking",
+      "Innovation"
+    ],
+    "isPrivate": false,
+    "isFeatured": true
+  }
+]

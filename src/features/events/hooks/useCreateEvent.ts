@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useAuth from '@/features/auth/hooks/useAuth';
+import { useAuthStore } from '@/store/zustand/stores';
 import { eventService } from '../services/eventService';
 import { INITIAL_EVENT_DATA } from '../types/event.types';
 import type { CreateEventData } from '../types/event.types';
@@ -11,7 +11,7 @@ import type { CreateEventData } from '../types/event.types';
  */
 export function useCreateEvent() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
 
   const STEPS = ['Basic', 'Time', 'Venue', 'Tickets', 'Details', 'Media', 'Organizer', 'Settings', 'Review'];
 

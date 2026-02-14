@@ -1,12 +1,9 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Smartphone, AlertCircle, Loader2, Sun, Moon, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { loginWithEmail, loginWithGoogle, getUserData } from '@/features/auth/services/authService';
-import { auth } from '@/lib/firebase';
-import { ROLE_DASHBOARDS } from '@/routes/routes.config';
-import { UserRole } from '@/lib/constants';
+import { useLogin } from '@/features/auth/hooks/useLogin';
 import { useThemeStore } from '@/store/zustand/stores';
 import PromoPanel from '@/features/auth/components/PromoPanel';
 import RoleSelector from '@/features/auth/components/RoleSelector';
@@ -83,9 +80,9 @@ export default function LoginPage() {
   // Theme
   const { isDarkMode, toggleTheme } = useThemeStore();
 
-  // Navigation
+  // Auth hook — handles login, redirect, error mapping
+  const { login, loginGoogle, isLoading: hookLoading, error: hookError } = useLogin();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Form state
   const [email, setEmail] = useState('');
@@ -97,11 +94,17 @@ export default function LoginPage() {
   });
 
   // UI state
-  const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [loginSuccess, setLoginSuccess] = useState(false);
+
+  // Sync hook error into local error state
+  useEffect(() => {
+    if (hookError) {
+      setErrors({ general: hookError });
+    }
+  }, [hookError]);
 
   // Sync theme class on <html>
   useEffect(() => {
@@ -131,102 +134,34 @@ export default function LoginPage() {
         return;
       }
 
-      setLoading(true);
-      try {
-        await loginWithEmail({ email: email.trim(), password, role: selectedRole });
-
-        // Fetch user profile to determine role-based redirect
-        const firebaseUser = auth?.currentUser;
-        let targetPath = '/dashboard';
-
-        // Check if user was trying to access a protected route before login
-        const from = (location.state as any)?.from?.pathname;
-        if (from && from !== '/login' && from !== '/register') {
-          targetPath = from;
-        } else if (firebaseUser) {
-          try {
-            const userProfile = await getUserData(firebaseUser.uid);
-            const targetRole = (userProfile?.role as UserRole) || UserRole.USER;
-            targetPath = ROLE_DASHBOARDS[targetRole] || '/dashboard';
-          } catch {
-            // Fallback to default dashboard on error
-          }
-        }
-
-        // Persist remember-me preference
-        if (rememberMe) {
-          localStorage.setItem('flowgatex_remember', 'true');
-        } else {
-          localStorage.removeItem('flowgatex_remember');
-        }
-
-        // Fire confetti on success!
-        setLoginSuccess(true);
-        fireConfetti();
-
-        // Navigate after a short delay so confetti is visible
-        setTimeout(() => {
-          navigate(targetPath, { replace: true });
-        }, 1400);
-      } catch (error: unknown) {
-        const err = error as { code?: string; message?: string };
-        let message: string;
-
-        if (err.code === 'auth/unauthorized-role') {
-          // Show the specific role mismatch message from the service
-          message = err.message || 'Role mismatch. Please select the correct role above and try again.';
-        } else if (
-          err.code === 'auth/invalid-credential' ||
-          err.code === 'auth/user-not-found' ||
-          err.code === 'auth/wrong-password'
-        ) {
-          message = 'Invalid email or password. Please try again.';
-        } else {
-          message = err.message || 'Login failed. Please try again later.';
-        }
-
-        setErrors({ general: message });
-      } finally {
-        setLoading(false);
+      // Persist remember-me preference
+      if (rememberMe) {
+        localStorage.setItem('flowgatex_remember', 'true');
+      } else {
+        localStorage.removeItem('flowgatex_remember');
       }
+
+      // Fire confetti on success!
+      setLoginSuccess(true);
+      fireConfetti();
+
+      // Delegate to useLogin hook (handles auth, error mapping, redirect)
+      await login(email.trim(), password, selectedRole);
     },
-    [email, password, selectedRole, rememberMe, navigate, location]
+    [email, password, selectedRole, rememberMe, login]
   );
 
   const handleGoogleLogin = useCallback(async () => {
     setSocialLoading('google');
     setErrors({});
-    try {
-      await loginWithGoogle();
 
-      // Fetch user profile to determine role-based redirect
-      const firebaseUser = auth?.currentUser;
-      let targetPath = '/dashboard';
+    setLoginSuccess(true);
+    fireConfetti();
 
-      // Check if user was trying to access a protected route before login
-      const from = (location.state as any)?.from?.pathname;
-      if (from && from !== '/login' && from !== '/register') {
-        targetPath = from;
-      } else if (firebaseUser) {
-        try {
-          const userProfile = await getUserData(firebaseUser.uid);
-          const targetRole = (userProfile?.role as UserRole) || UserRole.USER;
-          targetPath = ROLE_DASHBOARDS[targetRole] || '/dashboard';
-        } catch {
-          // Fallback to default dashboard on error
-        }
-      }
-
-      setLoginSuccess(true);
-      fireConfetti();
-      setTimeout(() => navigate(targetPath, { replace: true }), 1400);
-    } catch (error: unknown) {
-      const err = error as { message?: string };
-      setErrors({ general: err.message || 'Google sign-in failed. Please try again.' });
-    } finally {
-      setSocialLoading(null);
-    }
-  }, [navigate]);
+    // Delegate to useLogin hook (handles auth, error mapping, redirect)
+    await loginGoogle();
+    setSocialLoading(null);
+  }, [loginGoogle]);
 
   const handlePhoneLogin = useCallback(() => {
     navigate('/login/phone');
@@ -241,7 +176,7 @@ export default function LoginPage() {
       </p>
     ) : null;
 
-  const isDisabled = loading || socialLoading !== null || loginSuccess;
+  const isDisabled = hookLoading || socialLoading !== null || loginSuccess;
 
   // ---------------------------------------------------------------------------
   // Render
@@ -519,14 +454,14 @@ export default function LoginPage() {
             <motion.button
               type="submit"
               disabled={isDisabled}
-              aria-busy={loading}
+              aria-busy={hookLoading}
               whileHover={!isDisabled ? { scale: 1.01, y: -2 } : {}}
               whileTap={!isDisabled ? { scale: 0.98 } : {}}
-              className={`w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed ${loading ? 'login-btn-pulse' : ''
+              className={`w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold login-primary-btn focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)] transition-all disabled:opacity-70 disabled:cursor-not-allowed ${hookLoading ? 'login-btn-pulse' : ''
                 }`}
             >
               <span className="relative z-10 flex items-center gap-2">
-                {loading ? (
+                {hookLoading ? (
                   <>
                     <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                     Signing in...

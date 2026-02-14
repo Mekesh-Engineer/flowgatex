@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { ReactNode } from 'react';
-import useAuth from '@/features/auth/hooks/useAuth';
+import { useAuthStore } from '@/store/zustand/stores';
 import { UserRole } from '@/lib/constants';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { ROLE_DASHBOARDS } from './routes.config';
@@ -30,7 +30,7 @@ interface RoleRouteProps {
 }
 
 function RoleRoute({ children, allowedRoles, redirectTo }: RoleRouteProps) {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuthStore();
   const location = useLocation();
 
   // Show loading spinner while checking authentication and role

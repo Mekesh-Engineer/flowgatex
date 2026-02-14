@@ -1,6 +1,5 @@
 import { useRef } from 'react';
-import { Box, Typography, Paper, IconButton, TextField } from '@mui/material';
-import { UploadCloud, X } from 'lucide-react';
+import { ImageIcon, UploadCloud, X, Youtube } from 'lucide-react';
 import type { CreateEventData } from '../../types/event.types';
 
 interface Props {
@@ -14,48 +13,71 @@ export default function MediaStep({ data, onUpdate }: Props) {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Create local preview URL
       const url = URL.createObjectURL(file);
       onUpdate({ coverImage: url });
     }
   };
 
   return (
-    <Box>
-      <Typography variant="h5" sx={{ mb: 3 }}>Media</Typography>
+    <div>
+      <div className="ce-step-title">
+        <div className="ce-step-title-icon">
+          <ImageIcon size={20} />
+        </div>
+        Media
+      </div>
+      <p className="ce-step-subtitle">Upload a cover image and add a video link to make your event stand out.</p>
 
-      <Typography variant="subtitle2" sx={{ mb: 2 }}>Cover Image</Typography>
+      <label className="label" style={{ marginBottom: '0.75rem' }}>Cover Image</label>
+
       {data.coverImage ? (
-        <Box sx={{ position: 'relative', height: 300, borderRadius: 2, overflow: 'hidden', mb: 4 }}>
-          <img src={data.coverImage} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <IconButton 
+        <div className="ce-cover-preview">
+          <img src={data.coverImage} alt="Cover" />
+          <button
+            className="ce-cover-preview-remove"
             onClick={() => onUpdate({ coverImage: '' })}
-            sx={{ position: 'absolute', top: 10, right: 10, bgcolor: 'rgba(0,0,0,0.6)', color: 'white', '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' } }}
+            title="Remove cover image"
           >
-            <X size={20} />
-          </IconButton>
-        </Box>
+            <X size={16} />
+          </button>
+        </div>
       ) : (
-        <Paper 
-          variant="outlined" 
+        <div
+          className="ce-upload-zone"
           onClick={() => fileInputRef.current?.click()}
-          sx={{ 
-            height: 250, mb: 4, borderStyle: 'dashed', 
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
-            cursor: 'pointer', '&:hover': { bgcolor: 'grey.50' } 
-          }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter') fileInputRef.current?.click(); }}
         >
-          <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleFileSelect} />
-          <UploadCloud size={40} className="text-gray-400" />
-          <Typography color="text.secondary" sx={{ mt: 2 }}>Click to upload cover image</Typography>
-        </Paper>
+          <input
+            type="file"
+            hidden
+            ref={fileInputRef}
+            accept="image/*"
+            onChange={handleFileSelect}
+          />
+          <div className="ce-upload-zone-icon">
+            <UploadCloud size={28} />
+          </div>
+          <span className="ce-upload-zone-text">Click to upload cover image</span>
+          <span className="ce-upload-zone-hint">PNG, JPG, WEBP up to 5MB</span>
+        </div>
       )}
 
-      <TextField
-        fullWidth label="YouTube/Vimeo Video URL (Optional)"
-        value={data.videoUrl || ''}
-        onChange={(e) => onUpdate({ videoUrl: e.target.value })}
-      />
-    </Box>
+      <div className="form-row" style={{ marginTop: '1.5rem' }}>
+        <label className="label">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem' }}>
+            <Youtube size={14} /> Video URL (Optional)
+          </span>
+        </label>
+        <input
+          className="input"
+          type="url"
+          placeholder="YouTube or Vimeo link"
+          value={data.videoUrl || ''}
+          onChange={(e) => onUpdate({ videoUrl: e.target.value })}
+        />
+      </div>
+    </div>
   );
 }
