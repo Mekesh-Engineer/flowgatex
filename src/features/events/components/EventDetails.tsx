@@ -18,7 +18,6 @@ import {
   Accessibility,
   Utensils,
   Lock,
-  ShieldCheck,
   Link as LinkIcon,
   ArrowLeft,
   ArrowRight,

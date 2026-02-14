@@ -14,6 +14,7 @@ export default function TicketsStep({ data, onUpdate }: Props) {
       price: 0,
       quantity: 100,
       sold: 0,
+      available: 100,
       benefits: [],
       minPerOrder: 1,
       maxPerOrder: 10,

@@ -53,7 +53,7 @@ export const userService = {
   /**
    * Get user notifications (Mock for now)
    */
-  getNotifications: async (userId: string) => {
+  getNotifications: async (_userId: string) => {
       // Logic to fetch from 'notifications' subcollection could go here
       // For now we mock a welcome notification
       return [

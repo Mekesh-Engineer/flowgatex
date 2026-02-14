@@ -58,6 +58,7 @@ export interface TicketTier {
   price: number;
   quantity: number;
   sold: number;
+  available: number;
   description?: string;
   benefits: string[];
   minPerOrder: number;
