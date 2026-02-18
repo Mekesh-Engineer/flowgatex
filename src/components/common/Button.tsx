@@ -1,19 +1,21 @@
-import { ButtonHTMLAttributes, forwardRef } from 'react';
+import { ButtonHTMLAttributes, forwardRef, ElementType } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
+  icon?: ElementType;
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, icon: Icon, ...props }, ref) => {
     const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400/50 disabled:opacity-50 disabled:cursor-not-allowed';
-    
+
     const variants = {
       primary: 'bg-gradient-to-r from-primary-500 to-primary-400 text-dark-950 hover:shadow-glow',
       secondary: 'bg-transparent border border-primary-400/50 text-primary-400 hover:bg-primary-400/10 hover:border-primary-400',
+      outline: 'bg-transparent border border-primary-400/50 text-primary-400 hover:bg-primary-400/10 hover:border-primary-400',
       ghost: 'bg-transparent text-dark-400 hover:bg-dark-800 hover:text-white',
       danger: 'bg-red-500 text-white hover:bg-red-600',
     };
@@ -39,7 +41,12 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             </svg>
             Loading...
           </>
-        ) : children}
+        ) : (
+          <>
+            {Icon && <Icon className="mr-2 h-4 w-4" />}
+            {children}
+          </>
+        )}
       </button>
     );
   }
