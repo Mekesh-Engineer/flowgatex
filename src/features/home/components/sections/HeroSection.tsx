@@ -25,7 +25,7 @@ export const HeroSection = () => {
         <section
             ref={heroRef}
             onMouseMove={handleMouseMove}
-            className="relative min-h-screen flex flex-col justify-center pt-28 pb-12 px-4 overflow-hidden bg-[var(--bg-primary)] transition-colors duration-300"
+            className="relative min-h-screen flex flex-col justify-center pt-28 pb-12 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[var(--bg-primary)] transition-colors duration-300"
         >
             <GridCanvas className="opacity-50" />
             <ParticleCanvas particleCount={60} />
@@ -88,7 +88,7 @@ export const HeroSection = () => {
                         <span className="text-xs font-bold text-[var(--color-primary)]">2,450+</span>
                     </motion.div>
 
-                    <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-[var(--text-primary)] leading-[1.05] tracking-tight">
+                    <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-[var(--text-primary)] leading-[1.05] tracking-tight">
                         Discover{' '}
                         <span className="relative inline-block">
                             <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-primary)]">Amazing</span>
@@ -102,13 +102,13 @@ export const HeroSection = () => {
                     </p>
 
                     <motion.div className="flex flex-col sm:flex-row gap-4 justify-center pt-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                        <Link 
+                        <Link
                             to={isAuthenticated ? (
                                 user?.role === UserRole.ORGANIZER ? '/organizer' :
-                                user?.role === UserRole.ADMIN ? '/admin' :
-                                user?.role === UserRole.SUPER_ADMIN ? '/superadmin' :
-                                '/dashboard'
-                            ) : '#'} 
+                                    user?.role === UserRole.ADMIN ? '/admin' :
+                                        user?.role === UserRole.SUPER_ADMIN ? '/superadmin' :
+                                            '/dashboard'
+                            ) : '#'}
                             onClick={(e) => !isAuthenticated && e.preventDefault()}
                             className={`group relative px-10 py-4 rounded-xl text-base font-bold text-white overflow-hidden shadow-2xl shadow-[var(--shadow-primary)] transition-all transform ${isAuthenticated ? 'hover:-translate-y-1' : 'opacity-60 cursor-not-allowed pointer-events-none'}`}
                             aria-disabled={!isAuthenticated}
@@ -118,7 +118,7 @@ export const HeroSection = () => {
                                 <span className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-primary)] bg-[length:200%_100%] animate-shimmer" />
                             </span>
                             <span className="relative flex items-center gap-2">
-                                Go to Dashboard 
+                                Go to Dashboard
                                 <ArrowRight size={18} className={`transition-transform ${isAuthenticated ? 'group-hover:translate-x-1' : ''}`} />
                             </span>
                         </Link>

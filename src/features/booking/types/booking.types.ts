@@ -20,6 +20,8 @@ export interface Booking {
   eventId: string;
   eventTitle: string;
   eventDate: string;
+  eventImage?: string;
+  venue?: string;
   tickets: BookingTicket[];
   attendees: Attendee[];
   totalAmount: number;
@@ -27,7 +29,12 @@ export interface Booking {
   finalAmount: number;
   status: BookingStatus;
   paymentId?: string;
-  bookingDate: string;
+  paymentMethod?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+  paidAt?: string | any;
+  verifiedAt?: string | any;
+  bookingDate: string | any;
 }
 
 export interface CreateBookingData {

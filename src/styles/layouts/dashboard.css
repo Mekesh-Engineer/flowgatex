@@ -1,54 +1,44 @@
 /* src/styles/features/userdashboard.css */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .dark .glass-panel {
-    background: rgba(23, 23, 23, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(23, 23, 23, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-
-    100% {
-        background-position: 200% 0;
-    }
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
 }
 
 .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
 }
 
 /* Custom Scrollbar for widgets */
 .widget-scroll::-webkit-scrollbar {
-    width: 4px;
+  width: 4px;
 }
 
 .widget-scroll::-webkit-scrollbar-track {
-    background: transparent;
+  background: transparent;
 }
 
 .widget-scroll::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .dark .widget-scroll::-webkit-scrollbar-thumb {
-    background: #404040;
+  background: #404040;
 }
 
 /* ============================================================================
@@ -58,63 +48,63 @@
 
 /* Main content wrapper — shifts right when sidebar is visible on desktop */
 .dash-main {
-    min-height: 100vh;
-    padding-top: 0.5rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    padding-bottom: 2rem;
-    transition: padding-left 0.3s ease;
+  min-height: 100vh;
+  padding-top: 0.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-bottom: 2rem;
+  transition: padding-left 0.3s ease;
 }
 
 @media (min-width: 640px) {
-    .dash-main {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-    }
+  .dash-main {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }
 
 @media (min-width: 1024px) {
-    .dash-main {
-        padding-left: 2rem;
-        padding-right: 2rem;
-    }
+  .dash-main {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
 }
 
 /* When sidebar is toggled open on desktop, offset the main content */
 @media (min-width: 1024px) {
-    .dash-main.sidebar-visible {
-        padding-left: calc(260px + 2rem);
-    }
+  .dash-main.sidebar-visible {
+    padding-left: calc(260px + 2rem);
+  }
 }
 
 /* Content card */
 .dash-main-card {
-    width: 100%;
-    max-width: 100%;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* Card body */
 .dash-main-body {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 /* Row wrapper */
 .dash-main-row {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 @media (min-width: 1024px) {
-    .dash-main-row {
-        flex-direction: row;
-    }
+  .dash-main-row {
+    flex-direction: row;
+  }
 }
 
 /* Primary content column — fills available space */
 .dash-main-primary {
-    flex: 1;
-    min-width: 0;
+  flex: 1;
+  min-width: 0;
 }

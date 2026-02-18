@@ -1,0 +1,29 @@
+{
+  "name": "flowgatex-functions",
+  "version": "1.0.0",
+  "description": "FlowGateX Cloud Functions for secure payment processing",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.6.1",
+    "firebase-functions": "^7.0.5",
+    "razorpay": "^2.9.6",
+    "cors": "^2.8.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/cors": "^2.8.19"
+  },
+  "private": true
+}

@@ -10,14 +10,26 @@ import {
   PageWrapper, Section, Container, SectionHeader,
   BlurOrbs, DotGrid, GlowCard, FloatingElement,
   PrimaryButton, SecondaryButton, GradientDivider,
-  fadeInUp,
+  fadeInUp as fadeInUpVariant, // Aliasing to avoid conflict if we define locally
 } from '@/components/common/PageShared';
 import { GridCanvas, ParticleCanvas } from '@/features/home/components/canvas/CanvasEffects';
-import GoogleMapComponent from '@/components/common/GoogleMap';
+// Switched to named import for better safety
+import GoogleMap from '@/components/common/GoogleMap';
 
 // =============================================================================
 // ANIMATION VARIANTS
 // =============================================================================
+
+// Fallback if not exported from PageShared
+const fadeInUp = fadeInUpVariant || {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" }
+  }
+};
+
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
   visible: (i: number) => ({
@@ -25,8 +37,6 @@ const fadeUp = {
     transition: { delay: i * 0.1, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
   }),
 };
-
-
 
 const expandCard = {
   collapsed: { height: 0, opacity: 0 },
@@ -36,7 +46,6 @@ const expandCard = {
 // =============================================================================
 // DATA
 // =============================================================================
-
 
 const PILLARS = [
   { icon: <Sparkles size={28} />, title: 'Smart Integration', description: 'Seamlessly blending physical hardware with digital platforms for real-time event monitoring.', features: ['IoT Sensors', 'Live Tracking', 'Instant Alerts'], gradient: 'from-[var(--color-primary)] to-blue-600' },
@@ -73,26 +82,21 @@ const GLOBAL_CITIES = [
 ];
 
 // =============================================================================
-// ANIMATED COUNTER
-// =============================================================================
-
-
-// =============================================================================
 // COMPONENT
 // =============================================================================
 export default function AboutPage() {
   const [expandedMember, setExpandedMember] = useState<string | null>(null);
   const [activeTimeline, setActiveTimeline] = useState(4); // Default to latest
   const [linkCopied, setLinkCopied] = useState(false);
-  
+
   const handleShare = useCallback(async () => {
     if (navigator.share) {
       await navigator.share({ title: 'About FlowGateX', url: window.location.href });
     } else {
-      try { 
-        await navigator.clipboard.writeText(window.location.href); 
-        setLinkCopied(true); 
-        setTimeout(() => setLinkCopied(false), 2000); 
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000);
       } catch { /* noop */ }
     }
   }, []);
@@ -130,7 +134,7 @@ export default function AboutPage() {
               <Sparkles size={14} /> Innovating Since 2025
             </motion.div>
 
-            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7 }} className="text-5xl sm:text-6xl md:text-8xl font-black text-[var(--text-primary)] mb-8 tracking-tight leading-[0.95]">
+            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.7 }} className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-[var(--text-primary)] mb-8 tracking-tight leading-[0.95]">
               Redefining <br />
               <span className="bg-gradient-to-r from-[var(--color-primary)] via-blue-500 to-[var(--color-secondary)] bg-clip-text text-transparent italic pr-2">Event Tech</span>
               <br />Experiences
@@ -153,17 +157,17 @@ export default function AboutPage() {
       </section>
 
       {/* ══════════ 2. MISSION ══════════ */}
-      <Section id="mission" bg="secondary" className="py-24 md:py-32">
+      <Section id="mission" bg="secondary" className="py-20 md:py-24">
         <Container size="md">
           <SectionHeader badge="Our Purpose" badgeIcon={<Target size={12} />} title="Our" gradientText="Mission" />
           <div className="space-y-8 text-lg md:text-xl text-[var(--text-secondary)] font-light leading-relaxed text-center max-w-4xl mx-auto">
             <motion.p variants={fadeInUp}>
-              At FlowGateX, we believe event management shouldn't be a fragmented mess of disparate tools. 
+              At FlowGateX, we believe event management shouldn't be a fragmented mess of disparate tools.
               <span className="text-[var(--text-primary)] font-semibold"> We are unifying the experience.</span>
             </motion.p>
             <motion.p variants={fadeInUp}>
-              Born from academic curiosity and fueled by real-world challenges, our mission is to deliver a 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] font-semibold"> robust, scalable ecosystem</span> 
+              Born from academic curiosity and fueled by real-world challenges, our mission is to deliver a
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] font-semibold"> robust, scalable ecosystem</span>
               that empowers organizers with actionable insights and attendees with seamless interactions.
             </motion.p>
           </div>
@@ -171,7 +175,7 @@ export default function AboutPage() {
       </Section>
 
       {/* ══════════ 3. CORE PILLARS ══════════ */}
-      <Section bg="primary" className="py-24 md:py-32 relative">
+      <Section bg="primary" className="py-20 md:py-24 relative">
         <GradientDivider className="absolute top-0 left-0 w-full" />
         <Container>
           <SectionHeader badge="Technology" badgeIcon={<Zap size={12} />} badgeColor="var(--color-secondary)" title="Core" gradientText="Pillars" description="The foundation of our integrated platform." />
@@ -195,11 +199,11 @@ export default function AboutPage() {
       </Section>
 
       {/* ══════════ 4. TEAM MEMBERS ══════════ */}
-      <Section bg="secondary" className="py-24 md:py-32">
+      <Section bg="secondary" className="py-20 md:py-24">
         <Container>
           <SectionHeader badge="The Squad" badgeIcon={<Users size={12} />} title="Meet the" gradientText="Creators" description="The minds from Kongu Engineering College behind FlowGateX." />
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
             {TEAM.map((member, idx) => {
               const isExpanded = expandedMember === member.name;
               return (
@@ -217,9 +221,9 @@ export default function AboutPage() {
                     </div>
                     <div className="p-6 pt-2 space-y-4">
                       <div className="flex items-center gap-3">
-                         <button onClick={() => setExpandedMember(isExpanded ? null : member.name)} className="flex-1 py-2 text-xs font-bold uppercase tracking-wider border border-[var(--border-primary)] rounded-lg hover:bg-[var(--color-primary)] hover:text-white hover:border-transparent transition-all">
-                           {isExpanded ? 'Show Less' : 'View Profile'}
-                         </button>
+                        <button onClick={() => setExpandedMember(isExpanded ? null : member.name)} className="flex-1 py-2 text-xs font-bold uppercase tracking-wider border border-[var(--border-primary)] rounded-lg hover:bg-[var(--color-primary)] hover:text-white hover:border-transparent transition-all">
+                          {isExpanded ? 'Show Less' : 'View Profile'}
+                        </button>
                       </div>
                       <AnimatePresence>
                         {isExpanded && (
@@ -244,94 +248,101 @@ export default function AboutPage() {
       </Section>
 
       {/* ══════════ 5. TIMELINE (CURSIVE FLOW) ══════════ */}
-      <Section id="story" bg="primary" className="py-24 md:py-32 overflow-hidden">
+      <Section id="story" bg="primary" className="py-20 md:py-24 overflow-hidden">
         <Container size="md">
           <SectionHeader badge="Our Journey" badgeIcon={<Clock size={12} />} title="The FlowGateX" gradientText="Story" />
-          
-          <div className="relative mt-16" role="tablist">
+
+          <div className="relative mt-16">
             {/* Cursive Line SVG Background */}
             <div className="hidden md:block absolute top-[2.25rem] left-0 right-0 h-24 pointer-events-none -z-10">
-               <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1000 100">
-                 <path d="M0,50 C250,50 250,50 500,50 C750,50 750,50 1000,50" fill="none" stroke="var(--border-primary)" strokeWidth="2" strokeDasharray="8 8" className="opacity-30" />
-                 <motion.path 
-                   d="M0,50 C250,50 250,50 500,50 C750,50 750,50 1000,50" 
-                   fill="none" 
-                   stroke="url(#gradient-line)" 
-                   strokeWidth="4"
-                   strokeLinecap="round"
-                   initial={{ pathLength: 0 }}
-                   animate={{ pathLength: (activeTimeline) / (TIMELINE.length - 1) }}
-                   transition={{ duration: 0.8, ease: "easeInOut" }}
-                 />
-                 <defs>
-                   <linearGradient id="gradient-line" x1="0%" y1="0%" x2="100%" y2="0%">
-                     <stop offset="0%" stopColor="var(--color-primary)" />
-                     <stop offset="100%" stopColor="var(--color-secondary)" />
-                   </linearGradient>
-                 </defs>
-               </svg>
+              <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1000 100">
+                <path d="M0,50 C250,50 250,50 500,50 C750,50 750,50 1000,50" fill="none" stroke="var(--border-primary)" strokeWidth="2" strokeDasharray="8 8" className="opacity-30" />
+                <motion.path
+                  d="M0,50 C250,50 250,50 500,50 C750,50 750,50 1000,50"
+                  fill="none"
+                  stroke="url(#gradient-line)"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: (activeTimeline) / (TIMELINE.length - 1) }}
+                  transition={{ duration: 0.8, ease: "easeInOut" }}
+                />
+                <defs>
+                  <linearGradient id="gradient-line" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="var(--color-primary)" />
+                    <stop offset="100%" stopColor="var(--color-secondary)" />
+                  </linearGradient>
+                </defs>
+              </svg>
             </div>
 
-            <div className="flex flex-col md:flex-row md:justify-between gap-8 md:gap-0">
+            <div className="flex flex-col md:flex-row md:justify-between gap-8 md:gap-0" role="tablist">
               {TIMELINE.map((item, idx) => {
-                 const isActive = activeTimeline === idx;
-                 return (
-                   <div key={item.year} className="relative flex md:flex-col items-center md:text-center md:w-1/5 group">
-                     {/* Mobile Vertical Line */}
-                     <div className="md:hidden absolute left-[1.5rem] top-12 bottom-[-2rem] w-0.5 bg-[var(--border-primary)] -z-10">
-                        {isActive && <motion.div initial={{ height: 0 }} animate={{ height: '100%' }} className="w-full bg-gradient-to-b from-[var(--color-primary)] to-transparent" />}
-                     </div>
+                const isActive = activeTimeline === idx;
+                return (
+                  <div key={item.year} className="relative flex md:flex-col items-center md:text-center md:w-1/5 group">
+                    {/* Mobile Vertical Line */}
+                    <div className="md:hidden absolute left-[1.5rem] top-12 bottom-[-2rem] w-0.5 bg-[var(--border-primary)] -z-10">
+                      {isActive && <motion.div initial={{ height: 0 }} animate={{ height: '100%' }} className="w-full bg-gradient-to-b from-[var(--color-primary)] to-transparent" />}
+                    </div>
 
-                     <button
-                       onClick={() => setActiveTimeline(idx)}
-                       className={`relative z-10 size-12 md:size-16 rounded-full flex items-center justify-center transition-all duration-500 outline-none ${
-                         isActive ? 'scale-110 shadow-[0_0_30px_-5px_var(--color-primary)]' : 'hover:scale-105'
-                       }`}
-                     >
-                       <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${item.color} transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
-                       <div className={`absolute inset-0 rounded-full bg-[var(--bg-card)] border-2 border-[var(--border-primary)] transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`} />
-                       <span className={`relative z-10 transition-colors duration-300 ${isActive ? 'text-white' : 'text-[var(--text-muted)] group-hover:text-[var(--color-primary)]'}`}>
-                         {isActive ? item.icon : <div className="scale-75 md:scale-90">{item.icon}</div>}
-                       </span>
-                     </button>
-                     <span className={`ml-4 md:ml-0 md:mt-4 text-sm font-bold transition-all duration-300 ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)]'}`}>{item.year}</span>
-                   </div>
-                 );
+                    <button
+                      onClick={() => setActiveTimeline(idx)}
+                      role="tab"
+                      aria-selected={isActive}
+                      aria-controls={`panel-${idx}`}
+                      id={`tab-${idx}`}
+                      className={`relative z-10 size-12 md:size-16 rounded-full flex items-center justify-center transition-all duration-500 outline-none ${isActive ? 'scale-110 shadow-[0_0_30px_-5px_var(--color-primary)]' : 'hover:scale-105'
+                        }`} >
+                      <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${item.color} transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0'}`} />
+                      <div className={`absolute inset-0 rounded-full bg-[var(--bg-card)] border-2 border-[var(--border-primary)] transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`} />
+                      <span className={`relative z-10 transition-colors duration-300 ${isActive ? 'text-white' : 'text-[var(--text-muted)] group-hover:text-[var(--color-primary)]'}`}>
+                        {isActive ? item.icon : <div className="scale-75 md:scale-90">{item.icon}</div>}
+                      </span>
+                    </button>
+                    <span className={`ml-4 md:ml-0 md:mt-4 text-sm font-bold transition-all duration-300 ${isActive ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)]'}`}>{item.year}</span>
+                  </div>
+                );
               })}
             </div>
 
             <AnimatePresence mode="wait">
-              <motion.div 
+              <motion.div
                 key={activeTimeline}
-                initial={{ opacity: 0, y: 16 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                exit={{ opacity: 0, y: -16 }} 
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.35 }}
-                className="mt-12 mx-auto max-w-3xl"
+                className="mt-12 mx-auto max-w-3xl min-h-[200px]"
               >
-                <div className="relative p-1 rounded-2xl bg-gradient-to-r from-[var(--border-primary)] via-[var(--color-primary)]/20 to-[var(--border-primary)]">
+                <div
+                  role="tabpanel"
+                  id={`panel-${activeTimeline}`}
+                  aria-labelledby={`tab-${activeTimeline}`}
+                  className="relative p-1 rounded-2xl bg-gradient-to-r from-[var(--border-primary)] via-[var(--color-primary)]/20 to-[var(--border-primary)]"
+                >
                   <div className="relative bg-[var(--bg-card)]/90 backdrop-blur-xl rounded-xl p-8 text-center border border-[var(--border-primary)] shadow-2xl">
-                     <div className="absolute top-4 right-4 text-[var(--text-primary)] opacity-5 pointer-events-none transform rotate-12 scale-150">{TIMELINE[activeTimeline].icon}</div>
-                     <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3">{TIMELINE[activeTimeline].title}</h3>
-                     <p className="text-[var(--text-secondary)] text-lg leading-relaxed">{TIMELINE[activeTimeline].description}</p>
+                    <div className="absolute top-4 right-4 text-[var(--text-primary)] opacity-5 pointer-events-none transform rotate-12 scale-150">{TIMELINE[activeTimeline].icon}</div>
+                    <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-3">{TIMELINE[activeTimeline].title}</h3>
+                    <p className="text-[var(--text-secondary)] text-lg leading-relaxed">{TIMELINE[activeTimeline].description}</p>
                   </div>
                 </div>
               </motion.div>
             </AnimatePresence>
-            
+
             <p className="text-center text-xs text-[var(--text-muted)] mt-6 hidden md:block opacity-60">Use ← → arrow keys to navigate timeline</p>
           </div>
         </Container>
       </Section>
 
       {/* ══════════ 6. GLOBAL REACH — Google Maps ══════════ */}
-      <Section bg="secondary" className="py-24 md:py-32">
+      <Section bg="secondary" className="py-20 md:py-24">
         <Container size="md">
           <SectionHeader badge="Global Reach" badgeIcon={<Globe size={12} />} title="Events in" gradientText="500+ Cities" description="FlowGateX is powering events across the globe. Explore our reach." />
-          
+
           {/* Google Map */}
           <motion.div variants={fadeInUp} className="rounded-2xl overflow-hidden border border-[var(--border-primary)] shadow-2xl">
-            <GoogleMapComponent
+            <GoogleMap
               center={{ lat: 20, lng: 30 }}
               zoom={2}
               height={450}
@@ -356,7 +367,7 @@ export default function AboutPage() {
       </Section>
 
       {/* ══════════ 7. CONTACT ══════════ */}
-      <Section bg="primary" className="py-24 md:py-32">
+      <Section bg="primary" className="py-20 md:py-24">
         <Container>
           <SectionHeader badge="Get in Touch" badgeIcon={<MessageCircle size={12} />} title="Contact" gradientText="& Support" description="Have questions? Our team is here to help you every step of the way." />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -377,7 +388,7 @@ export default function AboutPage() {
       </Section>
 
       {/* ══════════ 8. CTA ══════════ */}
-      <section className="py-24 md:py-32 relative overflow-hidden bg-[var(--bg-primary)]">
+      <section className="py-20 md:py-24 relative overflow-hidden bg-[var(--bg-primary)]">
         <GridCanvas className="opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/10 via-transparent to-[var(--color-secondary)]/10" />
         <Container size="md">
@@ -388,10 +399,10 @@ export default function AboutPage() {
             <h2 className="text-5xl md:text-7xl font-black text-[var(--text-primary)] mb-6 tracking-tight">Join the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">Revolution</span></h2>
             <p className="text-xl text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto">The future of event technology starts here. Build it with FlowGateX.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <PrimaryButton onClick={() => window.location.href='/events'} className="px-10 py-5 text-lg">
+              <PrimaryButton onClick={() => window.location.href = '/events'} className="px-10 py-5 text-lg">
                 Discover Events <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
               </PrimaryButton>
-              <SecondaryButton onClick={() => window.location.href='/register'} className="px-10 py-5 text-lg">
+              <SecondaryButton onClick={() => window.location.href = '/register'} className="px-10 py-5 text-lg">
                 Become a Host
               </SecondaryButton>
             </div>

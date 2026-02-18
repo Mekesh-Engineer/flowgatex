@@ -6,8 +6,12 @@ import { VitePWA } from 'vite-plugin-pwa';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
-    tsconfigPaths(),
+    react({
+      jsxRuntime: 'automatic',
+    }),
+    tsconfigPaths({
+      ignoreConfigErrors: true,
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
@@ -76,12 +80,12 @@ export default defineConfig({
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com https://unpkg.com https://maps.googleapis.com https://maps.gstatic.com https://checkout.razorpay.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com https://maps.googleapis.com;
         font-src 'self' https://fonts.gstatic.com https://maps.gstatic.com;
         img-src 'self' data: https: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com;
-        connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com wss://*.firebaseio.com https://maps.googleapis.com https://maps.gstatic.com;
-        frame-src 'self' https://*.firebaseapp.com https://accounts.google.com;
+        connect-src 'self' https://*.firebaseio.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com wss://*.firebaseio.com https://maps.googleapis.com https://maps.gstatic.com https://lumberjack.razorpay.com;
+        frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://api.razorpay.com;
       `.replace(/\s+/g, ' ').trim(),
     },
   },
@@ -91,13 +95,8 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
+    cssMinify: 'lightningcss',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -109,9 +108,13 @@ export default defineConfig({
           'form-vendor': ['react-hook-form', '@hookform/resolvers', 'zod'],
           'utils-vendor': ['axios', 'dayjs', 'fuse.js'],
         },
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'chunks/[name]-[hash].js',
+        entryFileNames: 'entries/[name]-[hash].js',
       },
     },
     chunkSizeWarningLimit: 500,
     sourcemap: false, // Disable in production
+    reportCompressedSize: false, // Faster builds
   },
 });

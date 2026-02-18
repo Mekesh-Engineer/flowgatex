@@ -5,8 +5,10 @@ import {
   ChevronDown, User, Building2, Shield, Calendar,
   MessageCircle, Mic, MicOff, Check, AlertCircle, Loader2,
   Sparkles, Award, Clock, Headphones, Video, ExternalLink,
-  Copy, CheckCircle, Zap, Settings, Users
+  Copy, CheckCircle, Zap, Settings, Users, Music
 } from 'lucide-react';
+import { GridCanvas, ParticleCanvas } from '@/features/home/components/canvas/CanvasEffects';
+import { FloatingElement } from '@/features/home/components/ui/SharedComponents';
 
 // =============================================================================
 // TYPES
@@ -503,11 +505,19 @@ export default function ContactPage() {
           ═══════════════════════════════════════════════════════════════════════ */}
       <section className="relative py-20 md:py-28 px-4 sm:px-6 lg:px-8 text-center overflow-hidden bg-gradient-to-br from-[var(--bg-surface)] via-[var(--bg-primary)] to-[var(--bg-surface)]">
         {/* Background effects */}
-        <div className="absolute top-0 right-0 -z-0 h-[500px] w-[500px] rounded-full bg-[var(--color-primary)] opacity-5 blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -z-0 h-[500px] w-[500px] rounded-full bg-[var(--color-secondary)] opacity-5 blur-[100px] pointer-events-none" />
-        <div className="absolute inset-0 opacity-5 pointer-events-none">
-          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--text-muted) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-        </div>
+        <GridCanvas className="opacity-30 pointer-events-none" />
+        <ParticleCanvas particleCount={40} className="pointer-events-none" />
+
+        <FloatingElement className="absolute top-10 left-10 hidden lg:block opacity-50 pointer-events-none" delay={0}>
+          <div className="p-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-sm rotate-12">
+            <Music className="text-[var(--color-primary)]" size={20} />
+          </div>
+        </FloatingElement>
+        <FloatingElement className="absolute top-20 right-20 hidden lg:block opacity-50 pointer-events-none" delay={0.5}>
+          <div className="p-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-sm -rotate-6">
+            <Sparkles className="text-[var(--color-secondary)]" size={20} />
+          </div>
+        </FloatingElement>
 
         <motion.div initial="hidden" animate="visible" className="relative z-10 max-w-4xl mx-auto">
           <motion.div variants={fadeUp} custom={0} className="mb-6">

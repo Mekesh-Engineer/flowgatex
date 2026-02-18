@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Smartphone, AlertCircle, Loader2, Sun, Moon, Activity } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Smartphone, AlertCircle, Loader2, Sun, Moon, Activity, Music, Trophy, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { GridCanvas, ParticleCanvas } from '@/features/home/components/canvas/CanvasEffects';
+import { FloatingElement } from '@/features/home/components/ui/SharedComponents';
 import { useLogin } from '@/features/auth/hooks/useLogin';
 import { useThemeStore } from '@/store/zustand/stores';
 import PromoPanel from '@/features/auth/components/PromoPanel';
@@ -159,9 +161,9 @@ export default function LoginPage() {
     fireConfetti();
 
     // Delegate to useLogin hook (handles auth, error mapping, redirect)
-    await loginGoogle();
+    await loginGoogle(selectedRole);
     setSocialLoading(null);
-  }, [loginGoogle]);
+  }, [loginGoogle, selectedRole]);
 
   const handlePhoneLogin = useCallback(() => {
     navigate('/login/phone');
@@ -231,6 +233,18 @@ export default function LoginPage() {
 
       {/* ============ RIGHT SIDE — LOGIN FORM ============ */}
       <div className="w-full lg:w-1/2 bg-[var(--bg-surface)] h-full flex flex-col px-6 py-8 sm:p-8 overflow-y-auto transition-colors duration-300 relative">
+
+        {/* Background Effects */}
+        <GridCanvas className="opacity-20 pointer-events-none absolute inset-0 sm:opacity-30" />
+        <ParticleCanvas particleCount={25} className="pointer-events-none absolute inset-0 z-0" />
+
+        {/* Floating Decor */}
+        <FloatingElement className="absolute top-24 right-12 hidden sm:block opacity-60 pointer-events-none z-0" delay={0}>
+          <Music className="text-[var(--color-primary)] opacity-30 rotate-12" size={40} />
+        </FloatingElement>
+        <FloatingElement className="absolute bottom-32 left-12 hidden sm:block opacity-60 pointer-events-none z-0" delay={1.5}>
+          <Sparkles className="text-[var(--color-secondary)] opacity-30 -rotate-12" size={32} />
+        </FloatingElement>
 
         {/* Animated floating orbs (lime-green + blue accents) */}
         <div className="login-orb login-orb-1" />

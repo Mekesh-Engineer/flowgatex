@@ -1,5 +1,5 @@
 import type { CashfreeOptions, PaymentResult } from '../types/payment.types';
-import api from '@/lib/api';
+import api from '@/services/api';
 import { logger } from '@/lib/logger';
 
 const CASHFREE_APP_ID = import.meta.env.VITE_CASHFREE_APP_ID;

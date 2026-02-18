@@ -14,6 +14,12 @@ export const SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
     showQuickSettings: true,
     showSystemHealth: false,
   },
+  [UserRole.ORG_ADMIN]: {
+    showIoT: true,
+    showStats: true,
+    showQuickSettings: true,
+    showSystemHealth: false,
+  },
   [UserRole.ADMIN]: {
     showIoT: true,
     showStats: true,

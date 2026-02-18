@@ -1,14 +1,4 @@
-/**
- * HTMLHint configuration for FlowGateX
- * Enforces: no inline styles, no hardcoded color values in HTML files.
- *
- * Usage:
- *   npx htmlhint index.html
- *   npx htmlhint "**/*.html"
- *
- * CI integration: add to package.json scripts:
- *   "lint:html": "htmlhint index.html"
- */
+
 {
   "tagname-lowercase": true,
   "attr-lowercase": true,

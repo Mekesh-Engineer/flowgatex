@@ -22,8 +22,11 @@ export const ROUTES = {
   // User / Attendee (protected)
   DASHBOARD: '/dashboard',
   EVENT_DETAILS: '/events/:id',
+  CART: '/cart',
   CHECKOUT: '/checkout',
   BOOKING_SUCCESS: '/booking-success',
+  MY_TICKETS: '/my-tickets',
+  TICKET_DETAIL: '/tickets/:ticketId',
   PROFILE: '/profile',
   SUPPORT: '/support',
   MY_BOOKINGS: '/dashboard/bookings',
@@ -36,10 +39,13 @@ export const ROUTES = {
   CREATE_EVENT: '/organizer/events/create',
   ORGANIZER_EVENTS: '/organizer/events',
   EVENT_ANALYTICS: '/organizer/events/:id/analytics',
+  EVENT_ANALYTICS_OVERVIEW: '/organizer/analytics',
   ATTENDEE_MANAGEMENT: '/organizer/events/:id/attendees',
+  ATTENDEE_MANAGEMENT_OVERVIEW: '/organizer/attendees',
   PAYOUTS: '/organizer/payouts',
   IOT_DEVICES: '/organizer/devices',
   MARKETING: '/organizer/marketing',
+  SCANNER: '/organizer/scan',
 
   // Admin
   ADMIN: '/admin',
@@ -48,9 +54,19 @@ export const ROUTES = {
   ADMIN_EVENTS: '/admin/events',
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_REPORTS: '/admin/reports',
+  ADMIN_PROMO_CODES: '/admin/promo-codes',
 
   // Super Admin
   SUPER_ADMIN: '/superadmin',
+  SUPER_ADMIN_USERS: '/superadmin/users',
+  SUPER_ADMIN_ROLES: '/superadmin/roles',
+  SUPER_ADMIN_ADMINS: '/superadmin/admins',
+  SUPER_ADMIN_ORGS: '/superadmin/organizations',
+  SUPER_ADMIN_IOT: '/superadmin/iot',
+  SUPER_ADMIN_FINANCE: '/superadmin/finance',
+  SUPER_ADMIN_AUDIT: '/superadmin/audit-logs',
+  SUPER_ADMIN_SECURITY: '/superadmin/security',
+  SUPER_ADMIN_SETTINGS: '/superadmin/settings',
 
   // Fallback
   NOT_FOUND: '*',

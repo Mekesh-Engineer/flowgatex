@@ -13,7 +13,7 @@ import {
   User,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db, googleProvider, facebookProvider, firebaseEnabled } from '@/lib/firebase';
+import { auth, db, googleProvider, facebookProvider, firebaseEnabled } from '@/services/firebase';
 import { logger } from '@/lib/logger';
 import { UserRole } from '@/lib/constants';
 import type { LoginCredentials, RegisterData, AuthUser } from '../types/auth.types';
@@ -125,58 +125,81 @@ export const loginWithEmail = async (credentials: LoginCredentials & { role?: Si
 export const registerWithEmail = async (data: RegisterData): Promise<User> => {
   requireFirebase(true);
 
+  // 1. Create account in Firebase Auth
   const result = await createUserWithEmailAndPassword(auth!, data.email, data.password);
   
-  // Update profile with display name
-  await updateProfile(result.user, { displayName: data.displayName });
-
-  // Send email verification
   try {
-    await sendEmailVerification(result.user, {
-      url: `${window.location.origin}/login?verified=true`,
-      handleCodeInApp: false,
-    });
-    logger.log('📧 Verification email sent to:', data.email);
-  } catch (verifyErr) {
-    logger.warn('⚠️ Could not send verification email:', verifyErr);
-  }
-  
-  // Create user document in Firestore with extended profile fields
-  await setDoc(doc(db!, 'users', result.user.uid), {
-    uid: result.user.uid,
-    email: data.email,
-    displayName: data.displayName,
-    firstName: data.firstName || null,
-    lastName: data.lastName || null,
-    role: data.role || UserRole.USER,
-    photoURL: null,
-    phoneNumber: data.phoneNumber || null,
-    dob: data.dob || null,
-    gender: data.gender || null,
-    location: data.location || null,
-    emailVerified: false,
-    phoneVerified: false,
-    consents: data.consents || {
-      terms: data.terms || false,
-      marketing: false,
-      whatsapp: false,
-      liveLocation: false,
-    },
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    isDeleted: false,
-  });
+    // 2. Update profile
+    await updateProfile(result.user, { displayName: data.displayName });
 
-  logger.log('✅ User document created in Firestore:', result.user.uid);
-  
-  return result.user;
+    // 3. Create Firestore document (Critical for app role)
+    await setDoc(doc(db!, 'users', result.user.uid), {
+      uid: result.user.uid,
+      email: data.email,
+      displayName: data.displayName,
+      firstName: data.firstName || null,
+      lastName: data.lastName || null,
+      role: data.role || UserRole.USER,
+      photoURL: null,
+      phoneNumber: data.phoneNumber || null,
+      dob: data.dob || null,
+      gender: data.gender || null,
+      location: data.location || null,
+      emailVerified: false,
+      phoneVerified: false,
+      consents: data.consents || {
+        terms: data.terms || false,
+        marketing: false,
+        whatsapp: false,
+        liveLocation: false,
+      },
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      isDeleted: false,
+    });
+
+    logger.log('✅ User document created in Firestore:', result.user.uid);
+
+    // 4. Send verification email (Non-blocking)
+    try {
+      await sendEmailVerification(result.user, {
+        url: `${window.location.origin}/login?verified=true`,
+        handleCodeInApp: false,
+      });
+      logger.log('📧 Verification email sent to:', data.email);
+    } catch (verifyErr) {
+      logger.warn('⚠️ Could not send verification email:', verifyErr);
+    }
+    
+    return result.user;
+
+  } catch (error) {
+    // ROLLBACK: If profile update or Firestore creation fails,
+    // delete the authentication account to prevent "stuck" state.
+    // This allows the user to correct the error and retry registration
+    // without getting "Email already in use".
+    logger.error('❌ Registration steps failed after Auth creation. Rolling back:', error);
+
+    try {
+      await deleteUser(result.user);
+      logger.log('DATA_CLEANUP: Rolled back incomplete user account.');
+    } catch (cleanupError) {
+      logger.error('DATA_CLEANUP_FAILED: Could not rollback user account:', cleanupError);
+    }
+
+    throw error;
+  }
 };
 
 // Login with Google
-export const loginWithGoogle = async (): Promise<User> => {
+export const loginWithGoogle = async (role?: SignupRole): Promise<User> => {
   requireFirebase(true);
 
-  const result = await signInWithPopup(auth!, googleProvider!);
+  if (!googleProvider) {
+    throw { code: 'auth/provider-not-configured', message: 'Google sign-in is not configured. Please check Firebase settings.' };
+  }
+
+  const result = await signInWithPopup(auth!, googleProvider);
   
   // Check if user exists in Firestore, if not create with extended fields
   const userDoc = await getDoc(doc(db!, 'users', result.user.uid));
@@ -187,13 +210,24 @@ export const loginWithGoogle = async (): Promise<User> => {
     const firstName = nameParts[0] || '';
     const lastName = nameParts.slice(1).join(' ') || '';
 
+    // Determine role: Use passed role, or default to USER
+    // Map SignupRole to UserRole
+    const roleMap: Record<SignupRole, string> = {
+      'attendee': UserRole.USER,
+      'organizer': UserRole.ORGANIZER,
+      'org_admin': UserRole.ORG_ADMIN,
+      'admin': UserRole.ADMIN,
+      'superadmin': UserRole.SUPER_ADMIN,
+    };
+    const newUserRole = role ? roleMap[role] : UserRole.USER;
+
     await setDoc(doc(db!, 'users', result.user.uid), {
       uid: result.user.uid,
       email: result.user.email,
       displayName: result.user.displayName,
       firstName,
       lastName,
-      role: UserRole.USER,
+      role: newUserRole,
       photoURL: result.user.photoURL,
       phoneNumber: result.user.phoneNumber,
       emailVerified: result.user.emailVerified,
@@ -219,7 +253,11 @@ export const loginWithGoogle = async (): Promise<User> => {
 export const loginWithFacebook = async (): Promise<User> => {
   requireFirebase(true);
 
-  const result = await signInWithPopup(auth!, facebookProvider!);
+  if (!facebookProvider) {
+    throw { code: 'auth/provider-not-configured', message: 'Facebook sign-in is not configured. Please check Firebase settings.' };
+  }
+
+  const result = await signInWithPopup(auth!, facebookProvider);
   
   const userDoc = await getDoc(doc(db!, 'users', result.user.uid));
   
@@ -588,8 +626,8 @@ export const deleteUserAccount = async (
 // Update Platform Settings (Admin)
 // Writes to `SettingInfo/platform` collection for RBAC-driven platform config.
 export const updatePlatformSettings = async (settings: any): Promise<void> => {
-  if (!firebaseEnabled || !auth?.currentUser) {
-     throw { code: 'auth/not-authenticated', message: 'Auth not ready.' };
+  if (!firebaseEnabled || !auth?.currentUser || !db) {
+     throw { code: 'auth/not-authenticated', message: 'Auth or Firestore not ready.' };
   }
 
   try {
@@ -613,7 +651,7 @@ export const updatePlatformSettings = async (settings: any): Promise<void> => {
 export const uploadFile = async (file: File, path: string): Promise<string> => {
   // Dynamically import storage modules to avoid SSR/initialization issues
   try {
-    const { storage } = await import('@/lib/firebase');
+    const { storage } = await import('@/services/firebase');
     const { ref, uploadBytes, getDownloadURL } = await import('firebase/storage');
 
     if (!storage) {
@@ -627,6 +665,11 @@ export const uploadFile = async (file: File, path: string): Promise<string> => {
     logger.log('📂 File uploaded successfully:', path);
     return downloadURL;
   } catch (error: any) {
+    if (error.message?.includes('Storage is not initialized') || error.code === 'storage/not-configured') {
+      console.warn('Firebase Storage not configured. Using placeholder avatar.');
+      // Return a default avatar URL
+      return 'https://ui-avatars.com/api/?name=User&background=random';
+    }
     logger.error('❌ File upload failed:', error);
     throw error;
   }

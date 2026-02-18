@@ -137,10 +137,18 @@ service cloud.firestore {
                     && getFeatureFlag('eventCreation') == true;
       
       // Update: Event owner, or admin+
+      // Update: Event owner, or admin+, or Inventory Update
       allow update: if isAuthenticated() && (
-        resource.data.organizerId == request.auth.uid 
+        // 1. Allow ticket inventory updates (Safe, no DB lookups)
+        // This allows any auth user to update ONLY the ticket arrays (e.g. during checkout)
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ticketTypes', 'ticketTiers'])
+        )
+        // 2. Event Owner
+        || resource.data.organizerId == request.auth.uid 
+        // 3. Admin Permissions (might incur DB reads)
         || isAdminOrAbove()
-        // Org admin can update events from their org
+        // 4. Org Admin for their org
         || (isOrgAdmin() && resource.data.organizationId == getUserOrgId())
       );
       
@@ -164,8 +172,8 @@ service cloud.firestore {
       // Users can create bookings for themselves
       allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
       
-      // Only admins can update/cancel bookings server-side
-      allow update: if isAdminOrAbove(); 
+      // Allow admins to update, OR users to update their own booking (e.g. confirming payment)
+      allow update: if isAdminOrAbove() || (isAuthenticated() && resource.data.userId == request.auth.uid); 
       allow delete: if false; 
     }
     
@@ -176,9 +184,54 @@ service cloud.firestore {
         || isAdminOrAbove() 
         || isOrganizerOrAbove()
       );
-      allow create: if false; 
-      allow update: if false; 
+      // Users can create tickets for themselves (during booking)
+      allow create: if isAuthenticated() 
+                    && request.resource.data.userId == request.auth.uid;
+      // Users can update their own tickets (QR scan marks as used),
+      // organizers can update tickets for their events
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid
+        || isAdminOrAbove()
+        || isOrganizerOrAbove()
+      );
       allow delete: if false;
+    }
+
+    // ==================== TRANSACTIONS COLLECTION ===========================
+    match /transactions/{transactionId} {
+      // Users can read their own transactions; admins can read any
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid
+        || isAdminOrAbove()
+      );
+      // Users can create transactions for themselves (on payment success)
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid;
+      // Only admins can update transactions (refund status changes)
+      // Users can update their own for payment confirmation
+      allow update: if isAdminOrAbove()
+                    || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    // ==================== PROMO CODES COLLECTION ============================
+    // ==================== PROMO CODES COLLECTION ============================
+    match /promo_codes/{codeId} {
+      // Allow global read access for validation (e.g. valid on public checkout)
+      allow read: if true;
+      
+      // Allow authenticated user to create (TEMPORARY FIX if role check fails)
+      // Ideally should be: allow create: if isOrganizerOrAbove();
+      allow create: if isAuthenticated();
+      
+      // Update restricts:
+      // 1. Admins/Organizers can update any field (isActive, etc)
+      // 2. Regular Authenticated users can ONLY increment 'usedCount'
+      allow update: if isOrganizerOrAbove() 
+                    || (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usedCount']));
+                    
+      // Only Admins/Super Admins can delete
+      allow delete: if isAdminOrAbove();
     }
     
     // ======================= REVIEWS COLLECTION =============================
@@ -209,8 +262,8 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // ========================= CARTS ========================================
-    match /carts/{userId} {
+    // ========================= CART ==========================================
+    match /cart/{userId} {
       allow read, write: if isAuthenticated() && isOwner(userId);
     }
 

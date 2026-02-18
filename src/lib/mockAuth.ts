@@ -27,39 +27,6 @@ class MockAuthService {
   private currentUser: MockUserData | null = null;
   private listeners: ((user: MockUserData | null) => void)[] = [];
 
-  // Hardcoded test users (from TEST_CREDENTIALS_GUIDE.md)
-  private static TEST_USERS: Array<MockUserData & { password: string; dob: string; location: string }> = [
-    {
-      uid: 'mock-admin',
-      email: 'mekeshkumar1236@gmail.com',
-      displayName: 'Mekesh Admin',
-      photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=mekeshkumar1236@gmail.com',
-      phoneNumber: null,
-      role: 'admin',
-      emailVerified: true,
-      createdAt: new Date('2023-01-01'),
-      updatedAt: new Date('2023-01-01'),
-      password: 'Mekesh@admin1236',
-      dob: '1990-01-01',
-      location: 'Chennai',
-    },
-    {
-      uid: 'mock-superadmin',
-      email: 'mekesh.engineer@gmail.com',
-      displayName: 'Mekesh SuperAdmin',
-      photoURL: 'https://api.dicebear.com/7.x/avataaars/svg?seed=mekesh.engineer@gmail.com',
-      phoneNumber: null,
-      role: 'superadmin',
-      emailVerified: true,
-      createdAt: new Date('2023-01-01'),
-      updatedAt: new Date('2023-01-01'),
-      password: 'Mekesh@superadmin1236',
-      dob: '1985-05-05',
-      location: 'Bangalore',
-    },
-    // You can add attendee/organizer here as well if needed
-  ];
-
   constructor() {
     // Load user from localStorage on init
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -73,22 +40,31 @@ class MockAuthService {
   }
 
   // Sign in with email/password (mock mode)
-  async signIn(email: string, password: string): Promise<MockUserData> {
-    // Check against hardcoded test users
-    const user = MockAuthService.TEST_USERS.find(
-      (u) => u.email === email && u.password === password
-    );
-    if (user) {
-      // Omit password, dob, location from returned user
-      // Omit password, dob, location from returned user
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, dob, location, ...userData } = user;
-      this.currentUser = userData;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-      this.notifyListeners();
-      return userData;
-    }
-    throw new Error('Invalid email or password for mock login.');
+  async signIn(email: string, _password: string): Promise<MockUserData> {
+    // In mock mode, we simulate a successful login for any valid email.
+    // Default to 'user' role as all role management should happen in Firebase/Firestore.
+    const role = 'user';
+    const namePart = email.split('@')[0];
+    const displayName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+
+    const userData: MockUserData = {
+      uid: `mock-${role}-${Date.now()}`,
+      email,
+      displayName: displayName,
+      photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+      phoneNumber: null,
+      role: role,
+      emailVerified: true, // Auto-verify in mock mode
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.currentUser = userData;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+    this.notifyListeners();
+    
+    logger.log(`🔓 Mock Login Successful: ${email} (${role})`);
+    return userData;
   }
 
   // Sign up (mock mode, only allows user role)

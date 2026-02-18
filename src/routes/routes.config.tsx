@@ -43,6 +43,9 @@ const ManageEventPage = lazy(() => import('@/pages/events/ManageEventPage'));
 // ─────────────────────────────────────────────────────────────────────────────
 const CheckoutPage = lazy(() => import('@/pages/booking/CheckoutPage'));
 const BookingSuccessPage = lazy(() => import('@/pages/booking/BookingSuccessPage'));
+const CartPage = lazy(() => import('@/pages/booking/CartPage'));
+const MyTicketsPage = lazy(() => import('@/pages/booking/MyTicketsPage'));
+const TicketDetailPage = lazy(() => import('@/pages/booking/TicketDetailPage'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DASHBOARD PAGES (Role-specific)
@@ -61,12 +64,32 @@ const PayoutsPage = lazy(() => import('@/pages/dashboard/Organizer/PayoutsPage')
 const IoTDevicesPage = lazy(() => import('@/pages/dashboard/Organizer/IoTDevicesPage'));
 const MarketingToolsPage = lazy(() => import('@/pages/dashboard/Organizer/MarketingToolsPage'));
 
+const ScannerPage = lazy(() => import('@/pages/dashboard/Organizer/ScannerPage'));
+
 const AdminDashboard = lazy(() => import('@/pages/dashboard/Admin/AdminDashboard'));
 const UserManagementPage = lazy(() => import('@/pages/dashboard/Admin/UserManagementPage'));
 const OrganizerApprovalsPage = lazy(() => import('@/pages/dashboard/Admin/OrganizerApprovalsPage'));
 const EventModerationPage = lazy(() => import('@/pages/dashboard/Admin/EventModerationPage'));
 const PlatformSettingsPage = lazy(() => import('@/pages/dashboard/Admin/PlatformSettingsPage'));
 const ReportsPage = lazy(() => import('@/pages/dashboard/Admin/ReportsPage'));
+const PromoCodesPage = lazy(() => import('@/pages/dashboard/Admin/PromoCodesPage'));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUPER ADMIN DASHBOARD PAGES
+// ─────────────────────────────────────────────────────────────────────────────
+const SuperAdminDashboard = lazy(() => import('@/pages/dashboard/SuperAdmin/SuperAdminDashboard'));
+const SuperAdminPlaceholder = lazy(() => import('@/pages/dashboard/SuperAdmin/SuperAdminPlaceholder'));
+
+// Super Admin Specific Pages
+const SuperAdminUserManagementPage = lazy(() => import('@/pages/dashboard/SuperAdmin/UserManagementPage'));
+const RoleManagementPage = lazy(() => import('@/pages/dashboard/SuperAdmin/RoleManagementPage'));
+const SuperAdminPlatformSettingsPage = lazy(() => import('@/pages/dashboard/SuperAdmin/PlatformSettingsPage'));
+const AdminManagementPage = lazy(() => import('@/pages/dashboard/SuperAdmin/AdminManagementPage'));
+const OrganizationManagementPage = lazy(() => import('@/pages/dashboard/SuperAdmin/OrganizationManagementPage'));
+const IoTFleetManagementPage = lazy(() => import('@/pages/dashboard/SuperAdmin/IoTFleetManagementPage'));
+const FinancialOverviewPage = lazy(() => import('@/pages/dashboard/SuperAdmin/FinancialOverviewPage'));
+const AuditLogViewerPage = lazy(() => import('@/pages/dashboard/SuperAdmin/AuditLogViewerPage'));
+const SecurityAlertsPage = lazy(() => import('@/pages/dashboard/SuperAdmin/SecurityAlertsPage'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COMMON AUTH PAGES (Protected)
@@ -104,6 +127,7 @@ export const publicRoutes: RouteObject[] = [
   { path: ROUTES.EVENTS, element: <EventsPage /> },
   { path: ROUTES.SEARCH, element: <SearchResultsPage /> },
   { path: ROUTES.CATEGORY, element: <CategoryPage /> },
+  { path: ROUTES.SUPPORT, element: <SupportPage /> },
 ];
 
 // =============================================================================
@@ -129,12 +153,14 @@ export const authRoutes: RouteObject[] = [
 export const protectedRoutes: RouteObject[] = [
   { path: ROUTES.DASHBOARD, element: <UserDashboard /> },
   { path: ROUTES.EVENT_DETAILS, element: <EventDetailsPage /> },
+  { path: ROUTES.CART, element: <CartPage /> },
   { path: ROUTES.CHECKOUT, element: <CheckoutPage /> },
   { path: ROUTES.BOOKING_SUCCESS, element: <BookingSuccessPage /> },
+  { path: ROUTES.MY_TICKETS, element: <MyTicketsPage /> },
+  { path: ROUTES.TICKET_DETAIL, element: <TicketDetailPage /> },
 
   // Common Protected Routes
   { path: ROUTES.PROFILE, element: <UserProfile /> },
-  { path: ROUTES.SUPPORT, element: <SupportPage /> },
 
   // Attendee Dashboard Routes
   { path: ROUTES.MY_BOOKINGS, element: <MyBookingsPage /> },
@@ -165,10 +191,13 @@ export const organizerRoutes: RouteObject[] = [
   // Organizer feature pages
   { path: ROUTES.ORGANIZER_EVENTS, element: <MyEventsPage /> },
   { path: ROUTES.EVENT_ANALYTICS, element: <EventAnalyticsPage /> },
+  { path: ROUTES.EVENT_ANALYTICS_OVERVIEW, element: <EventAnalyticsPage /> },
   { path: ROUTES.ATTENDEE_MANAGEMENT, element: <AttendeeManagementPage /> },
+  { path: ROUTES.ATTENDEE_MANAGEMENT_OVERVIEW, element: <AttendeeManagementPage /> },
   { path: ROUTES.PAYOUTS, element: <PayoutsPage /> },
   { path: ROUTES.IOT_DEVICES, element: <IoTDevicesPage /> },
   { path: ROUTES.MARKETING, element: <MarketingToolsPage /> },
+  { path: ROUTES.SCANNER, element: <ScannerPage /> },
 ];
 
 // =============================================================================
@@ -190,6 +219,7 @@ export const adminRoutes: RouteObject[] = [
   { path: ROUTES.ADMIN_USERS, element: <UserManagementPage /> },
   { path: ROUTES.ADMIN_ORGANIZERS, element: <OrganizerApprovalsPage /> },
   { path: ROUTES.ADMIN_EVENTS, element: <EventModerationPage /> },
+  { path: ROUTES.ADMIN_PROMO_CODES, element: <PromoCodesPage /> },
   { path: ROUTES.ADMIN_SETTINGS, element: <PlatformSettingsPage /> },
   { path: ROUTES.ADMIN_REPORTS, element: <ReportsPage /> },
 ];
@@ -206,18 +236,21 @@ export const adminRoutes: RouteObject[] = [
 // - System backups and maintenance
 // =============================================================================
 export const superAdminRoutes: RouteObject[] = [
-  // Super admin dashboard — reuses AdminDashboard with elevated privileges
-  { path: ROUTES.SUPER_ADMIN, element: <AdminDashboard /> },
+  // Super admin dashboard — Dedicated Super Admin page
+  { path: ROUTES.SUPER_ADMIN, element: <SuperAdminDashboard /> },
 
-  // Additional super admin features (uncomment when pages are ready):
-  // { path: '/superadmin/system-config', element: <SystemConfigPage /> },
-  // { path: '/superadmin/database', element: <DatabaseManagementPage /> },
-  // { path: '/superadmin/api-keys', element: <ApiKeyManagementPage /> },
-  // { path: '/superadmin/permissions', element: <GlobalPermissionsPage /> },
-  // { path: '/superadmin/security', element: <SecurityControlsPage /> },
-  // { path: '/superadmin/backups', element: <BackupManagementPage /> },
-  // { path: '/superadmin/logs', element: <SystemLogsPage /> },
-  // { path: '/superadmin/maintenance', element: <MaintenanceModePage /> },
+  // Specialized Super Admin Pages
+  { path: ROUTES.SUPER_ADMIN_USERS, element: <SuperAdminUserManagementPage /> },
+  { path: ROUTES.SUPER_ADMIN_SETTINGS, element: <SuperAdminPlatformSettingsPage /> },
+
+  // Additional super admin features
+  { path: ROUTES.SUPER_ADMIN_ROLES, element: <RoleManagementPage /> },
+  { path: ROUTES.SUPER_ADMIN_ADMINS, element: <AdminManagementPage /> },
+  { path: ROUTES.SUPER_ADMIN_ORGS, element: <OrganizationManagementPage /> },
+  { path: ROUTES.SUPER_ADMIN_IOT, element: <IoTFleetManagementPage /> },
+  { path: ROUTES.SUPER_ADMIN_FINANCE, element: <FinancialOverviewPage /> },
+  { path: ROUTES.SUPER_ADMIN_AUDIT, element: <AuditLogViewerPage /> },
+  { path: ROUTES.SUPER_ADMIN_SECURITY, element: <SecurityAlertsPage /> },
 ];
 
 // =============================================================================

@@ -323,7 +323,7 @@ function ActionMenu({ event, onClose, onQuickView }: { event: OrgEvent; onClose:
     return (
         <div className="absolute right-0 top-full mt-1 w-52 bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 shadow-xl z-30 py-1">
             <button onClick={onQuickView} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700"><Eye size={14} /> Quick View</button>
-            <Link to={`/organizer/events/${event.id}/edit`} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700" onClick={onClose}><Edit size={14} /> Edit Event</Link>
+            <Link to={`/organizer/events/${event.id}/manage`} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700" onClick={onClose}><Edit size={14} /> Edit Event</Link>
             <Link to={`/organizer/events/${event.id}/attendees`} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700" onClick={onClose}><Users size={14} /> Manage Attendees</Link>
             <Link to={`/organizer/events/${event.id}/analytics`} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700" onClick={onClose}><BarChart3 size={14} /> View Analytics</Link>
             <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700"><Copy size={14} /> Duplicate</button>

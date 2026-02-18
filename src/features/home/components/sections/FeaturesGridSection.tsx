@@ -1,3 +1,4 @@
+import { CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import { Cpu, ArrowRight } from 'lucide-react';
 import { FEATURES_GRID } from '../../data/mockData';
@@ -30,13 +31,14 @@ export const FeaturesGridSection = () => {
                 <motion.div variants={staggerContainer} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {FEATURES_GRID.map((feature, idx) => (
                         <motion.div key={idx} variants={fadeInUp} className="group relative h-full">
-                            <div className="relative h-full p-8 rounded-[2rem] bg-[var(--bg-card)] border border-[var(--border-primary)] hover:border-[var(--border-hover)] transition-all duration-300 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1">
+                            <div className="relative h-full p-6 md:p-8 rounded-[2rem] bg-[var(--bg-card)] border border-[var(--border-primary)] hover:border-[var(--border-hover)] transition-all duration-300 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1">
 
                                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-500`} />
 
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className="relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300" style={{ background: `linear-gradient(135deg, ${feature.color}, transparent)` }}>
-                                        <div className="absolute inset-0 rounded-2xl opacity-80" style={{ backgroundColor: feature.color }} />
+                                    {/* eslint-disable-next-line */}
+                                    <div className="relative z-10 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-300 bg-[image:linear-gradient(135deg,var(--feature-color),transparent)]" style={{ '--feature-color': feature.color } as CSSProperties}>
+                                        <div className="absolute inset-0 rounded-2xl opacity-80 bg-[var(--feature-color)]" />
                                         <feature.icon size={26} className="relative z-20" />
                                     </div>
 

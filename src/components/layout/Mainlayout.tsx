@@ -39,24 +39,24 @@ export interface MainLayoutProps {
 // =============================================================================
 
 const pageVariants = {
-  initial: { 
-    opacity: 0, 
-    y: 20 
+  initial: {
+    opacity: 0,
+    y: 20
   },
-  animate: { 
-    opacity: 1, 
+  animate: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.4,
-      ease: 'easeOut'
+      ease: 'easeOut' as const
     }
   },
-  exit: { 
-    opacity: 0, 
+  exit: {
+    opacity: 0,
     y: -20,
     transition: {
       duration: 0.3,
-      ease: 'easeIn'
+      ease: 'easeIn' as const
     }
   }
 };
@@ -65,7 +65,7 @@ const pageVariants = {
 // MAIN LAYOUT COMPONENT
 // =============================================================================
 
-export function MainLayout({ 
+export function MainLayout({
   children,
   showNavbar = true,
   showFooter = true,
@@ -95,6 +95,7 @@ export function MainLayout({
         return () => clearTimeout(timeoutId);
       }
     }
+    return undefined;
   }, [location.hash]);
 
   // Simulate page loading state for route transitions
@@ -104,6 +105,7 @@ export function MainLayout({
       const timeoutId = setTimeout(() => setIsLoading(false), 100);
       return () => clearTimeout(timeoutId);
     }
+    return undefined;
   }, [location.pathname, enableTransitions]);
 
   // Handle scroll restoration for browser back/forward
@@ -121,7 +123,7 @@ export function MainLayout({
   // Render content - either children or Outlet for nested routes
   const renderContent = useCallback(() => {
     const content = children ?? <Outlet />;
-    
+
     if (enableTransitions) {
       return (
         <AnimatePresence mode="wait">
@@ -138,16 +140,16 @@ export function MainLayout({
         </AnimatePresence>
       );
     }
-    
+
     return content;
   }, [children, enableTransitions, location.pathname]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased">
       {/* Skip to main content link for accessibility */}
-      <a 
-        href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-[#00A3DB] focus:text-white focus:rounded-lg focus:outline-none"
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-200 focus:px-4 focus:py-2 focus:bg-primary-500 focus:text-white focus:rounded-lg focus:outline-none"
       >
         Skip to main content
       </a>
@@ -156,14 +158,14 @@ export function MainLayout({
       {showNavbar && <Navbar />}
 
       {/* Main Content */}
-      <main 
+      <main
         id="main-content"
         className={`flex-1 flex flex-col ${className}`}
         role="main"
       >
         {isLoading && enableTransitions ? (
           <div className="flex-1 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-[#00A3DB] border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           renderContent()
@@ -193,7 +195,7 @@ export function PublicLayout({ children, ...props }: Omit<MainLayoutProps, 'show
 export function AuthLayout({ children, ...props }: Omit<MainLayoutProps, 'showNavbar' | 'showFooter'>) {
   return (
     <MainLayout showNavbar={false} showFooter={false} {...props}>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--bg-primary)] via-[var(--bg-secondary)] to-[var(--bg-primary)]">
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[var(--bg-primary)] via-[var(--bg-secondary)] to-[var(--bg-primary)]">
         {children}
       </div>
     </MainLayout>
@@ -213,7 +215,7 @@ export function MinimalLayout({ children, ...props }: Omit<MainLayoutProps, 'sho
 /** Default Layout component for public pages with navbar, footer, and transitions */
 export function Layout() {
   return (
-    <MainLayout 
+    <MainLayout
       showNavbar={true}
       showFooter={true}
       enableTransitions={true}

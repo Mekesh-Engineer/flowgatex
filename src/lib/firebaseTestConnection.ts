@@ -7,7 +7,7 @@
  * Usage: Import and call testFirebaseConnection() in your app
  */
 
-import { auth, db, realtimeDb, storage, firebaseEnabled } from '@/lib/firebase';
+import { auth, db, realtimeDb, storage, firebaseEnabled } from '@/services/firebase';
 import { 
   doc, 
   setDoc, 

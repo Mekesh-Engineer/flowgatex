@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { loginWithEmail, loginWithGoogle, loginWithFacebook, getUserData } from '../services/authService';
-import { auth } from '@/lib/firebase';
+import { auth } from '@/services/firebase';
 import { ROLE_DASHBOARDS } from '@/routes/routes.config';
 import { UserRole } from '@/lib/constants';
 import { showSuccess, showError } from '@/components/common/Toast';
@@ -60,12 +60,12 @@ export function useLogin() {
     }
   };
 
-  const loginGoogle = async () => {
+  const loginGoogle = async (role?: SignupRole) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      await loginWithGoogle();
+      await loginWithGoogle(role);
       const targetPath = await getRedirectPath();
       showSuccess('Welcome!');
       navigate(targetPath, { replace: true });

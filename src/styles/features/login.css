@@ -4,454 +4,452 @@
 
 /* --- Video Panel --- */
 .login-video-panel {
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
 
 .login-video-panel video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .login-video-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg,
-            hsla(var(--hue-accent), 40%, 8%, 0.82) 0%,
-            hsla(var(--hue-secondary), 50%, 10%, 0.72) 50%,
-            hsla(var(--hue-accent), 40%, 8%, 0.85) 100%);
-    z-index: 1;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    hsla(var(--hue-accent), 40%, 8%, 0.82) 0%,
+    hsla(var(--hue-secondary), 50%, 10%, 0.72) 50%,
+    hsla(var(--hue-accent), 40%, 8%, 0.85) 100%
+  );
+  z-index: 1;
 }
 
 /* --- Sliding Text Overlay --- */
 .login-sliding-text {
-    position: relative;
-    z-index: 2;
-    overflow: hidden;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
 }
 
 @keyframes slideText {
-    0% {
-        opacity: 0;
-        transform: translateY(30px);
-    }
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
 
-    12% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  12% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
-    30% {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  30% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
-    42% {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
+  42% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
 
-    100% {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
 }
 
 .slide-text-item {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    opacity: 0;
-    animation: slideText 12s infinite;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  animation: slideText 12s infinite;
 }
 
 .slide-text-item:nth-child(1) {
-    animation-delay: 0s;
+  animation-delay: 0s;
 }
 
 .slide-text-item:nth-child(2) {
-    animation-delay: 4s;
+  animation-delay: 4s;
 }
 
 .slide-text-item:nth-child(3) {
-    animation-delay: 8s;
+  animation-delay: 8s;
 }
 
 /* --- Floating Particles (Lime-Green) --- */
 @keyframes loginFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
 
-    0%,
-    100% {
-        transform: translateY(0) rotate(0deg);
-        opacity: 0;
-    }
+  10% {
+    opacity: 0.6;
+  }
 
-    10% {
-        opacity: 0.6;
-    }
+  90% {
+    opacity: 0.6;
+  }
 
-    90% {
-        opacity: 0.6;
-    }
-
-    100% {
-        transform: translateY(-100vh) rotate(720deg);
-        opacity: 0;
-    }
+  100% {
+    transform: translateY(-100vh) rotate(720deg);
+    opacity: 0;
+  }
 }
 
 .login-particle {
-    position: absolute;
-    border-radius: 50%;
-    pointer-events: none;
-    background: var(--color-secondary);
-    animation: loginFloat linear infinite;
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  background: var(--color-secondary);
+  animation: loginFloat linear infinite;
 }
 
 .login-particle:nth-child(1) {
-    width: 6px;
-    height: 6px;
-    left: 10%;
-    animation-duration: 8s;
-    animation-delay: 0s;
-    opacity: 0.4;
+  width: 6px;
+  height: 6px;
+  left: 10%;
+  animation-duration: 8s;
+  animation-delay: 0s;
+  opacity: 0.4;
 }
 
 .login-particle:nth-child(2) {
-    width: 4px;
-    height: 4px;
-    left: 25%;
-    animation-duration: 12s;
-    animation-delay: 2s;
-    opacity: 0.3;
+  width: 4px;
+  height: 4px;
+  left: 25%;
+  animation-duration: 12s;
+  animation-delay: 2s;
+  opacity: 0.3;
 }
 
 .login-particle:nth-child(3) {
-    width: 8px;
-    height: 8px;
-    left: 45%;
-    animation-duration: 10s;
-    animation-delay: 4s;
-    opacity: 0.5;
+  width: 8px;
+  height: 8px;
+  left: 45%;
+  animation-duration: 10s;
+  animation-delay: 4s;
+  opacity: 0.5;
 }
 
 .login-particle:nth-child(4) {
-    width: 3px;
-    height: 3px;
-    left: 65%;
-    animation-duration: 14s;
-    animation-delay: 1s;
-    opacity: 0.35;
+  width: 3px;
+  height: 3px;
+  left: 65%;
+  animation-duration: 14s;
+  animation-delay: 1s;
+  opacity: 0.35;
 }
 
 .login-particle:nth-child(5) {
-    width: 5px;
-    height: 5px;
-    left: 80%;
-    animation-duration: 9s;
-    animation-delay: 3s;
-    opacity: 0.45;
+  width: 5px;
+  height: 5px;
+  left: 80%;
+  animation-duration: 9s;
+  animation-delay: 3s;
+  opacity: 0.45;
 }
 
 .login-particle:nth-child(6) {
-    width: 7px;
-    height: 7px;
-    left: 35%;
-    animation-duration: 11s;
-    animation-delay: 5s;
-    opacity: 0.3;
+  width: 7px;
+  height: 7px;
+  left: 35%;
+  animation-duration: 11s;
+  animation-delay: 5s;
+  opacity: 0.3;
 }
 
 /* --- Theme Toggle --- */
 .login-theme-toggle {
-    position: fixed;
-    top: 1.25rem;
-    right: 1.25rem;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border-primary);
-    background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: all var(--transition-smooth);
-    box-shadow: var(--shadow-sm);
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-primary);
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--transition-smooth);
+  box-shadow: var(--shadow-sm);
 }
 
 .login-theme-toggle:hover {
-    transform: rotate(15deg) scale(1.08);
-    border-color: var(--color-primary);
-    box-shadow: 0 0 16px hsla(var(--hue-primary), 100%, 43%, 0.3);
+  transform: rotate(15deg) scale(1.08);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 16px hsla(var(--hue-primary), 100%, 43%, 0.3);
 }
 
 .login-theme-toggle:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* --- Stream Logo --- */
 .login-brand-logo {
-    position: fixed;
-    top: 1.25rem;
-    left: 1.25rem;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .login-brand-logo .logo-icon {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 20px hsla(var(--hue-secondary), 75%, 45%, 0.35);
-    transition: transform var(--transition-smooth);
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px hsla(var(--hue-secondary), 75%, 45%, 0.35);
+  transition: transform var(--transition-smooth);
 }
 
 .login-brand-logo:hover .logo-icon {
-    transform: scale(1.1) rotate(-5deg);
+  transform: scale(1.1) rotate(-5deg);
 }
 
 .login-brand-logo .logo-text {
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 1.125rem;
-    background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.025em;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.125rem;
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.025em;
 }
 
 /* --- Primary Blue Accent Styling (matching Homepage CTA) --- */
 .login-primary-input:focus {
-    border-color: var(--color-primary) !important;
-    box-shadow: 0 0 0 3px hsla(var(--hue-primary), 100%, 43%, 0.15) !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px hsla(var(--hue-primary), 100%, 43%, 0.15) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .login-primary-btn {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-focus) 100%) !important;
-    border: 2px solid transparent !important;
-    box-shadow: 0 4px 20px hsla(var(--hue-primary), 100%, 43%, 0.35),
-        inset 0 1px 0 hsla(0, 0%, 100%, 0.1) !important;
-    color: #ffffff !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-primary-focus) 100%
+  ) !important;
+  border: 2px solid transparent !important;
+  box-shadow:
+    0 4px 20px hsla(var(--hue-primary), 100%, 43%, 0.35),
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.1) !important;
+  color: #ffffff !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .login-primary-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg,
-            var(--color-primary) 0%,
-            var(--color-secondary) 50%,
-            var(--color-primary) 100%);
-    background-size: 200% 100%;
-    opacity: 0;
-    transition: opacity 0.4s ease;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-secondary) 50%,
+    var(--color-primary) 100%
+  );
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
 .login-primary-btn:hover:not(:disabled)::before {
-    opacity: 1;
-    animation: shimmer 2s linear infinite;
+  opacity: 1;
+  animation: shimmer 2s linear infinite;
 }
 
 .login-primary-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    border-color: hsla(var(--hue-primary), 100%, 60%, 0.5) !important;
-    box-shadow: 0 8px 32px hsla(var(--hue-primary), 100%, 43%, 0.5),
-        0 0 0 3px hsla(var(--hue-primary), 100%, 43%, 0.15),
-        inset 0 1px 0 hsla(0, 0%, 100%, 0.2) !important;
+  transform: translateY(-2px);
+  border-color: hsla(var(--hue-primary), 100%, 60%, 0.5) !important;
+  box-shadow:
+    0 8px 32px hsla(var(--hue-primary), 100%, 43%, 0.5),
+    0 0 0 3px hsla(var(--hue-primary), 100%, 43%, 0.15),
+    inset 0 1px 0 hsla(0, 0%, 100%, 0.2) !important;
 }
 
 .login-primary-btn:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 4px 16px hsla(var(--hue-primary), 100%, 43%, 0.4) !important;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-
-    100% {
-        background-position: -200% 0;
-    }
+  transform: translateY(0);
+  box-shadow: 0 4px 16px hsla(var(--hue-primary), 100%, 43%, 0.4) !important;
 }
 
 .login-primary-link {
-    color: var(--color-primary) !important;
-    position: relative;
-    display: inline-block;
-    transition: color 0.2s ease;
+  color: var(--color-primary) !important;
+  position: relative;
+  display: inline-block;
+  transition: color 0.2s ease;
 }
 
 .login-primary-link::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: var(--color-primary);
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-primary);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .login-primary-link:hover {
-    color: var(--color-primary-focus) !important;
+  color: var(--color-primary-focus) !important;
 }
 
 .login-primary-link:hover::after {
-    width: 100%;
+  width: 100%;
 }
 
 .login-primary-link:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-    border-radius: 4px;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* --- Social & Secondary Button Enhancements --- */
 .login-social-btn {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .login-social-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    border: 2px solid var(--color-primary);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--color-primary);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .login-social-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px hsla(var(--hue-primary), 100%, 43%, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px hsla(var(--hue-primary), 100%, 43%, 0.15);
 }
 
 .login-social-btn:hover:not(:disabled)::before {
-    opacity: 1;
+  opacity: 1;
 }
 
 .login-social-btn:active:not(:disabled) {
-    transform: translateY(0);
+  transform: translateY(0);
 }
 
 /* --- Input Field Enhancements --- */
 .login-primary-input {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .login-primary-input:hover:not(:disabled):not(:focus) {
-    border-color: hsla(var(--hue-primary), 100%, 43%, 0.3);
+  border-color: hsla(var(--hue-primary), 100%, 43%, 0.3);
 }
 
 /* --- Checkbox Enhancement --- */
-input[type="checkbox"].login-checkbox {
-    transition: all 0.2s ease;
-    cursor: pointer;
+input[type='checkbox'].login-checkbox {
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-input[type="checkbox"].login-checkbox:hover {
-    transform: scale(1.1);
+input[type='checkbox'].login-checkbox:hover {
+  transform: scale(1.1);
 }
 
-input[type="checkbox"].login-checkbox:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
+input[type='checkbox'].login-checkbox:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* --- Animated Orb --- */
 @keyframes orbFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 
-    0%,
-    100% {
-        transform: translate(0, 0) scale(1);
-    }
+  25% {
+    transform: translate(30px, -20px) scale(1.1);
+  }
 
-    25% {
-        transform: translate(30px, -20px) scale(1.1);
-    }
+  50% {
+    transform: translate(-20px, -40px) scale(0.95);
+  }
 
-    50% {
-        transform: translate(-20px, -40px) scale(0.95);
-    }
-
-    75% {
-        transform: translate(10px, -15px) scale(1.05);
-    }
+  75% {
+    transform: translate(10px, -15px) scale(1.05);
+  }
 }
 
 .login-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(60px);
-    pointer-events: none;
-    animation: orbFloat 8s ease-in-out infinite;
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  animation: orbFloat 8s ease-in-out infinite;
 }
 
 .login-orb-1 {
-    width: 300px;
-    height: 300px;
-    background: hsla(var(--hue-primary), 100%, 43%, 0.12);
-    top: -80px;
-    right: -60px;
-    animation-delay: 0s;
+  width: 300px;
+  height: 300px;
+  background: hsla(var(--hue-primary), 100%, 43%, 0.12);
+  top: -80px;
+  right: -60px;
+  animation-delay: 0s;
 }
 
 .login-orb-2 {
-    width: 200px;
-    height: 200px;
-    background: hsla(var(--hue-secondary), 75%, 45%, 0.08);
-    bottom: -40px;
-    left: -40px;
-    animation-delay: -4s;
+  width: 200px;
+  height: 200px;
+  background: hsla(var(--hue-secondary), 75%, 45%, 0.08);
+  bottom: -40px;
+  left: -40px;
+  animation-delay: -4s;
 }
 
 /* --- Confetti Canvas --- */
 .login-confetti-canvas {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
 }
 
 /* --- Pulse Ring on Submit --- */
 @keyframes pulseRing {
-    0% {
-        box-shadow: 0 0 0 0 hsla(var(--hue-primary), 100%, 43%, 0.4);
-    }
+  0% {
+    box-shadow: 0 0 0 0 hsla(var(--hue-primary), 100%, 43%, 0.4);
+  }
 
-    70% {
-        box-shadow: 0 0 0 15px hsla(var(--hue-primary), 100%, 43%, 0);
-    }
+  70% {
+    box-shadow: 0 0 0 15px hsla(var(--hue-primary), 100%, 43%, 0);
+  }
 
-    100% {
-        box-shadow: 0 0 0 0 hsla(var(--hue-primary), 100%, 43%, 0);
-    }
+  100% {
+    box-shadow: 0 0 0 0 hsla(var(--hue-primary), 100%, 43%, 0);
+  }
 }
 
 .login-btn-pulse {
-    animation: pulseRing 1.5s ease-out infinite;
+  animation: pulseRing 1.5s ease-out infinite;
 }

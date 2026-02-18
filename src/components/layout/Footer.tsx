@@ -114,7 +114,7 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' }
+    transition: { duration: 0.5, ease: 'easeOut' as const }
   }
 };
 
@@ -171,9 +171,9 @@ const FooterLinkItem: React.FC<FooterLinkItemProps> = ({ link, onNavigate }) => 
       className="group flex items-center gap-2.5 text-sm text-[var(--text-secondary)] hover:text-[#00A3DB] transition-colors cursor-pointer"
     >
       {link.icon && (
-        <link.icon 
-          size={16} 
-          className="text-[var(--text-muted)] group-hover:text-[#00A3DB] transition-colors flex-shrink-0" 
+        <link.icon
+          size={16}
+          className="text-[var(--text-muted)] group-hover:text-[#00A3DB] transition-colors flex-shrink-0"
         />
       )}
       <span>{link.label}</span>
@@ -226,9 +226,9 @@ export function Footer() {
         {/* Decorative Background Elements */}
         <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#00A3DB]/5 blur-[150px] rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#A3D639]/5 blur-[120px] rounded-full translate-x-1/2 translate-y-1/2 pointer-events-none" />
-        
+
         {/* Subtle Grid Pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02] pointer-events-none"
           style={{
             backgroundImage: `radial-gradient(circle at 1px 1px, var(--text-muted) 1px, transparent 0)`,
@@ -240,7 +240,7 @@ export function Footer() {
 
           {/* Main Footer Content */}
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-6 lg:gap-8 mb-16">
-            
+
             {/* Brand Column */}
             <motion.div variants={itemVariants} className="lg:col-span-2">
               <Link to="/" className="mb-6 inline-block group">
@@ -248,7 +248,7 @@ export function Footer() {
                   <div className="relative">
                     <div className="absolute -inset-1 bg-gradient-to-r from-[#00A3DB] to-[#A3D639] rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-300" />
                     <div className="relative w-12 h-12 rounded-xl bg-gradient-to-br from-[#00A3DB] via-[#0091c4] to-[#A3D639] flex items-center justify-center shadow-lg shadow-[#00A3DB]/25 group-hover:scale-105 transition-transform">
-                      <span 
+                      <span
                         className="material-symbols-outlined text-[24px] text-white font-semibold"
                         style={{ fontVariationSettings: "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
                       >
@@ -261,15 +261,15 @@ export function Footer() {
                   </span>
                 </div>
               </Link>
-              
+
               <p className="text-sm text-[var(--text-muted)] mb-6 max-w-xs leading-relaxed">
                 Next-generation event management platform with IoT-powered access control and real-time analytics. Experience the future of events.
               </p>
 
               {/* Contact Info */}
               <div className="space-y-3 mb-6">
-                <a 
-                  href="mailto:hello@flowgatex.com" 
+                <a
+                  href="mailto:hello@flowgatex.com"
                   className="flex items-center gap-3 text-sm text-[var(--text-secondary)] hover:text-[#00A3DB] transition-colors group"
                 >
                   <div className="p-2 rounded-lg bg-[var(--bg-hover)] group-hover:bg-[#00A3DB]/10 transition-colors">
@@ -277,8 +277,8 @@ export function Footer() {
                   </div>
                   mekesh.engineer@gmail.com
                 </a>
-                <a 
-                  href="tel:+9182208170" 
+                <a
+                  href="tel:+9182208170"
                   className="flex items-center gap-3 text-sm text-[var(--text-secondary)] hover:text-[#00A3DB] transition-colors group"
                 >
                   <div className="p-2 rounded-lg bg-[var(--bg-hover)] group-hover:bg-[#00A3DB]/10 transition-colors">
@@ -315,8 +315,8 @@ export function Footer() {
 
             {/* Navigation Columns */}
             {FOOTER_SECTIONS.map((section) => (
-              <motion.div 
-                key={section.title} 
+              <motion.div
+                key={section.title}
                 variants={itemVariants}
                 className="lg:col-span-1"
               >
@@ -338,7 +338,7 @@ export function Footer() {
 
 
           {/* Bottom Bar */}
-          <motion.div 
+          <motion.div
             variants={itemVariants}
             className="flex flex-col lg:flex-row justify-between items-center gap-6"
           >
@@ -350,7 +350,7 @@ export function Footer() {
             </p>
 
             {/* Legal Links */}
-            <nav 
+            <nav
               className="flex flex-wrap justify-center gap-4 lg:gap-6"
               aria-label="Legal navigation"
             >
@@ -368,7 +368,7 @@ export function Footer() {
             {/* Language/Region Selector */}
             <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
               <Globe size={14} />
-              <select 
+              <select
                 className="bg-transparent border-none text-xs text-[var(--text-secondary)] cursor-pointer focus:outline-none"
                 defaultValue="en"
                 aria-label="Select language"

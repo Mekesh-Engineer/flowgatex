@@ -17,7 +17,7 @@ export const ParticleCanvas: React.FC<{ className?: string; particleCount?: numb
     particleCount = 50
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const animationRef = useRef<number>();
+    const animationRef = useRef<number | null>(null);
     const particlesRef = useRef<Particle[]>([]);
 
     useEffect(() => {
@@ -107,7 +107,7 @@ export const ParticleCanvas: React.FC<{ className?: string; particleCount?: numb
 // --- Grid Canvas ---
 export const GridCanvas: React.FC<{ className?: string }> = ({ className = '' }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const animationRef = useRef<number>();
+    const animationRef = useRef<number | null>(null);
     const offsetRef = useRef(0);
 
     useEffect(() => {
@@ -191,7 +191,7 @@ export const GridCanvas: React.FC<{ className?: string }> = ({ className = '' })
 // --- Wave Canvas ---
 export const WaveCanvas: React.FC<{ className?: string }> = ({ className = '' }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const animationRef = useRef<number>();
+    const animationRef = useRef<number | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;

@@ -9,7 +9,7 @@ export const CollectionsSection = () => {
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[var(--color-primary)]/5 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[var(--color-secondary)]/5 rounded-full blur-[100px] pointer-events-none" />
 
-            <div className="px-4 md:px-10 lg:px-40 flex justify-center relative z-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center relative z-10">
                 <div className="max-w-[1200px] w-full flex flex-col">
 
                     <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="flex flex-col md:flex-row items-end justify-between mb-12 gap-6">

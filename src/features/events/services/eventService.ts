@@ -12,7 +12,7 @@ import {
   limit,
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getDb, getStorageInstance } from '@/lib/firebase';
+import { getDb, getStorageInstance } from '@/services/firebase';
 import type { CreateEventData } from '../types/event.types';
 
 const EVENTS_COLLECTION = 'events';
@@ -130,10 +130,18 @@ export const eventService = {
 
   /** Upload a file to Firebase Storage and return the download URL. */
   uploadImage: async (file: File, path: string): Promise<string> => {
-    const storage = getStorageInstance();
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return getDownloadURL(storageRef);
+    try {
+        const storage = getStorageInstance();
+        const storageRef = ref(storage, path);
+        await uploadBytes(storageRef, file);
+        return getDownloadURL(storageRef);
+    } catch (error: any) {
+        if (error.message?.includes('Storage is not initialized') || error.code === 'storage/not-configured') {
+            console.warn('Firebase Storage not configured. Using placeholder image.');
+            return 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80';
+        }
+        throw error;
+    }
   },
 
   // ── Utilities ───────────────────────────────────────────────────

@@ -28,6 +28,10 @@ function TicketSelection({ tiers, onAddToCart }: TicketSelectionProps) {
     }
   };
 
+  /** Compute available count defensively: use 'available' field, or derive from quantity - sold */
+  const getAvailable = (tier: TicketTier) =>
+    tier.available ?? Math.max(0, (tier.quantity ?? 0) - (tier.sold ?? 0));
+
   return (
     <Box>
       <Typography variant="h6" sx={{ mb: 3 }}>
@@ -37,7 +41,8 @@ function TicketSelection({ tiers, onAddToCart }: TicketSelectionProps) {
       <Stack spacing={2}>
         {tiers.map((tier) => {
           const quantity = quantities[tier.id] || 0;
-          const isAvailable = tier.available > 0;
+          const tierAvailable = getAvailable(tier);
+          const isAvailable = tierAvailable > 0;
 
           return (
             <Box
@@ -59,7 +64,7 @@ function TicketSelection({ tiers, onAddToCart }: TicketSelectionProps) {
                     </Typography>
                   )}
                   <Typography variant="caption" color="text.secondary">
-                    {tier.available} available
+                    {tierAvailable} available
                   </Typography>
                 </Box>
                 <Typography variant="h6" color="primary.main">
@@ -73,7 +78,7 @@ function TicketSelection({ tiers, onAddToCart }: TicketSelectionProps) {
                     <Button
                       variant="outlined"
                       size="small"
-                      onClick={() => updateQuantity(tier.id, -1, tier.available)}
+                      onClick={() => updateQuantity(tier.id, -1, tierAvailable)}
                       disabled={quantity === 0}
                       sx={{ minWidth: 36 }}
                     >
@@ -85,8 +90,8 @@ function TicketSelection({ tiers, onAddToCart }: TicketSelectionProps) {
                     <Button
                       variant="outlined"
                       size="small"
-                      onClick={() => updateQuantity(tier.id, 1, tier.available)}
-                      disabled={quantity >= tier.available || quantity >= 10}
+                      onClick={() => updateQuantity(tier.id, 1, tierAvailable)}
+                      disabled={quantity >= tierAvailable || quantity >= 10}
                       sx={{ minWidth: 36 }}
                     >
                       <Plus size={16} />

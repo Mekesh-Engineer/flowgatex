@@ -10,42 +10,20 @@
  *  - Constants/Enums  → @/lib/constants
  */
 
-import { BookingStatus, PaymentStatus } from '@/lib/constants';
+import { PaymentStatus } from '@/lib/constants';
 
 // Re-export canonical types
 export type { AuthUser as User } from '@/features/auth/types/auth.types';
 export type { CreateEventData, TicketTier, EventCategory } from '@/features/events/types/event.types';
 
-// Booking types (defined here — no dedicated feature type file yet)
-export interface Attendee {
-  name: string;
-  email: string;
-  phone?: string;
-}
+// Booking types — canonical source: @/features/booking/types/booking.types
+export type { Attendee, BookingTicket, Booking, CreateBookingData } from '@/features/booking/types/booking.types';
 
-export interface BookingTicket {
-  tierId: string;
-  tierName: string;
-  quantity: number;
-  price: number;
-  qrCodes?: string[];
-}
+// Transaction types — canonical source: @/features/booking/types/transaction.types
+export type { Transaction, CreateTransactionData, TransactionFilter } from '@/features/booking/types/transaction.types';
 
-export interface Booking {
-  id: string;
-  userId: string;
-  eventId: string;
-  eventTitle: string;
-  eventDate: string;
-  tickets: BookingTicket[];
-  attendees: Attendee[];
-  totalAmount: number;
-  discount?: number;
-  finalAmount: number;
-  status: BookingStatus;
-  paymentId?: string;
-  bookingDate: string;
-}
+// Ticket types — canonical source: @/features/booking/types/ticket.types
+export type { Ticket, CreateTicketData, TicketStatus } from '@/features/booking/types/ticket.types';
 
 // Payment types (defined here — no dedicated feature type file yet)
 export interface Payment {

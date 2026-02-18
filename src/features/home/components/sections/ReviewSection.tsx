@@ -82,7 +82,7 @@ const ReviewCard = ({ data }: { data: ReviewData }) => {
 
 export const ReviewSection = () => {
     return (
-        <section className="relative mx-auto max-w-7xl px-6 py-20 md:px-12 overflow-hidden">
+        <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 overflow-hidden">
             <div className="absolute top-0 right-0 -z-10 h-[500px] w-[500px] rounded-full bg-[var(--color-primary)] opacity-5 blur-[100px]" />
             <div className="absolute bottom-0 left-0 -z-10 h-[500px] w-[500px] rounded-full bg-[var(--color-secondary)] opacity-5 blur-[100px]" />
 

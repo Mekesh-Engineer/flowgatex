@@ -21,8 +21,7 @@ export default function MapView({ events }: Props) {
       position: event.coordinates,
       title: event.title,
       onClick: () => {
-         // Could navigate or open a modal or scroll to list item
-         console.log('Clicked event:', event.title);
+        // Could navigate or open a modal or scroll to list item
       }
     }));
   }, [mappableEvents]);
@@ -42,30 +41,26 @@ export default function MapView({ events }: Props) {
 
   return (
     <div className="relative rounded-2xl overflow-hidden border border-[var(--border-primary)] bg-[var(--bg-card)]">
-      <div className="h-[500px]">
-         {mappableEvents.length > 0 ? (
-           <GoogleMap 
-              center={center}
-              zoom={zoom}
-              markers={markers}
-              height="100%"
-              className="w-full h-full"
-           />
-         ) : (
-           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-             <div className="text-center p-6 bg-[var(--bg-card)]/85 backdrop-blur-sm rounded-2xl border border-[var(--border-primary)] shadow-lg pointer-events-auto">
-               <MapPin size={32} className="mx-auto text-[var(--color-primary)] mb-3" />
-               <h3 className="text-lg font-bold text-[var(--text-primary)]">Map View</h3>
-               <p className="text-sm text-[var(--text-muted)] mt-1 max-w-xs">
-                 No mappable event coordinates to display.
-               </p>
-             </div>
-             {/* Render empty map behind */}
-             <div className="absolute inset-0 -z-10 opacity-50">
-               <GoogleMap center={center} zoom={4} height="100%" /> 
-             </div>
-           </div>
-         )}
+      <div className="h-125">
+        {mappableEvents.length > 0 ? (
+          <GoogleMap
+            center={center}
+            zoom={zoom}
+            markers={markers}
+            height="100%"
+            className="w-full h-full"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="text-center p-6 bg-[var(--bg-card)]/85 backdrop-blur-sm rounded-2xl border border-[var(--border-primary)] shadow-lg pointer-events-auto">
+              <MapPin size={32} className="mx-auto text-[var(--color-primary)] mb-3" />
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">Map View</h3>
+              <p className="text-sm text-[var(--text-muted)] mt-1 max-w-xs">
+                No mappable event coordinates to display.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -6,6 +6,8 @@ import {
   LayoutDashboard, Ticket, Calendar, User, HelpCircle,
   BarChart3, Users, Settings, TrendingUp, Cpu, Server,
   Home, Info, Mail, Wallet, Heart,
+  Shield, Building2, DollarSign, FileText, Lock,
+  PlusCircle, Megaphone, ScanLine, UserCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -26,6 +28,15 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Mail,
   Wallet,
   Heart,
+  Shield,
+  Building2,
+  DollarSign,
+  FileText,
+  Lock,
+  PlusCircle,
+  Megaphone,
+  ScanLine,
+  UserCheck,
 };
 
 /**

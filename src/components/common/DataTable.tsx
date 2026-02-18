@@ -34,7 +34,9 @@ interface DataTableProps<T> {
 
 type SortDirection = 'asc' | 'desc' | null;
 
-export default function DataTable<T extends Record<string, unknown>>({
+
+
+export default function DataTable<T extends object>({
     columns,
     data,
     keyExtractor,
@@ -53,7 +55,8 @@ export default function DataTable<T extends Record<string, unknown>>({
     const [currentPage, setCurrentPage] = useState(1);
 
     const handleSort = (key: string) => {
-        if (sortKey === key) {
+        // ... same logic ...
+             if (sortKey === key) {
             setSortDir(sortDir === 'asc' ? 'desc' : sortDir === 'desc' ? null : 'asc');
             if (sortDir === 'desc') setSortKey(null);
         } else {
@@ -65,9 +68,10 @@ export default function DataTable<T extends Record<string, unknown>>({
     const sortedData = useMemo(() => {
         if (!sortKey || !sortDir) return data;
         return [...data].sort((a, b) => {
-            const aVal = a[sortKey];
-            const bVal = b[sortKey];
+            const aVal = (a as Record<string, any>)[sortKey];
+            const bVal = (b as Record<string, any>)[sortKey];
             if (aVal == null && bVal == null) return 0;
+            // ... rest of sort logic ...
             if (aVal == null) return sortDir === 'asc' ? -1 : 1;
             if (bVal == null) return sortDir === 'asc' ? 1 : -1;
             if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -80,6 +84,8 @@ export default function DataTable<T extends Record<string, unknown>>({
         });
     }, [data, sortKey, sortDir]);
 
+    // ... pagination logic ...
+
     const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
     const paginatedData = showPagination
         ? sortedData.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -89,7 +95,7 @@ export default function DataTable<T extends Record<string, unknown>>({
     const alignMap = { left: 'text-left', center: 'text-center', right: 'text-right' };
 
     if (loading) {
-        return (
+         return (
             <div className={cn('bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 overflow-hidden', className)}>
                 <Skeleton className="h-12 w-full rounded-none" rounded="sm" />
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -152,7 +158,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                                         <td key={col.key} className={cn(cellPadding, alignMap[col.align || 'left'], 'text-sm', col.className)}>
                                             {col.render
                                                 ? col.render(row, idx)
-                                                : (row[col.key] as ReactNode) ?? '—'}
+                                                : ((row as Record<string, any>)[col.key] as ReactNode) ?? '—'}
                                         </td>
                                     ))}
                                 </tr>
@@ -161,7 +167,7 @@ export default function DataTable<T extends Record<string, unknown>>({
                     </tbody>
                 </table>
             </div>
-
+            
             {/* Pagination Footer */}
             {showPagination && totalPages > 1 && (
                 <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 dark:border-neutral-700 bg-gray-50/50 dark:bg-neutral-900/30">
@@ -192,3 +198,5 @@ export default function DataTable<T extends Record<string, unknown>>({
         </div>
     );
 }
+
+

@@ -4,391 +4,398 @@
    Includes brand palette scales merged from tokens.css.
    ========================================================================== */
 :root {
-    /* --- 1. Brand Hues --- */
-    --hue-primary: 195;
-    /* KEC Cyan-Blue (from 'E' and 'ENGINEERING') */
-    --hue-secondary: 85;
-    /* KEC Lime-Green (from 'K' and 'COLLEGE') */
-    --hue-accent: 220;
-    /* Deep Navy (from 'TRANSFORM YOURSELF') */
+  /* --- 1. Brand Hues --- */
+  --hue-primary: 195;
+  /* KEC Cyan-Blue (from 'E' and 'ENGINEERING') */
+  --hue-secondary: 85;
+  /* KEC Lime-Green (from 'K' and 'COLLEGE') */
+  --hue-accent: 220;
+  /* Deep Navy (from 'TRANSFORM YOURSELF') */
 
-    /* --- 1b. Brand Palette Scales (from tokens.css) --- */
-    --color-primary-50: #e6f7fc;
-    --color-primary-100: #cceff9;
-    --color-primary-200: #99dff3;
-    --color-primary-300: #66cfed;
-    --color-primary-400: #33bfe7;
-    --color-primary-500: #00a3db;
-    --color-primary-600: #0082af;
-    --color-primary-700: #006283;
-    --color-primary-800: #004157;
-    --color-primary-900: #00212c;
+  /* --- 1b. Brand Palette Scales (from tokens.css) --- */
+  --color-primary-50: #e6f7fc;
+  --color-primary-100: #cceff9;
+  --color-primary-200: #99dff3;
+  --color-primary-300: #66cfed;
+  --color-primary-400: #33bfe7;
+  --color-primary-500: #00a3db;
+  --color-primary-600: #0082af;
+  --color-primary-700: #006283;
+  --color-primary-800: #004157;
+  --color-primary-900: #00212c;
 
-    --color-secondary-50: #f5fce8;
-    --color-secondary-100: #ebf9d1;
-    --color-secondary-200: #d7f3a3;
-    --color-secondary-300: #c3ed75;
-    --color-secondary-400: #afe747;
-    --color-secondary-500: #a3d639;
-    --color-secondary-600: #82ab2e;
-    --color-secondary-700: #628022;
-    --color-secondary-800: #415517;
-    --color-secondary-900: #212b0b;
+  --color-secondary-50: #f5fce8;
+  --color-secondary-100: #ebf9d1;
+  --color-secondary-200: #d7f3a3;
+  --color-secondary-300: #c3ed75;
+  --color-secondary-400: #afe747;
+  --color-secondary-500: #a3d639;
+  --color-secondary-600: #82ab2e;
+  --color-secondary-700: #628022;
+  --color-secondary-800: #415517;
+  --color-secondary-900: #212b0b;
 
-    /* Surface colors (dark-theme surfaces) */
-    --color-surface-default: #12121a;
-    --color-surface-light: #1a1a24;
-    --color-surface-dark: #0a0a0f;
+  /* Surface colors (dark-theme surfaces) */
+  --color-surface-default: #12121a;
+  --color-surface-light: #1a1a24;
+  --color-surface-dark: #0a0a0f;
 
-    /* Legacy text/border aliases (kept for backward compat) */
-    --color-text-primary: #111827;
-    --color-text-secondary: #6b7280;
-    --color-border-subtle: #e5e7eb;
+  /* Legacy text/border aliases (kept for backward compat) */
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-border-subtle: #e5e7eb;
 
-    /* Glow shadows */
-    --shadow-glow: 0 0 20px rgba(0, 163, 219, 0.3);
-    --shadow-glow-lg: 0 0 40px rgba(0, 163, 219, 0.4);
-    --shadow-glow-secondary: 0 0 20px rgba(163, 214, 57, 0.3);
+  /* Glow shadows */
+  --shadow-glow: 0 0 20px rgba(0, 163, 219, 0.3);
+  --shadow-glow-lg: 0 0 40px rgba(0, 163, 219, 0.4);
+  --shadow-glow-secondary: 0 0 20px rgba(163, 214, 57, 0.3);
 
-    /* --- 2. Color Primitives --- */
-    /* Primary: The core Blue brand color */
-    --color-primary: hsl(var(--hue-primary), 100%, 43%);
-    --color-primary-focus: hsl(var(--hue-primary), 100%, 35%);
-    --color-primary-faint: hsl(var(--hue-primary), 100%, 96%);
+  /* --- 2. Color Primitives --- */
+  /* Primary: The core Blue brand color */
+  --color-primary: hsl(var(--hue-primary), 100%, 43%);
+  --color-primary-focus: hsl(var(--hue-primary), 100%, 35%);
+  --color-primary-faint: hsl(var(--hue-primary), 100%, 96%);
 
-    /* Secondary: The Lime-Green accent color */
-    --color-secondary: hsl(var(--hue-secondary), 75%, 45%);
-    --color-secondary-focus: hsl(var(--hue-secondary), 75%, 35%);
-    --color-secondary-faint: hsl(var(--hue-secondary), 75%, 96%);
+  /* Secondary: The Lime-Green accent color */
+  --color-secondary: hsl(var(--hue-secondary), 75%, 45%);
+  --color-secondary-focus: hsl(var(--hue-secondary), 75%, 35%);
+  --color-secondary-faint: hsl(var(--hue-secondary), 75%, 96%);
 
-    /* UI Colors */
-    --color-success: hsl(142, 71%, 45%);
-    --color-warning: hsl(45, 93%, 47%);
-    --color-error: hsl(0, 84%, 60%);
+  /* UI Colors */
+  --color-success: hsl(142, 71%, 45%);
+  --color-warning: hsl(45, 93%, 47%);
+  --color-error: hsl(0, 84%, 60%);
 
-    /* --- 3. Semantic Tokens (Light Mode Default) --- */
+  /* --- 3. Semantic Tokens (Light Mode Default) --- */
 
-    /* Backgrounds */
-    --bg-base: hsl(0, 0%, 100%);
-    --bg-surface: hsl(var(--hue-accent), 10%, 98%);
-    /* Slight tint of Navy */
-    --bg-card: hsl(0, 0%, 100%);
-    --bg-glass: hsla(0, 0%, 100%, 0.85);
+  /* Backgrounds */
+  --bg-base: hsl(0, 0%, 100%);
+  --bg-surface: hsl(var(--hue-accent), 10%, 98%);
+  /* Slight tint of Navy */
+  --bg-card: hsl(0, 0%, 100%);
+  --bg-glass: hsla(0, 0%, 100%, 0.85);
 
-    /* Legacy aliases for compatibility */
-    --bg-primary: hsl(0, 0%, 100%);
-    --bg-secondary: hsl(var(--hue-accent), 10%, 98%);
-    --bg-tertiary: hsl(var(--hue-accent), 10%, 96%);
-    --bg-hover: rgba(0, 0, 0, 0.04);
-    --bg-active: rgba(0, 0, 0, 0.08);
-    --bg-overlay: rgba(0, 0, 0, 0.4);
+  /* Legacy aliases for compatibility */
+  --bg-primary: hsl(0, 0%, 100%);
+  --bg-secondary: hsl(var(--hue-accent), 10%, 98%);
+  --bg-tertiary: hsl(var(--hue-accent), 10%, 96%);
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.08);
+  --bg-overlay: rgba(0, 0, 0, 0.4);
 
-    /* Typography */
-    --text-primary: hsl(var(--hue-accent), 60%, 15%);
-    /* Deep Navy for Headings */
-    --text-body: hsl(var(--hue-accent), 20%, 35%);
-    /* Slate Grey for Body */
-    --text-muted: hsl(var(--hue-accent), 15%, 55%);
-    --text-inverse: hsl(0, 0%, 100%);
-    /* White text on Blue */
-    --text-secondary: hsl(var(--hue-accent), 20%, 35%);
-    --text-disabled: hsl(var(--hue-accent), 15%, 70%);
+  /* Typography */
+  --text-primary: hsl(var(--hue-accent), 60%, 15%);
+  /* Deep Navy for Headings */
+  --text-body: hsl(var(--hue-accent), 20%, 35%);
+  /* Slate Grey for Body */
+  --text-muted: hsl(var(--hue-accent), 15%, 55%);
+  --text-inverse: hsl(0, 0%, 100%);
+  /* White text on Blue */
+  --text-secondary: hsl(var(--hue-accent), 20%, 35%);
+  --text-disabled: hsl(var(--hue-accent), 15%, 70%);
 
-    /* Borders & Inputs */
-    --border-primary: hsl(var(--hue-accent), 15%, 90%);
-    --border-accent: hsl(var(--hue-primary), 60%, 80%);
-    --border-secondary: hsl(var(--hue-accent), 15%, 85%);
-    --border-focus: var(--color-primary);
-    --input-bg: hsl(0, 0%, 100%);
-    --input-border-focus: var(--color-primary);
+  /* Borders & Inputs */
+  --border-primary: hsl(var(--hue-accent), 15%, 90%);
+  --border-accent: hsl(var(--hue-primary), 60%, 80%);
+  --border-secondary: hsl(var(--hue-accent), 15%, 85%);
+  --border-focus: var(--color-primary);
+  --input-bg: hsl(0, 0%, 100%);
+  --input-border-focus: var(--color-primary);
 
-    /* Brand Colors (Legacy) */
-    --brand-primary: hsl(var(--hue-primary), 100%, 43%);
-    --brand-primary-light: hsl(var(--hue-primary), 100%, 55%);
-    --brand-primary-dark: hsl(var(--hue-primary), 100%, 35%);
-    --brand-secondary: hsl(var(--hue-secondary), 75%, 45%);
+  /* Brand Colors (Legacy) */
+  --brand-primary: hsl(var(--hue-primary), 100%, 43%);
+  --brand-primary-light: hsl(var(--hue-primary), 100%, 55%);
+  --brand-primary-dark: hsl(var(--hue-primary), 100%, 35%);
+  --brand-secondary: hsl(var(--hue-secondary), 75%, 45%);
 
-    /* Primary Color States */
-    --primary: var(--color-primary);
-    --primary-hover: var(--color-primary-focus);
-    --primary-active: hsl(var(--hue-primary), 100%, 30%);
-    --primary-light: var(--color-primary-faint);
+  /* Primary Color States */
+  --primary: var(--color-primary);
+  --primary-hover: var(--color-primary-focus);
+  --primary-active: hsl(var(--hue-primary), 100%, 30%);
+  --primary-light: var(--color-primary-faint);
 
-    /* Status Colors */
-    --status-success: var(--color-success);
-    --status-success-light: hsla(142, 71%, 45%, 0.1);
-    --status-warning: var(--color-warning);
-    --status-warning-light: hsla(45, 93%, 47%, 0.1);
-    --status-error: var(--color-error);
-    --status-error-light: hsla(0, 84%, 60%, 0.1);
-    --status-info: hsl(var(--hue-primary), 100%, 50%);
-    --status-info-light: hsla(var(--hue-primary), 100%, 50%, 0.1);
+  /* Status Colors */
+  --status-success: var(--color-success);
+  --status-success-light: hsla(142, 71%, 45%, 0.1);
+  --status-warning: var(--color-warning);
+  --status-warning-light: hsla(45, 93%, 47%, 0.1);
+  --status-error: var(--color-error);
+  --status-error-light: hsla(0, 84%, 60%, 0.1);
+  --status-info: hsl(var(--hue-primary), 100%, 50%);
+  --status-info-light: hsla(var(--hue-primary), 100%, 50%, 0.1);
 
-    /* Gradients & Shadows */
-    /* Updated Gradient: Flows from KEC Blue to KEC Green */
-    --gradient-button: linear-gradient(135deg, hsl(195, 100%, 43%) 0%, hsl(85, 75%, 45%) 100%);
-    --gradient-text: linear-gradient(135deg, hsl(195, 100%, 40%) 0%, hsl(85, 85%, 40%) 100%);
+  /* Gradients & Shadows */
+  /* Updated Gradient: Flows from KEC Blue to KEC Green */
+  --gradient-button: linear-gradient(135deg, hsl(195, 100%, 43%) 0%, hsl(85, 75%, 45%) 100%);
+  --gradient-text: linear-gradient(135deg, hsl(195, 100%, 40%) 0%, hsl(85, 85%, 40%) 100%);
 
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --shadow-primary: hsla(var(--hue-primary), 90%, 50%, 0.35);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --shadow-primary: hsla(var(--hue-primary), 90%, 50%, 0.35);
 
-    /* Blue Glow */
-    --glow-primary: 0 0 20px hsla(var(--hue-primary), 90%, 50%, 0.35);
+  /* Blue Glow */
+  --glow-primary: 0 0 20px hsla(var(--hue-primary), 90%, 50%, 0.35);
 
-    /* Layout & Animation */
-    --radius-sm: 0.25rem;
-    --radius-md: 0.375rem;
-    --radius-lg: 0.5rem;
-    --radius-xl: 1rem;
-    --radius-2xl: 1.5rem;
-    --radius-full: 9999px;
+  /* Layout & Animation */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
 
-    /* Typography */
-    --font-primary: 'Poppins', system-ui, sans-serif;
-    --font-secondary: 'Outfit', sans-serif;
-    --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    --font-heading: 'Poppins', 'Inter', system-ui, sans-serif;
-    --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  /* Typography */
+  --font-primary: 'Poppins', system-ui, sans-serif;
+  --font-secondary: 'Outfit', sans-serif;
+  --font-body:
+    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Poppins', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 
-    /* Transitions */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-base: 200ms ease;
-    --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 300ms ease;
-    --transition-slower: 500ms ease;
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms ease;
+  --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms ease;
+  --transition-slower: 500ms ease;
 
-    /* Spacing Scale */
-    --space-1: 0.25rem;
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-8: 2rem;
-    --space-10: 2.5rem;
-    --space-12: 3rem;
+  /* Spacing Scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
 
-    /* Z-Index Scale */
-    --z-dropdown: 50;
-    --z-sticky: 100;
-    --z-modal: 200;
-    --z-popover: 300;
-    --z-tooltip: 400;
-    --z-overlay: 500;
-    --z-toast: 600;
+  /* Z-Index Scale */
+  --z-dropdown: 50;
+  --z-sticky: 100;
+  --z-modal: 200;
+  --z-popover: 300;
+  --z-tooltip: 400;
+  --z-overlay: 500;
+  --z-toast: 600;
 
-    /* Scrollbar */
-    --scrollbar-track: #f5f5f5;
-    --scrollbar-thumb: #d4d4d4;
-    --scrollbar-thumb-hover: #a3a3a3;
+  /* Scrollbar */
+  --scrollbar-track: #f5f5f5;
+  --scrollbar-thumb: #d4d4d4;
+  --scrollbar-thumb-hover: #a3a3a3;
 
-    color-scheme: light;
+  color-scheme: light;
 }
 
 /* --- Smooth Transitions for Theme Switching --- */
 *,
 *::before,
 *::after {
-    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-    transition-duration: 300ms;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 300ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Preserve specific animations and transitions */
-[class*="animate-"],
-[class*="transition-"] {
-    transition-property: all;
+[class*='animate-'],
+[class*='transition-'] {
+  transition-property: all;
 }
 
 /* --- 4. Dark Mode Overrides (System Preference) --- */
 /* Only apply if NO manual override exists */
 @media (prefers-color-scheme: dark) {
-    :root:not(.light) {
-        /* Dark Navy Backgrounds */
-        --bg-base: hsl(var(--hue-accent), 40%, 8%);
-        --bg-surface: hsl(var(--hue-accent), 35%, 12%);
-        --bg-card: hsl(var(--hue-accent), 30%, 14%);
-        --bg-glass: hsla(var(--hue-accent), 40%, 8%, 0.85);
+  :root:not(.light) {
+    /* Dark Navy Backgrounds */
+    --bg-base: hsl(var(--hue-accent), 40%, 8%);
+    --bg-surface: hsl(var(--hue-accent), 35%, 12%);
+    --bg-card: hsl(var(--hue-accent), 30%, 14%);
+    --bg-glass: hsla(var(--hue-accent), 40%, 8%, 0.85);
 
-        /* Legacy aliases */
-        --bg-primary: hsl(var(--hue-accent), 40%, 8%);
-        --bg-secondary: hsl(var(--hue-accent), 35%, 12%);
-        --bg-tertiary: hsl(var(--hue-accent), 30%, 16%);
-        --bg-hover: rgba(255, 255, 255, 0.05);
-        --bg-active: rgba(255, 255, 255, 0.08);
-        --bg-overlay: rgba(0, 0, 0, 0.6);
+    /* Legacy aliases */
+    --bg-primary: hsl(var(--hue-accent), 40%, 8%);
+    --bg-secondary: hsl(var(--hue-accent), 35%, 12%);
+    --bg-tertiary: hsl(var(--hue-accent), 30%, 16%);
+    --bg-hover: rgba(255, 255, 255, 0.05);
+    --bg-active: rgba(255, 255, 255, 0.08);
+    --bg-overlay: rgba(0, 0, 0, 0.6);
 
-        --text-primary: hsl(0, 0%, 98%);
-        --text-body: hsl(var(--hue-accent), 15%, 80%);
-        --text-muted: hsl(var(--hue-accent), 15%, 60%);
-        --text-secondary: hsl(var(--hue-accent), 15%, 80%);
-        --text-disabled: hsl(var(--hue-accent), 15%, 40%);
+    --text-primary: hsl(0, 0%, 98%);
+    --text-body: hsl(var(--hue-accent), 15%, 80%);
+    --text-muted: hsl(var(--hue-accent), 15%, 60%);
+    --text-secondary: hsl(var(--hue-accent), 15%, 80%);
+    --text-disabled: hsl(var(--hue-accent), 15%, 40%);
 
-        --border-primary: hsl(var(--hue-accent), 30%, 25%);
-        --border-accent: hsl(var(--hue-primary), 70%, 30%);
-        --border-secondary: hsl(var(--hue-accent), 30%, 20%);
+    --border-primary: hsl(var(--hue-accent), 30%, 25%);
+    --border-accent: hsl(var(--hue-primary), 70%, 30%);
+    --border-secondary: hsl(var(--hue-accent), 30%, 20%);
 
-        --input-bg: hsl(var(--hue-accent), 25%, 16%);
+    --input-bg: hsl(var(--hue-accent), 25%, 16%);
 
-        /* Darker faint color for visibility on dark bg */
-        --color-primary-faint: hsl(var(--hue-primary), 30%, 15%);
+    /* Darker faint color for visibility on dark bg */
+    --color-primary-faint: hsl(var(--hue-primary), 30%, 15%);
 
-        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-        --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.5);
-        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
-        --shadow-color: rgba(0, 0, 0, 0.4);
-        --shadow-primary: hsla(var(--hue-primary), 90%, 50%, 0.25);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow-primary: hsla(var(--hue-primary), 90%, 50%, 0.25);
 
-        /* Scrollbar */
-        --scrollbar-track: #1c1c1c;
-        --scrollbar-thumb: #333333;
-        --scrollbar-thumb-hover: #444444;
+    /* Scrollbar */
+    --scrollbar-track: #1c1c1c;
+    --scrollbar-thumb: #333333;
+    --scrollbar-thumb-hover: #444444;
 
-        color-scheme: dark;
-    }
+    color-scheme: dark;
+  }
 }
 
 /* --- 5. Manual Light Mode (Override) --- */
 html.light,
 :root.light,
-[data-theme="light"] {
-    /* Force light mode variables */
-    --bg-base: hsl(0, 0%, 100%) !important;
-    --bg-surface: hsl(var(--hue-accent), 10%, 98%) !important;
-    --bg-card: hsl(0, 0%, 100%) !important;
-    --bg-glass: hsla(0, 0%, 100%, 0.85) !important;
+[data-theme='light'] {
+  /* Force light mode variables */
+  --bg-base: hsl(0, 0%, 100%) !important;
+  --bg-surface: hsl(var(--hue-accent), 10%, 98%) !important;
+  --bg-card: hsl(0, 0%, 100%) !important;
+  --bg-glass: hsla(0, 0%, 100%, 0.85) !important;
 
-    --bg-primary: hsl(0, 0%, 100%) !important;
-    --bg-secondary: hsl(var(--hue-accent), 10%, 98%) !important;
-    --bg-tertiary: hsl(var(--hue-accent), 10%, 96%) !important;
-    --bg-hover: rgba(0, 0, 0, 0.04) !important;
-    --bg-active: rgba(0, 0, 0, 0.08) !important;
-    --bg-overlay: rgba(0, 0, 0, 0.4) !important;
+  --bg-primary: hsl(0, 0%, 100%) !important;
+  --bg-secondary: hsl(var(--hue-accent), 10%, 98%) !important;
+  --bg-tertiary: hsl(var(--hue-accent), 10%, 96%) !important;
+  --bg-hover: rgba(0, 0, 0, 0.04) !important;
+  --bg-active: rgba(0, 0, 0, 0.08) !important;
+  --bg-overlay: rgba(0, 0, 0, 0.4) !important;
 
-    --text-primary: hsl(var(--hue-accent), 60%, 15%) !important;
-    --text-body: hsl(var(--hue-accent), 20%, 35%) !important;
-    --text-muted: hsl(var(--hue-accent), 15%, 55%) !important;
-    --text-secondary: hsl(var(--hue-accent), 20%, 35%) !important;
-    --text-disabled: hsl(var(--hue-accent), 15%, 70%) !important;
+  --text-primary: hsl(var(--hue-accent), 60%, 15%) !important;
+  --text-body: hsl(var(--hue-accent), 20%, 35%) !important;
+  --text-muted: hsl(var(--hue-accent), 15%, 55%) !important;
+  --text-secondary: hsl(var(--hue-accent), 20%, 35%) !important;
+  --text-disabled: hsl(var(--hue-accent), 15%, 70%) !important;
 
-    --border-primary: hsl(var(--hue-accent), 15%, 90%) !important;
-    --border-accent: hsl(var(--hue-primary), 60%, 80%) !important;
-    --border-secondary: hsl(var(--hue-accent), 15%, 85%) !important;
+  --border-primary: hsl(var(--hue-accent), 15%, 90%) !important;
+  --border-accent: hsl(var(--hue-primary), 60%, 80%) !important;
+  --border-secondary: hsl(var(--hue-accent), 15%, 85%) !important;
 
-    --input-bg: hsl(0, 0%, 100%) !important;
-    --color-primary-faint: hsl(var(--hue-primary), 100%, 96%) !important;
+  --input-bg: hsl(0, 0%, 100%) !important;
+  --color-primary-faint: hsl(var(--hue-primary), 100%, 96%) !important;
 
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
-    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05) !important;
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
-    --shadow-color: rgba(0, 0, 0, 0.1) !important;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05) !important;
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+  --shadow-color: rgba(0, 0, 0, 0.1) !important;
 
-    --scrollbar-track: #f5f5f5 !important;
-    --scrollbar-thumb: #d4d4d4 !important;
-    --scrollbar-thumb-hover: #a3a3a3 !important;
+  --scrollbar-track: #f5f5f5 !important;
+  --scrollbar-thumb: #d4d4d4 !important;
+  --scrollbar-thumb-hover: #a3a3a3 !important;
 
-    color-scheme: light !important;
+  color-scheme: light !important;
 }
 
 /* --- 6. Manual Dark Mode Toggle (Triggered by JS .dark class) --- */
 html.dark,
 :root.dark,
-[data-theme="dark"] {
-    /* Identical to media query above to ensure toggle works consistently */
-    --bg-base: hsl(var(--hue-accent), 40%, 8%) !important;
-    --bg-surface: hsl(var(--hue-accent), 35%, 12%) !important;
-    --bg-card: hsl(var(--hue-accent), 30%, 14%) !important;
-    --bg-glass: hsla(var(--hue-accent), 40%, 8%, 0.85) !important;
+[data-theme='dark'] {
+  /* Identical to media query above to ensure toggle works consistently */
+  --bg-base: hsl(var(--hue-accent), 40%, 8%) !important;
+  --bg-surface: hsl(var(--hue-accent), 35%, 12%) !important;
+  --bg-card: hsl(var(--hue-accent), 30%, 14%) !important;
+  --bg-glass: hsla(var(--hue-accent), 40%, 8%, 0.85) !important;
 
-    --bg-primary: hsl(var(--hue-accent), 40%, 8%) !important;
-    --bg-secondary: hsl(var(--hue-accent), 35%, 12%) !important;
-    --bg-tertiary: hsl(var(--hue-accent), 30%, 16%) !important;
-    --bg-hover: rgba(255, 255, 255, 0.05) !important;
-    --bg-active: rgba(255, 255, 255, 0.08) !important;
-    --bg-overlay: rgba(0, 0, 0, 0.6) !important;
+  --bg-primary: hsl(var(--hue-accent), 40%, 8%) !important;
+  --bg-secondary: hsl(var(--hue-accent), 35%, 12%) !important;
+  --bg-tertiary: hsl(var(--hue-accent), 30%, 16%) !important;
+  --bg-hover: rgba(255, 255, 255, 0.05) !important;
+  --bg-active: rgba(255, 255, 255, 0.08) !important;
+  --bg-overlay: rgba(0, 0, 0, 0.6) !important;
 
-    --text-primary: hsl(0, 0%, 98%) !important;
-    --text-body: hsl(var(--hue-accent), 15%, 80%) !important;
-    --text-muted: hsl(var(--hue-accent), 15%, 60%) !important;
-    --text-secondary: hsl(var(--hue-accent), 15%, 80%) !important;
-    --text-disabled: hsl(var(--hue-accent), 15%, 40%) !important;
+  --text-primary: hsl(0, 0%, 98%) !important;
+  --text-body: hsl(var(--hue-accent), 15%, 80%) !important;
+  --text-muted: hsl(var(--hue-accent), 15%, 60%) !important;
+  --text-secondary: hsl(var(--hue-accent), 15%, 80%) !important;
+  --text-disabled: hsl(var(--hue-accent), 15%, 40%) !important;
 
-    --border-primary: hsl(var(--hue-accent), 30%, 25%) !important;
-    --border-accent: hsl(var(--hue-primary), 70%, 30%) !important;
-    --border-secondary: hsl(var(--hue-accent), 30%, 20%) !important;
+  --border-primary: hsl(var(--hue-accent), 30%, 25%) !important;
+  --border-accent: hsl(var(--hue-primary), 70%, 30%) !important;
+  --border-secondary: hsl(var(--hue-accent), 30%, 20%) !important;
 
-    --input-bg: hsl(var(--hue-accent), 25%, 16%) !important;
-    --color-primary-faint: hsl(var(--hue-primary), 30%, 15%) !important;
+  --input-bg: hsl(var(--hue-accent), 25%, 16%) !important;
+  --color-primary-faint: hsl(var(--hue-primary), 30%, 15%) !important;
 
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3) !important;
-    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.5) !important;
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5) !important;
-    --shadow-color: rgba(0, 0, 0, 0.4) !important;
-    --shadow-primary: hsla(var(--hue-primary), 90%, 50%, 0.25) !important;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3) !important;
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.5) !important;
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.5) !important;
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3) !important;
+  --shadow-color: rgba(0, 0, 0, 0.4) !important;
+  --shadow-primary: hsla(var(--hue-primary), 90%, 50%, 0.25) !important;
 
-    --scrollbar-track: #1c1c1c !important;
-    --scrollbar-thumb: #333333 !important;
-    --scrollbar-thumb-hover: #444444 !important;
+  --scrollbar-track: #1c1c1c !important;
+  --scrollbar-thumb: #333333 !important;
+  --scrollbar-thumb-hover: #444444 !important;
 
-    color-scheme: dark !important;
+  color-scheme: dark !important;
 }
 
 /* Dark mode adjustments for specific elements */
 html.dark body,
 :root.dark body {
-    background-color: var(--bg-base);
-    color: var(--text-body);
+  background-color: var(--bg-base);
+  color: var(--text-body);
 }
 
 /* --- 7. Essential Helper Classes --- */
 .glass-effect {
-    background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border-primary);
-    transition: background-color 300ms ease, border-color 300ms ease;
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-primary);
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease;
 }
 
 .text-gradient {
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Nav Item Underline Animation */
 .nav-item {
-    position: relative;
+  position: relative;
 }
 
 .nav-item::before {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    width: 0;
-    height: 2px;
-    background: var(--color-primary);
-    transition: all 0.3s ease;
-    transform: translateX(-50%);
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--color-primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
 }
 
 .nav-item:hover::before {
-    width: 80%;
+  width: 80%;
 }
 
 /* Theme Toggle Button Styles */
 #theme-toggle,
 #theme-toggle-mobile {
-    transition: all 300ms ease;
+  transition: all 300ms ease;
 }
 
 #theme-toggle:hover,
 #theme-toggle-mobile:hover {
-    transform: rotate(15deg) scale(1.1);
+  transform: rotate(15deg) scale(1.1);
 }
 
 /* Smooth transitions for all interactive elements */
@@ -397,65 +404,69 @@ a,
 input,
 select,
 textarea {
-    transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease, transform 200ms ease;
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease,
+    color 300ms ease,
+    transform 200ms ease;
 }
 
 /* Dark mode specific overrides for better contrast */
 html.dark .bg-white,
 :root.dark .bg-white {
-    background-color: var(--bg-card) !important;
+  background-color: var(--bg-card) !important;
 }
 
 html.dark .text-gray-800,
 :root.dark .text-gray-800 {
-    color: var(--text-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 html.dark .text-gray-600,
 :root.dark .text-gray-600 {
-    color: var(--text-body) !important;
+  color: var(--text-body) !important;
 }
 
 html.dark .text-gray-500,
 :root.dark .text-gray-500,
 html.dark .text-gray-400,
 :root.dark .text-gray-400 {
-    color: var(--text-muted) !important;
+  color: var(--text-muted) !important;
 }
 
 html.dark .border-gray-800,
 :root.dark .border-gray-800 {
-    border-color: var(--border-primary) !important;
+  border-color: var(--border-primary) !important;
 }
 
 /* Footer dark mode adjustments */
 html.dark footer.bg-gray-950,
 :root.dark footer.bg-gray-950 {
-    background-color: hsl(var(--hue-accent), 50%, 5%) !important;
+  background-color: hsl(var(--hue-accent), 50%, 5%) !important;
 }
 
 /* Light mode specific overrides */
 html.light footer.bg-gray-950,
 :root.light footer.bg-gray-950 {
-    background-color: #030712 !important;
+  background-color: #030712 !important;
 }
 
 html.light .bg-white,
 :root.light .bg-white {
-    background-color: #ffffff !important;
+  background-color: #ffffff !important;
 }
 
 html.light .text-gray-800,
 :root.light .text-gray-800 {
-    color: var(--text-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 html.light .text-gray-600,
 :root.light .text-gray-600 {
-    color: var(--text-body) !important;
+  color: var(--text-body) !important;
 }
 
 html.light .border-gray-800,
 :root.light .border-gray-800 {
-    border-color: #1f2937 !important;
+  border-color: #1f2937 !important;
 }

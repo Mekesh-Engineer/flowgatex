@@ -14,6 +14,7 @@ import { NotificationsDropdown, type Notification } from './navbar/Notifications
 import { ThemeToggle } from './navbar/ThemeToggle';
 import { MegaMenu } from './navbar/MegaMenu';
 import { MobileMenu } from './navbar/MobileMenu';
+import CartIcon from '@/features/booking/components/CartIcon';
 
 const NAVIGATION_LINKS = [
   { label: 'Home', path: '/' },
@@ -190,20 +191,18 @@ function Navbar() {
         role="navigation"
         aria-label="Main navigation"
       >
-        <div className={`mx-auto px-4 sm:px-6 ${isScrolled ? 'max-w-7xl' : 'max-w-7xl lg:px-8'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`flex items-center justify-between ${isScrolled ? 'h-16' : 'h-16 lg:h-20'}`}>
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group" aria-label="FlowGateX Home">
               <div className="relative">
                 <motion.div
-                  className="absolute -inset-1 bg-gradient-to-r from-[#00A3DB] to-[#A3D639] rounded-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300"
-                  style={{ filter: 'blur(8px)' }}
+                  className="absolute -inset-1 bg-gradient-to-r from-[#00A3DB] to-[#A3D639] rounded-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 blur-[8px]"
                 />
                 <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-[#00A3DB] via-[#0091c4] to-[#A3D639] flex items-center justify-center shadow-lg shadow-[#00A3DB]/25 group-hover:shadow-[#00A3DB]/40 transition-all duration-300 group-hover:scale-105">
                   <span
-                    className="material-symbols-outlined text-[20px] text-white font-semibold"
-                    style={{ fontVariationSettings: "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
+                    className="material-symbols-outlined text-[20px] text-white font-semibold material-symbols-filled"
                   >
                     stream
                   </span>
@@ -244,7 +243,7 @@ function Navbar() {
                     ? 'text-[#00A3DB] bg-[#00A3DB]/10'
                     : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
                     }`}
-                  aria-expanded={isMegaMenuOpen}
+                  aria-expanded={isMegaMenuOpen ? "true" : "false"}
                   aria-haspopup="true"
                 >
                   Explore
@@ -276,6 +275,9 @@ function Navbar() {
 
               {isAuthenticated ? (
                 <>
+                  {/* Cart */}
+                  <CartIcon />
+
                   {/* Notifications */}
                   <div ref={notificationsRef} className="relative">
                     <button
@@ -284,8 +286,9 @@ function Navbar() {
                         setAccountDropdownOpen(false);
                       }}
                       className="relative p-2.5 rounded-xl bg-[var(--bg-secondary)] hover:bg-[var(--bg-hover)] border border-[var(--border-primary)] transition-all duration-200"
+                      aria-haspopup="true"
+                      aria-expanded={isNotificationsOpen ? "true" : "false"}
                       aria-label="Notifications"
-                      aria-expanded={isNotificationsOpen}
                     >
                       <Bell size={18} className="text-[var(--text-secondary)]" />
                       {unreadCount > 0 && (
@@ -306,7 +309,7 @@ function Navbar() {
                   </div>
 
                   {/* User Profile + Account Dropdown */}
-                  <li className="dash-header-item-right">
+                  <div className="dash-header-item-right">
                     <div className="flex items-center">
                       <div className="dash-user-info desktop-only">
                         <span className="dash-user-name">
@@ -323,10 +326,9 @@ function Navbar() {
                           type="button"
                           onClick={toggleAccountDropdown}
                           className="dash-account-trigger"
-                          aria-haspopup="menu"
-                          aria-expanded={accountDropdownOpen}
-                          aria-label="User menu"
-                        >
+                          aria-haspopup="true"
+                          aria-expanded={accountDropdownOpen ? "true" : "false"}
+                          aria-label="User menu" >
                           <img
                             className="shrink-0 size-8 rounded-full border-2 border-[var(--border-primary)]"
                             src={user?.photoURL || 'https://images.unsplash.com/photo-1659482633369-9fe69af50bfb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=facearea&facepad=3&w=320&h=320&q=80'}
@@ -336,8 +338,6 @@ function Navbar() {
 
                         <div
                           className={`dash-dropdown-panel is-right is-wide ${accountDropdownOpen ? 'is-open' : ''}`}
-                          role="menu"
-                          aria-orientation="vertical"
                           aria-labelledby="hs-dnad"
                         >
                           <div className="dash-account-info">
@@ -377,6 +377,10 @@ function Navbar() {
                               <svg className="shrink-0 mt-0.5 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                               Profile
                             </Link>
+                            <Link className="dash-account-menu-item" to="/my-tickets" onClick={() => setAccountDropdownOpen(false)}>
+                              <svg className="shrink-0 mt-0.5 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /><path d="M13 5v2" /><path d="M13 17v2" /><path d="M13 11v2" /></svg>
+                              My Tickets
+                            </Link>
                             <Link className="dash-account-menu-item" to="/settings" onClick={() => setAccountDropdownOpen(false)}>
                               <svg className="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></svg>
                               Settings
@@ -389,7 +393,7 @@ function Navbar() {
                         </div>
                       </div>
                     </div>
-                  </li>
+                  </div>
                 </>
               ) : (
                 <>
@@ -414,6 +418,7 @@ function Navbar() {
             {/* Mobile Actions */}
             <div className="flex lg:hidden items-center gap-2">
               <ThemeToggle isDark={theme === 'dark'} onToggle={handleThemeToggle} />
+              {isAuthenticated && <CartIcon />}
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2.5 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] text-[var(--text-secondary)]"
@@ -425,7 +430,7 @@ function Navbar() {
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2.5 text-[var(--text-primary)] bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-xl transition-colors"
                 aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
-                aria-expanded={isMobileMenuOpen}
+                aria-expanded={isMobileMenuOpen ? "true" : "false"}
               >
                 {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>

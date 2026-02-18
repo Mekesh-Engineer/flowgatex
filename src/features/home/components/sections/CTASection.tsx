@@ -11,7 +11,7 @@ export const CTASection = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-[#00A3DB]/10 via-transparent to-[#A3D639]/10" />
             </div>
 
-            <div className="max-w-4xl mx-auto px-4 relative z-10 text-center">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 text-center">
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}>
                     <motion.div animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }} transition={{ duration: 3, repeat: Infinity }} className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00A3DB] to-[#A3D639] mb-8 shadow-2xl shadow-[#00A3DB]/30">
                         <Zap size={40} className="text-white" />

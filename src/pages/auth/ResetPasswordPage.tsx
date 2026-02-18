@@ -3,7 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Eye, EyeOff, CheckCircle2, ShieldCheck, ArrowLeft, Sun, Moon, Activity, Loader2 } from 'lucide-react';
 import { confirmPasswordReset } from 'firebase/auth';
-import { auth, firebaseEnabled } from '@/lib/firebase';
+import { auth, firebaseEnabled } from '@/services/firebase';
 import { cn } from '@/lib/utils';
 import { useThemeStore } from '@/store/zustand/stores';
 import PromoPanel from '@/features/auth/components/PromoPanel';

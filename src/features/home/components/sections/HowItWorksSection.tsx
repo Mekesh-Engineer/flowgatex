@@ -5,7 +5,7 @@ import { fadeInUp } from '../ui/SharedComponents';
 
 export const HowItWorksSection = () => {
     return (
-        <section className="relative mx-auto max-w-7xl px-6 py-24 md:px-12 overflow-visible">
+        <section className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 overflow-visible">
             <div className="absolute top-0 right-0 -z-20 h-96 w-96 rounded-full bg-[var(--color-primary)]/10 opacity-50 blur-[100px]" />
             <div className="absolute bottom-0 left-0 -z-20 h-96 w-96 rounded-full bg-[var(--color-secondary)]/10 opacity-50 blur-[100px]" />
 

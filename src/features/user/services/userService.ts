@@ -5,7 +5,7 @@ import {
   arrayUnion,
   arrayRemove,
 } from 'firebase/firestore';
-import { getDb } from '@/lib/firebase';
+import { getDb } from '@/services/firebase';
 
 const USERS_COLLECTION = 'users';
 

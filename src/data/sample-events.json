@@ -36,6 +36,7 @@
         "price": 249,
         "quantity": 100,
         "sold": 88,
+        "available": 12,
         "description": "Front row seating, VIP lounge access, and exclusive after-party.",
         "benefits": [
           "Lounge Access",
@@ -52,6 +53,7 @@
         "price": 129,
         "quantity": 2000,
         "sold": 450,
+        "available": 1550,
         "description": "Full access to all keynotes, breakout sessions, and expo hall.",
         "benefits": [
           "Keynote Access",
@@ -67,6 +69,7 @@
         "price": 79,
         "quantity": 500,
         "sold": 120,
+        "available": 380,
         "description": "Valid student ID required at check-in.",
         "benefits": [
           "Full Access"

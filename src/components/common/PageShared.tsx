@@ -1,41 +1,41 @@
 import React, { useRef } from 'react';
-import { motion, useInView, Variants } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 
 // =============================================================================
 // ANIMATION VARIANTS — Unified across all pages
 // =============================================================================
 
-export const fadeInUp: Variants = {
+export const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
-export const fadeInDown: Variants = {
+export const fadeInDown = {
     hidden: { opacity: 0, y: -20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
-export const fadeInLeft: Variants = {
+export const fadeInLeft = {
     hidden: { opacity: 0, x: -30 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
-export const fadeInRight: Variants = {
+export const fadeInRight = {
     hidden: { opacity: 0, x: 30 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
-export const scaleIn: Variants = {
+export const scaleIn = {
     hidden: { opacity: 0, scale: 0.8 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' } },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: 'easeOut' as const } },
 };
 
-export const staggerContainer: Variants = {
+export const staggerContainer = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 
-export const staggerFast: Variants = {
+export const staggerFast = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.06 } },
 };

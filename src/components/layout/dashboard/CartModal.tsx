@@ -3,22 +3,14 @@
 // Uses CSS classes from cart.css for consistent styling
 // =============================================================================
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { X, Trash2, Plus, Minus, ShoppingBag, CreditCard, Ticket } from 'lucide-react';
-
-// =============================================================================
-// TYPES
-// =============================================================================
-
-interface CartItem {
-  id: string;
-  eventName: string;
-  eventDate: string;
-  ticketType: string;
-  price: number;
-  quantity: number;
-  image?: string;
-}
+import { useCart } from '@/features/booking/hooks/useCart';
+import { useCartExpiry } from '@/features/booking/hooks/useCartExpiry';
+import { formatCurrency } from '@/lib/utils';
+import Button from '@/components/common/Button';
+import { showError } from '@/components/common/Toast';
 
 interface CartModalProps {
   isOpen: boolean;
@@ -26,84 +18,50 @@ interface CartModalProps {
 }
 
 // =============================================================================
-// MOCK DATA
-// =============================================================================
-
-const MOCK_CART_ITEMS: CartItem[] = [
-  {
-    id: '1',
-    eventName: 'Tech Conference 2026',
-    eventDate: 'Feb 15, 2026',
-    ticketType: 'VIP Pass',
-    price: 2500,
-    quantity: 1,
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=200&h=200&fit=crop',
-  },
-  {
-    id: '2',
-    eventName: 'Startup Pitch Night',
-    eventDate: 'Feb 20, 2026',
-    ticketType: 'General Admission',
-    price: 500,
-    quantity: 2,
-    image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=200&h=200&fit=crop',
-  },
-];
-
-// =============================================================================
-// UTILITIES
-// =============================================================================
-
-function formatCurrency(amount: number): string {
-  return `₹${amount.toLocaleString('en-IN')}`;
-}
-
-// =============================================================================
 // COMPONENT
 // =============================================================================
 
 export default function CartModal({ isOpen, onClose }: CartModalProps) {
-  const [cartItems, setCartItems] = useState(MOCK_CART_ITEMS);
+  const {
+    items,
+    removeFromCart,
+    updateItemQuantity,
+    emptyCart,
+    totalPrice,
+    isEmpty,
+    totalItems
+  } = useCart();
 
-  // Calculate totals
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = Math.round(subtotal * 0.18); // 18% GST
-  const total = subtotal + tax;
+  // Cart expiry
+  const oldestAddedAt = items.length > 0 ? Math.min(...items.map((i) => i.addedAt || Date.now())) : null;
+  const { isExpired } = useCartExpiry(oldestAddedAt);
+
+
+
+  // ... existing code ...
+
+  // Handle cart expired
+  useEffect(() => {
+    if (isExpired && !isEmpty) {
+      emptyCart();
+      showError('Cart expired. Items have been released.');
+      onClose();
+    }
+  }, [isExpired, isEmpty, emptyCart, onClose]);
 
   // Handle escape key
   useEffect(() => {
     if (!isOpen) return;
-    
+
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         onClose();
       }
     }
-    
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
-
-  // Update quantity
-  const updateQuantity = (id: string, delta: number) => {
-    setCartItems((items) =>
-      items.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
-  };
-
-  // Remove item
-  const removeItem = (id: string) => {
-    setCartItems((items) => items.filter((item) => item.id !== id));
-  };
-
-  // Clear cart
-  const clearCart = () => {
-    setCartItems([]);
-  };
 
   if (!isOpen) return null;
 
@@ -123,7 +81,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
             <div className="cart-header-text">
               <h2 id="cart-title" className="cart-title">Your Cart</h2>
               <p className="cart-count">
-                {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}
+                {totalItems} {totalItems === 1 ? 'item' : 'items'}
               </p>
             </div>
           </div>
@@ -139,34 +97,46 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
 
         {/* Cart Items */}
         <div className="cart-items">
-          {cartItems.length === 0 ? (
+          {isEmpty ? (
             <div className="cart-empty">
               <Ticket size={48} className="cart-empty-icon" />
               <p className="cart-empty-title">Your cart is empty</p>
               <p className="cart-empty-text">Browse events to add tickets</p>
+              <Link to="/events" onClick={onClose} className="mt-4 inline-block">
+                <Button variant="primary">Browse Events</Button>
+              </Link>
             </div>
           ) : (
             <div className="cart-items-list">
-              {cartItems.map((item) => (
-                <article key={item.id} className="cart-item">
+              {items.map((item) => (
+                <article key={`${item.eventId}-${item.tierId}`} className="cart-item">
                   {/* Event Image */}
                   <div className="cart-item-image">
-                    <img src={item.image} alt={item.eventName} />
+                    {item.eventImage ? (
+                      <img src={item.eventImage} alt={item.eventTitle} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-[var(--bg-surface)] text-[var(--text-muted)]">
+                        <Ticket size={24} />
+                      </div>
+                    )}
                   </div>
 
                   {/* Item Details */}
                   <div className="cart-item-details">
-                    <h3 className="cart-item-title">{item.eventName}</h3>
+                    <h3 className="cart-item-title">{item.eventTitle}</h3>
                     <p className="cart-item-meta">
-                      {item.eventDate} • {item.ticketType}
+                      {item.eventDate} • {item.tierName}
                     </p>
-                    <div className="cart-item-row">
-                      <span className="cart-item-price">{formatCurrency(item.price)}</span>
+                    {item.venue && (
+                      <p className="text-xs text-[var(--text-muted)] truncate">{item.venue}</p>
+                    )}
+                    <div className="cart-item-row mt-2">
+                      <span className="cart-item-price">{formatCurrency(item.price * item.quantity)}</span>
                       {/* Quantity Controls */}
                       <div className="cart-quantity">
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.id, -1)}
+                          onClick={() => updateItemQuantity(item.eventId, item.tierId, item.quantity - 1)}
                           className="cart-quantity-btn"
                           aria-label="Decrease quantity"
                         >
@@ -175,7 +145,7 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                         <span className="cart-quantity-value">{item.quantity}</span>
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.id, 1)}
+                          onClick={() => updateItemQuantity(item.eventId, item.tierId, item.quantity + 1)}
                           className="cart-quantity-btn"
                           aria-label="Increase quantity"
                         >
@@ -188,9 +158,9 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
                   {/* Remove Button */}
                   <button
                     type="button"
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeFromCart(item.eventId, item.tierId)}
                     className="cart-remove-btn"
-                    aria-label={`Remove ${item.eventName}`}
+                    aria-label={`Remove ${item.eventTitle}`}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -201,40 +171,37 @@ export default function CartModal({ isOpen, onClose }: CartModalProps) {
         </div>
 
         {/* Footer with Totals */}
-        {cartItems.length > 0 && (
+        {!isEmpty && (
           <footer className="cart-footer">
             {/* Price Breakdown */}
             <div className="cart-price-breakdown">
               <div className="cart-price-row">
                 <span className="cart-price-label">Subtotal</span>
-                <span className="cart-price-value">{formatCurrency(subtotal)}</span>
+                <span className="cart-price-value">{formatCurrency(totalPrice)}</span>
               </div>
-              <div className="cart-price-row">
-                <span className="cart-price-label">GST (18%)</span>
-                <span className="cart-price-value">{formatCurrency(tax)}</span>
-              </div>
-              <div className="cart-price-total">
-                <span className="cart-price-label">Total</span>
-                <span className="cart-price-value">{formatCurrency(total)}</span>
-              </div>
+              <p className="text-xs text-[var(--text-muted)] mt-1 text-right">
+                Service fees and taxes calculated at checkout
+              </p>
             </div>
 
             {/* Actions */}
             <div className="cart-actions">
               <button
                 type="button"
-                onClick={clearCart}
+                onClick={emptyCart}
                 className="cart-btn cart-btn-secondary"
               >
                 Clear Cart
               </button>
-              <button
-                type="button"
-                className="cart-btn cart-btn-primary"
-              >
-                <CreditCard size={16} />
-                Checkout
-              </button>
+              <Link to="/checkout" onClick={onClose} className="w-full">
+                <button
+                  type="button"
+                  className="cart-btn cart-btn-primary w-full"
+                >
+                  <CreditCard size={16} />
+                  Checkout
+                </button>
+              </Link>
             </div>
           </footer>
         )}

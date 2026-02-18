@@ -31,7 +31,15 @@ function parseFirestoreDate(value: unknown): Date {
  */
 export function toEventItem(event: CreateEventData & { id: string }): EventItem {
   const startDate = parseFirestoreDate(event.startDate);
-  const tiers = Array.isArray(event.ticketTiers) ? event.ticketTiers : [];
+  // Normalize tiers: compute 'available' field if missing
+  const rawTiers = Array.isArray(event.ticketTiers) ? event.ticketTiers : [];
+  const tiers = rawTiers.map(t => ({
+    ...t,
+    sold: t.sold ?? 0,
+    available: t.available ?? Math.max(0, (t.quantity ?? 0) - (t.sold ?? 0)),
+  }));
+  // Write back normalized tiers so downstream consumers (EventDetails) get the computed field
+  event.ticketTiers = tiers;
   const gallery = Array.isArray(event.gallery) ? event.gallery : [];
 
   const lowestPrice =

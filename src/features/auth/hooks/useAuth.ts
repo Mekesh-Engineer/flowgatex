@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { auth, db, firebaseEnabled } from '@/lib/firebase';
+import { auth, db, firebaseEnabled } from '@/services/firebase';
 import { logger } from '@/lib/logger';
 import { useAuthStore } from '@/store/zustand/stores';
 import { UserRole } from '@/lib/constants';

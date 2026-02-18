@@ -77,12 +77,12 @@ export function usePermissionContext(): PermissionContext {
     const orgSettings = getActiveOrgSettings();
     return {
       role: toAppRole(user?.role),
-      accountStatus: 'active', // will be enriched when FirestoreUser has accountStatus
-      organizationId: undefined, // will be enriched from FirestoreUser
+      accountStatus: user?.accountStatus ?? 'active',
+      organizationId: user?.organizationId,
       platformSettings: platformLoaded ? platform : null,
       organizationSettings: orgSettings,
     };
-  }, [user?.role, platform, platformLoaded, getActiveOrgSettings]);
+  }, [user?.role, user?.accountStatus, user?.organizationId, platform, platformLoaded, getActiveOrgSettings]);
 }
 
 // =============================================================================
@@ -208,12 +208,12 @@ export function useMaintenanceMode(): boolean {
  * Check if the user must set up 2FA before continuing.
  */
 export function use2FAEnforcement(): boolean {
+  const user = useAuthStore((s) => s.user);
   const platform = useSettingsStore((s) => s.platform);
   const platformLoaded = useSettingsStore((s) => s.platformLoaded);
   const getActiveOrgSettings = useSettingsStore((s) => s.getActiveOrgSettings);
 
-  // TODO: Read user's 2FA status from their profile
-  const userHas2FA = false;
+  const userHas2FA = user?.security?.twoFactorEnabled ?? false;
 
   return useMemo(() => {
     if (!platformLoaded) return false;

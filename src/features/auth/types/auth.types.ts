@@ -77,9 +77,9 @@ export interface AuthUser {
     timezone?: string;
     currency?: string;
     notifications?: {
-      email?: boolean;
-      push?: boolean;
-      sms?: boolean;
+      emailNotifications?: boolean;
+      pushNotifications?: boolean;
+      smsNotifications?: boolean;
       inApp?: boolean;
       eventReminders?: boolean;
       eventUpdates?: boolean;
@@ -96,8 +96,8 @@ export interface AuthUser {
   };
   privacy?: {
     profileVisibility?: 'public' | 'private';
-    showEmailToOrganizers?: boolean;
-    showPhoneToOrganizers?: boolean;
+    showEmail?: boolean;
+    showPhone?: boolean;
     showAttendedEvents?: boolean;
   };
 

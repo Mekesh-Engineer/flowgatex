@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Grid3X3, List, MapPin, Calendar, Clock, ChevronRight, ChevronLeft, Sparkles, Search } from 'lucide-react';
+import { Grid3X3, List, MapPin, Calendar, Clock, ChevronRight, ChevronLeft, Sparkles, Search, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import SearchInput from '@/components/common/SearchInput';
+import { GridCanvas, ParticleCanvas } from '@/features/home/components/canvas/CanvasEffects';
+import { FloatingElement } from '@/features/home/components/ui/SharedComponents';
 
 // =============================================================================
 // ANIMATION VARIANTS
@@ -104,6 +106,21 @@ export default function SearchResultsPage() {
             {/* ─── Search Hero ─── */}
             <section className="relative bg-[var(--bg-secondary)] border-b border-[var(--border-primary)] pt-12 pb-10 overflow-hidden transition-colors duration-300">
                 {/* Background decorations */}
+                <GridCanvas className="opacity-30 pointer-events-none" />
+                <ParticleCanvas particleCount={30} className="pointer-events-none" />
+
+                <FloatingElement className="absolute top-10 left-10 hidden lg:block opacity-50 pointer-events-none" delay={0}>
+                    <div className="p-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-sm rotate-12">
+                        <Music className="text-[var(--color-primary)]" size={20} />
+                    </div>
+                </FloatingElement>
+
+                <FloatingElement className="absolute bottom-10 right-10 hidden lg:block opacity-50 pointer-events-none" delay={1.2}>
+                    <div className="p-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-sm -rotate-6">
+                        <Sparkles className="text-[var(--color-secondary)]" size={20} />
+                    </div>
+                </FloatingElement>
+
                 <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--color-primary)] rounded-full blur-[120px] opacity-5 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-72 h-72 bg-[var(--color-secondary)] rounded-full blur-[100px] opacity-5 pointer-events-none" />
                 <div className="absolute inset-0 opacity-5 pointer-events-none">

@@ -14,10 +14,18 @@ const envSchema = z.object({
   VITE_FIREBASE_MESSAGING_SENDER_ID: z.string().min(1, 'Firebase messaging sender ID is required'),
   VITE_FIREBASE_APP_ID: z.string().min(1, 'Firebase app ID is required'),
   VITE_FIREBASE_MEASUREMENT_ID: z.string().optional(),
+  VITE_FIREBASE_DATABASE_URL: z.string().url().optional(),
+  VITE_RECAPTCHA_SITE_KEY: z.string().optional(),
+  VITE_MOCK_MODE: z.string().optional(),
 
   // Payment Gateways
   VITE_RAZORPAY_KEY_ID: z.string().optional(),
   VITE_CASHFREE_APP_ID: z.string().optional(),
+  VITE_USE_SERVER_PAYMENT: z.string().optional(),
+
+  // Google Maps
+  VITE_GOOGLE_MAPS_API_KEY: z.string().optional(),
+  VITE_GOOGLE_MAPS_MAP_ID: z.string().optional(),
 
   // Google Services
   VITE_GOOGLE_ANALYTICS_ID: z.string().optional(),
@@ -31,24 +39,24 @@ const envSchema = z.object({
   // Feature Flags
   VITE_ENABLE_ANALYTICS: z
     .string()
-    .transform((val) => val === 'true')
-    .default('false'),
+    .default('false')
+    .transform((val) => val === 'true'),
   VITE_ENABLE_PWA: z
     .string()
-    .transform((val) => val === 'true')
-    .default('true'),
+    .default('true')
+    .transform((val) => val === 'true'),
   VITE_ENABLE_CHATBOT: z
     .string()
-    .transform((val) => val === 'true')
-    .default('false'),
+    .default('false')
+    .transform((val) => val === 'true'),
   VITE_ENABLE_DEBUG: z
     .string()
-    .transform((val) => val === 'true')
-    .default('false'),
+    .default('false')
+    .transform((val) => val === 'true'),
   VITE_VERCEL_ANALYTICS: z
     .string()
-    .transform((val) => val === 'true')
-    .default('false'),
+    .default('false')
+    .transform((val) => val === 'true'),
 
   // Error Tracking
   VITE_SENTRY_DSN: z.string().optional(),
@@ -74,7 +82,7 @@ export function validateEnv(): Env | null {
   } catch (error) {
     if (error instanceof z.ZodError) {
       logger.error('❌ Invalid environment variables:');
-      error.errors.forEach((err) => {
+      error.issues.forEach((err) => {
         logger.error(`  - ${err.path.join('.')}: ${err.message}`);
       });
       // In production, log the error but don't crash — Firebase init will handle missing keys

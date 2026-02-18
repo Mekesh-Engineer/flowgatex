@@ -1,31 +1,8 @@
 import type { RazorpayOptions, RazorpayResponse, PaymentResult } from '../types/payment.types';
 import { logger } from '@/lib/logger';
-
-declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) => {
-      open: () => void;
-    };
-  }
-}
+import { loadRazorpayScript } from '@/services/razorpay';
 
 const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
-
-export const loadRazorpayScript = (): Promise<boolean> => {
-  return new Promise((resolve) => {
-    if (window.Razorpay) {
-      resolve(true);
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
-};
 
 export const initiateRazorpayPayment = async (
   orderId: string,
@@ -58,9 +35,9 @@ export const initiateRazorpayPayment = async (
       });
     },
     prefill: {
-      name: userDetails.name,
-      email: userDetails.email,
-      contact: userDetails.phone,
+      name: userDetails.name || '',
+      email: userDetails.email || '',
+      contact: userDetails.phone || '',
     },
     theme: {
       color: '#22d3ee',
@@ -68,7 +45,7 @@ export const initiateRazorpayPayment = async (
   };
 
   try {
-    const razorpay = new window.Razorpay(options);
+    const razorpay = new (window as any).Razorpay(options);
     razorpay.open();
   } catch (error) {
     onFailure('Payment initialization failed');
@@ -78,10 +55,27 @@ export const initiateRazorpayPayment = async (
 export const verifyPayment = async (
   paymentId: string,
   orderId: string,
-  signature: string
+  signature: string,
+  bookingId: string
 ): Promise<boolean> => {
-  // This should call your backend to verify the payment
-  // For now, we'll return true
-  logger.log('Verifying payment:', { paymentId, orderId, signature });
-  return true;
+  try {
+    const { getFunctionsInstance } = await import('@/services/firebase');
+    const { httpsCallable } = await import('firebase/functions');
+    const functionsInstance = getFunctionsInstance();
+    const verifyFn = httpsCallable<
+      { razorpay_payment_id: string; razorpay_order_id: string; razorpay_signature: string; bookingId: string },
+      { verified: boolean }
+    >(functionsInstance, 'verifyRazorpayPayment');
+
+    const result = await verifyFn({
+      razorpay_payment_id: paymentId,
+      razorpay_order_id: orderId,
+      razorpay_signature: signature,
+      bookingId,
+    });
+    return result.data.verified;
+  } catch (error) {
+    logger.error('Payment verification failed:', error);
+    return false;
+  }
 };

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Play, Pause, Volume2, Volume1, VolumeX, SkipBack, SkipForward, Maximize2, Minimize2, PictureInPicture2, Subtitles, Gauge, Loader2 } from 'lucide-react';
 
@@ -14,7 +14,7 @@ const formatTime = (seconds: number): string => {
 export const VideoModal = ({ isOpen, onClose, videoSrc }: { isOpen: boolean; onClose: () => void; videoSrc: string }) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const progressRef = useRef<HTMLDivElement>(null);
-    const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+    const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
 
     // Core state
@@ -249,7 +249,7 @@ export const VideoModal = ({ isOpen, onClose, videoSrc }: { isOpen: boolean; onC
                         exit={{ opacity: 0, scale: 0.8 }}
                         transition={{ duration: 0.25, delay: 0.1 }}
                         onClick={handleClose}
-                        className="absolute top-3 right-3 sm:top-5 sm:right-5 z-[60] group"
+                        className="absolute top-3 right-3 sm:top-5 sm:right-5 z-60 group"
                         aria-label="Close video player (Escape)"
                     >
                         <div className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/60 border border-white/15 backdrop-blur-sm hover:bg-white/15 hover:border-white/30 hover:scale-110 active:scale-95 transition-all duration-200 shadow-lg shadow-black/30">
@@ -321,7 +321,7 @@ export const VideoModal = ({ isOpen, onClose, videoSrc }: { isOpen: boolean; onC
                             className="absolute inset-x-0 bottom-0 z-30"
                             style={{ pointerEvents: showControls ? 'auto' : 'none' }}
                         >
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+                            <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
                             <div className="relative px-3 sm:px-4 pb-3 sm:pb-4 pt-10 flex flex-col gap-2">
                                 <div
@@ -339,11 +339,11 @@ export const VideoModal = ({ isOpen, onClose, videoSrc }: { isOpen: boolean; onC
                                     aria-valuemax={100}
                                     tabIndex={0}
                                 >
-                                    <div className="absolute inset-y-0 left-0 bg-white/20 rounded-full transition-all" style={{ width: `${bufferedProgress}%` }} />
-                                    <div className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#00A3DB] to-[#00C9FF] rounded-full transition-[width] duration-100" style={{ width: `${progress}%` }} />
-                                    <div className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-lg shadow-black/30 border-2 border-[#00A3DB] opacity-0 group-hover/progress:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ left: `calc(${progress}% - 7px)` }} />
+                                    <div className="absolute inset-y-0 left-0 bg-white/20 rounded-full transition-all w-[var(--buffered)]" style={{ '--buffered': `${bufferedProgress}%` } as CSSProperties} />
+                                    <div className="absolute inset-y-0 left-0 bg-linear-to-r from-primary-500 to-[#00C9FF] rounded-full transition-[width] duration-100 w-[var(--progress)]" style={{ '--progress': `${progress}%` } as CSSProperties} />
+                                    <div className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-lg shadow-black/30 border-2 border-primary-500 opacity-0 group-hover/progress:opacity-100 transition-opacity duration-150 pointer-events-none left-[var(--thumb)]" style={{ '--thumb': `calc(${progress}% - 7px)` } as CSSProperties} />
                                     {hoverProgress !== null && duration > 0 && (
-                                        <div className="absolute -top-9 px-2 py-1 rounded-md bg-black/85 text-white text-[11px] font-mono pointer-events-none whitespace-nowrap backdrop-blur-sm border border-white/10" style={{ left: `calc(${hoverProgress * 100}% - 20px)` }}>
+                                        <div className="absolute -top-9 px-2 py-1 rounded-md bg-black/85 text-white text-[11px] font-mono pointer-events-none whitespace-nowrap backdrop-blur-sm border border-white/10 left-[var(--hover)]" style={{ '--hover': `calc(${hoverProgress * 100}% - 20px)` } as CSSProperties}>
                                             {formatTime(hoverProgress * duration)}
                                         </div>
                                     )}
@@ -364,7 +364,7 @@ export const VideoModal = ({ isOpen, onClose, videoSrc }: { isOpen: boolean; onC
                                             <AnimatePresence>
                                                 {showVolumeSlider && (
                                                     <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: 80, opacity: 1 }} exit={{ width: 0, opacity: 0 }} transition={{ duration: 0.15 }} className="overflow-hidden hidden sm:flex items-center">
-                                                        <input type="range" min={0} max={1} step={0.05} value={isMuted ? 0 : volume} onChange={(e) => changeVolume(parseFloat(e.target.value))} className="w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-[#00A3DB] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md" aria-label="Volume" />
+                                                        <input type="range" min={0} max={1} step={0.05} value={isMuted ? 0 : volume} onChange={(e) => changeVolume(parseFloat(e.target.value))} className="w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-primary-500 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-md" aria-label="Volume" />
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
@@ -374,14 +374,14 @@ export const VideoModal = ({ isOpen, onClose, videoSrc }: { isOpen: boolean; onC
 
                                     <div className="flex items-center gap-0.5 sm:gap-1">
                                         <div className="relative">
-                                            <button onClick={() => setShowSpeedMenu(prev => !prev)} className="p-1.5 sm:p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1" aria-label="Playback speed" aria-haspopup="true" aria-expanded={showSpeedMenu}>
+                                            <button onClick={() => setShowSpeedMenu(prev => !prev)} className="p-1.5 sm:p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1" aria-label="Playback speed" aria-haspopup="true" aria-expanded={showSpeedMenu ? "true" : "false"}>
                                                 <Gauge size={16} /><span className="text-[10px] sm:text-[11px] font-bold">{playbackSpeed}x</span>
                                             </button>
                                             <AnimatePresence>
                                                 {showSpeedMenu && (
                                                     <motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} transition={{ duration: 0.15 }} className="absolute bottom-full right-0 mb-2 bg-black/90 backdrop-blur-md rounded-xl border border-white/10 overflow-hidden shadow-xl shadow-black/40 min-w-[100px]">
                                                         {PLAYBACK_SPEEDS.map((speed) => (
-                                                            <button key={speed} onClick={() => changeSpeed(speed)} className={`w-full px-4 py-2 text-left text-xs font-medium transition-colors ${playbackSpeed === speed ? 'text-[#00A3DB] bg-[#00A3DB]/10' : 'text-white/80 hover:text-white hover:bg-white/10'}`}>
+                                                            <button key={speed} onClick={() => changeSpeed(speed)} className={`w-full px-4 py-2 text-left text-xs font-medium transition-colors ${playbackSpeed === speed ? 'text-primary-500 bg-primary-500/10' : 'text-white/80 hover:text-white hover:bg-white/10'}`}>
                                                                 {speed === 1 ? 'Normal' : `${speed}x`}
                                                             </button>
                                                         ))}
@@ -389,9 +389,9 @@ export const VideoModal = ({ isOpen, onClose, videoSrc }: { isOpen: boolean; onC
                                                 )}
                                             </AnimatePresence>
                                         </div>
-                                        <button onClick={() => setCaptionsOn(prev => !prev)} className={`p-1.5 sm:p-2 rounded-lg transition-all hidden sm:flex ${captionsOn ? 'text-[#00A3DB] bg-[#00A3DB]/10' : 'text-white/70 hover:text-white hover:bg-white/10'}`} aria-label={captionsOn ? 'Disable captions (C)' : 'Enable captions (C)'}><Subtitles size={18} /></button>
+                                        <button onClick={() => setCaptionsOn(prev => !prev)} className={`p-1.5 sm:p-2 rounded-lg transition-all hidden sm:flex ${captionsOn ? 'text-primary-500 bg-primary-500/10' : 'text-white/70 hover:text-white hover:bg-white/10'}`} aria-label={captionsOn ? 'Disable captions (C)' : 'Enable captions (C)'}><Subtitles size={18} /></button>
                                         {document.pictureInPictureEnabled && (
-                                            <button onClick={togglePiP} className={`p-1.5 sm:p-2 rounded-lg transition-all hidden sm:flex ${isPiP ? 'text-[#00A3DB] bg-[#00A3DB]/10' : 'text-white/70 hover:text-white hover:bg-white/10'}`} aria-label={isPiP ? 'Exit picture-in-picture (P)' : 'Picture-in-picture (P)'}><PictureInPicture2 size={18} /></button>
+                                            <button onClick={togglePiP} className={`p-1.5 sm:p-2 rounded-lg transition-all hidden sm:flex ${isPiP ? 'text-primary-500 bg-primary-500/10' : 'text-white/70 hover:text-white hover:bg-white/10'}`} aria-label={isPiP ? 'Exit picture-in-picture (P)' : 'Picture-in-picture (P)'}><PictureInPicture2 size={18} /></button>
                                         )}
                                         <button onClick={toggleFullscreen} className="p-1.5 sm:p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-all" aria-label="Toggle fullscreen (F)">{document.fullscreenElement ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>
                                     </div>
@@ -399,7 +399,7 @@ export const VideoModal = ({ isOpen, onClose, videoSrc }: { isOpen: boolean; onC
                             </div>
                         </motion.div>
 
-                        <motion.div initial={false} animate={{ opacity: showControls ? 1 : 0 }} transition={{ duration: 0.25 }} className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 to-transparent pointer-events-none z-20" />
+                        <motion.div initial={false} animate={{ opacity: showControls ? 1 : 0 }} transition={{ duration: 0.25 }} className="absolute inset-x-0 top-0 h-20 bg-linear-to-b from-black/50 to-transparent pointer-events-none z-20" />
                     </motion.div>
 
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} transition={{ duration: 0.3, delay: 0.2 }} className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 text-white/40 text-[11px] sm:text-xs">

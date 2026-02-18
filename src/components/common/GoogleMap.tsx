@@ -21,10 +21,10 @@ interface MapProps {
 
 const libraries: ('places' | 'geometry' | 'drawing' | 'visualization' | 'marker')[] = ['marker'];
 
-export default function GoogleMapComponent({ 
-  center, 
-  zoom = 14, 
-  markers = [], 
+export default function GoogleMapComponent({
+  center,
+  zoom = 14,
+  markers = [],
   className = '',
   height = '100%'
 }: MapProps) {
@@ -48,7 +48,7 @@ export default function GoogleMapComponent({
     };
 
     return () => {
-      (window as any).gm_authFailure = originalHandler; 
+      (window as any).gm_authFailure = originalHandler;
     };
   }, []);
 
@@ -93,14 +93,14 @@ export default function GoogleMapComponent({
     height: typeof height === 'number' ? `${height}px` : height,
     borderRadius: '0.75rem',
   }), [height]);
-  
+
   const options = useMemo(() => ({
     disableDefaultUI: false,
     zoomControl: true,
     mapTypeControl: false,
     streetViewControl: false,
     fullscreenControl: true,
-    mapId: 'DEMO_MAP_ID', // Required for Advanced Markers
+    mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID',
     styles: [ /* Classic styles are ignored when mapId is used for vector maps, but kept for fallback */
       { featureType: 'all', elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
       { featureType: 'all', elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
@@ -123,35 +123,28 @@ export default function GoogleMapComponent({
 
   // Handle case where API key is missing
   if (!import.meta.env.VITE_GOOGLE_MAPS_API_KEY) {
-     return (
-        <div className={`relative flex items-center justify-center bg-slate-800 rounded-xl overflow-hidden ${className}`} style={{ height }}>
-           <div className="absolute inset-0 opacity-20 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/San_Francisco_OpenStreetMap.png')] bg-cover bg-center grayscale invert" />
-           <div className="z-10 text-center p-4 bg-black/60 backdrop-blur rounded-lg border border-white/10 max-w-sm">
-              <MapPin className="mx-auto text-yellow-500 mb-2" size={32} />
-              <h3 className="text-white font-bold">Google Maps API Key Missing</h3>
-              <p className="text-gray-300 text-sm mt-1">
-                 Please add VITE_GOOGLE_MAPS_API_KEY to your .env file to enable real-time maps.
-              </p>
-           </div>
+    return (
+      <div className={`relative flex items-center justify-center bg-slate-800 rounded-xl overflow-hidden ${className}`} style={{ height }}>
+        <div className="absolute inset-0 opacity-20 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/San_Francisco_OpenStreetMap.png')] bg-cover bg-center grayscale invert" />
+        <div className="z-10 text-center p-4 bg-black/60 backdrop-blur rounded-lg border border-white/10 max-w-sm">
+          <MapPin className="mx-auto text-yellow-500 mb-2" size={32} />
+          <h3 className="text-white font-bold">Google Maps API Key Missing</h3>
+          <p className="text-gray-300 text-sm mt-1">
+            Please add VITE_GOOGLE_MAPS_API_KEY to your .env file to enable real-time maps.
+          </p>
         </div>
-     );
+      </div>
+    );
   }
 
   if (loadError || authError) {
     const errorMessage = authError || loadError?.message || "Unknown error";
-    const keyStatus = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? "Present" : "Missing";
-    
+
     console.error('Google Maps Load Error:', loadError);
     return (
       <div className={`flex flex-col items-center justify-center bg-red-50 dark:bg-red-900/10 text-red-500 rounded-xl p-6 ${className}`} style={{ height }}>
         <p className="font-bold">Error loading Google Maps</p>
-        <p className="text-sm mt-2 text-center max-w-xs break-words">{errorMessage}</p>
-        <div className="mt-4 text-xs text-slate-500 bg-white/50 p-2 rounded border border-red-100">
-           <p>API Key Status: {keyStatus}</p>
-           {import.meta.env.VITE_GOOGLE_MAPS_API_KEY && (
-             <p>Key: {import.meta.env.VITE_GOOGLE_MAPS_API_KEY.substring(0, 5)}...</p>
-           )}
-        </div>
+        <p className="text-sm mt-2 text-center max-w-xs wrap-break-word">{errorMessage}</p>
       </div>
     );
   }

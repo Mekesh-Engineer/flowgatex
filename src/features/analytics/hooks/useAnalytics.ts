@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '@/lib/api';
+import api from '@/services/api';
 import type { AnalyticsData, RevenueDataPoint, AttendanceDataPoint } from '../types/analytics.types';
 
 export const ANALYTICS_KEYS = {

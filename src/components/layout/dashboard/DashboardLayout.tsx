@@ -30,8 +30,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const sidebarNavItems = useMemo(() => {
     switch (user?.role) {
       case UserRole.ADMIN:
+        // Filter out Promo Codes for regular Admins if strictly Super Admin only
+        // or keep full admin list. Request says: "visible only to Super Admins"
+        return NAV_ITEMS.admin.filter(item => item.path !== '/admin/promo-codes');
       case UserRole.SUPER_ADMIN:
-        return NAV_ITEMS.admin;
+        return NAV_ITEMS.superadmin;
       case UserRole.ORG_ADMIN:
       case UserRole.ORGANIZER:
         return NAV_ITEMS.organizer;
@@ -243,7 +246,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scrollbar-thin scrollbar-thumb-[var(--border-primary)] scrollbar-track-transparent">
-          <div className="max-w-[1600px] mx-auto w-full">
+          <div className="max-w-400 mx-auto w-full">
             {children ?? <Outlet />}
           </div>
         </main>

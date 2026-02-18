@@ -5,84 +5,101 @@
 // Integrates role-conditional sub-components from ./sidebar/
 // =============================================================================
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { X, ChevronRight, LogOut, HelpCircle } from 'lucide-react';
 import { UserRole } from '@/lib/constants';
 import { getIcon } from '@/lib/iconMap';
+import { useAuthStore } from '@/store/zustand/stores';
+import { logout } from '@/features/auth/services/authService';
 import type { Theme, SidebarConfig } from './DashboardLayout.types';
 import type { AuthUser } from '@/features/auth/types/auth.types';
 import {
-  RoleHeader,
-  EventSwitcher,
-  StatsWidget,
-  IoTStatusWidget,
-  SystemHealthWidget,
-  QuickSettingsWidget,
-  SystemInfoFooter,
-  SidebarTooltip,
+    RoleHeader,
+    EventSwitcher,
+    StatsWidget,
+    IoTStatusWidget,
+    SystemHealthWidget,
+    QuickSettingsWidget,
+    SystemInfoFooter,
+    SidebarTooltip,
 } from './sidebar';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface NavItem {
-  path: string;
-  label: string;
-  icon?: string;
+    path: string;
+    label: string;
+    icon?: string;
 }
 
 interface Props {
-  sidebarOpen: boolean;
-  desktopSidebarOpen: boolean;
-  closeSidebar: () => void;
-  isCollapsed: boolean;
-  userRole: string;
-  user: AuthUser | null;
-  isOrganizer: boolean;
-  isAdmin: boolean;
-  sidebarConfig: SidebarConfig;
-  sidebarNavItems: NavItem[];
-  theme: Theme;
-  setTheme: (t: Theme) => void;
-  setSidebarOpen: (v: boolean) => void;
+    sidebarOpen: boolean;
+    desktopSidebarOpen: boolean;
+    closeSidebar: () => void;
+    isCollapsed: boolean;
+    userRole: string;
+    user: AuthUser | null;
+    isOrganizer: boolean;
+    isAdmin: boolean;
+    sidebarConfig: SidebarConfig;
+    sidebarNavItems: NavItem[];
+    theme: Theme;
+    setTheme: (t: Theme) => void;
+    setSidebarOpen: (v: boolean) => void;
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
 export default function DashboardSidebar({
-  sidebarOpen,
-  desktopSidebarOpen,
-  closeSidebar,
-  isCollapsed,
-  userRole,
-  user,
-  isOrganizer,
-  isAdmin,
-  sidebarConfig,
-  sidebarNavItems,
-  theme,
-  setTheme,
-  setSidebarOpen,
+    sidebarOpen,
+    desktopSidebarOpen,
+    closeSidebar,
+    isCollapsed,
+    userRole,
+    user,
+    isOrganizer,
+    isAdmin,
+    sidebarConfig,
+    sidebarNavItems,
+    theme,
+    setTheme,
+    setSidebarOpen,
 }: Props) {
-  const location = useLocation();
-  // Determine active state by finding the most specific matching path
-  const isActive = (path: string) => {
-    // Collect all valid paths from the current sidebar items
-    const allPaths = sidebarNavItems.map(i => i.path);
-    
-    // Find all paths that match the current URL start
-    const matches = allPaths.filter(p => 
-      location.pathname === p || location.pathname.startsWith(p + '/')
-    );
-    
-    // Sort by length descending (longest path is the most specific match)
-    matches.sort((a, b) => b.length - a.length);
-    
-    // The active item is the one that matches the specific "best match"
-    // If no matches (shouldn't happen for valid routes), fall back to exact match
-    const bestMatch = matches[0];
-    
-    return path === bestMatch;
-  };
+    const location = useLocation();
+    const navigate = useNavigate();
+    const clearUser = useAuthStore((s) => s.clearUser);
 
-  const showAdminFooter = userRole === UserRole.ADMIN || userRole === UserRole.SUPER_ADMIN;
+    const handleSignOut = async () => {
+        try {
+            await logout();
+            clearUser();
+            navigate('/login', { replace: true });
+        } catch {
+            // Force clear even if Firebase logout fails
+            clearUser();
+            navigate('/login', { replace: true });
+        }
+    };
+
+    // Determine active state by finding the most specific matching path
+    const isActive = (path: string) => {
+        // Collect all valid paths from the current sidebar items
+        const allPaths = sidebarNavItems.map(i => i.path);
+
+        // Find all paths that match the current URL start
+        const matches = allPaths.filter(p =>
+            location.pathname === p || location.pathname.startsWith(p + '/')
+        );
+
+        // Sort by length descending (longest path is the most specific match)
+        matches.sort((a, b) => b.length - a.length);
+
+        // The active item is the one that matches the specific "best match"
+        // If no matches (shouldn't happen for valid routes), fall back to exact match
+        const bestMatch = matches[0];
+
+        return path === bestMatch;
+    };
+
+    const showAdminFooter = userRole === UserRole.ADMIN || userRole === UserRole.SUPER_ADMIN;
 
     // Build CSS class list for the sidebar container
     const sidebarClasses = [
@@ -153,8 +170,8 @@ export default function DashboardSidebar({
                                                     to={item.path}
                                                     onClick={() => setSidebarOpen(false)}
                                                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors relative group ${active
-                                                            ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
-                                                            : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)]'
+                                                        ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]'
+                                                        : 'text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)]'
                                                         }`}
                                                 >
                                                     <Icon size={18} className={active ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'} />
@@ -223,6 +240,7 @@ export default function DashboardSidebar({
                             <li>
                                 <button
                                     type="button"
+                                    onClick={handleSignOut}
                                     className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--bg-surface)] hover:text-red-500 transition-colors"
                                 >
                                     <LogOut size={16} />

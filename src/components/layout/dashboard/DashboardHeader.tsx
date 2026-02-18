@@ -3,18 +3,19 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Menu, Search, ShoppingCart, Calendar, Command,
-    Sun, Moon, Monitor, Clock, 
+    Sun, Moon, Monitor, Clock,
     Tag, ArrowRight, X
 } from 'lucide-react';
 import type { Theme, Breadcrumb } from './DashboardLayout.types';
 import type { AuthUser } from '@/features/auth/types/auth.types';
+import { useCart } from '@/features/booking/hooks/useCart';
 import NotificationDropdown from './NotificationDropdown';
 
 interface Props {
     toggleSidebar: () => void;
     sidebarOpen: boolean;
     breadcrumbs: Breadcrumb[];
-    searchInputRef: React.RefObject<HTMLInputElement>;
+    searchInputRef: React.RefObject<HTMLInputElement | null>;
     searchFocused: boolean;
     setSearchFocused: (v: boolean) => void;
     isAttendee: boolean;
@@ -25,7 +26,7 @@ interface Props {
     user: AuthUser | null;
     getRoleBadgeClass: () => string;
     getRoleDisplayName: () => string;
-    accountRef: React.RefObject<HTMLDivElement>;
+    accountRef: React.RefObject<HTMLDivElement | null>;
     toggleAccountDropdown: () => void;
     accountDropdownOpen: boolean;
     setAccountDropdownOpen: (v: boolean) => void;
@@ -83,6 +84,7 @@ export default function DashboardHeader({
     theme,
     setTheme,
 }: Props) {
+    const { totalItems } = useCart();
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<typeof mockSearchResults>([]);
     const [showSearchDropdown, setShowSearchDropdown] = useState(false);
@@ -94,7 +96,7 @@ export default function DashboardHeader({
     useEffect(() => {
         if (searchQuery.trim().length > 0) {
             // Simulate API delay
-            const timer = setTimeout(() => {
+            const timer: number = window.setTimeout(() => {
                 const filtered = mockSearchResults.filter(result =>
                     result.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     result.category.toLowerCase().includes(searchQuery.toLowerCase())
@@ -102,11 +104,11 @@ export default function DashboardHeader({
                 setSearchResults(filtered);
                 setShowSearchDropdown(true);
             }, 200);
-            return () => clearTimeout(timer);
-        } else {
-            setSearchResults([]);
-            setShowSearchDropdown(false);
+            return () => window.clearTimeout(timer);
         }
+        setSearchResults([]);
+        setShowSearchDropdown(false);
+        return undefined;
     }, [searchQuery]);
 
     const handleSearchFocus = () => {
@@ -139,16 +141,16 @@ export default function DashboardHeader({
         <header className="sticky top-0 z-30 flex h-16 w-full items-center border-b border-[var(--border-primary)] bg-[var(--bg-card)]/95 backdrop-blur-xl px-4 lg:px-6 transition-all">
             {/* Subtle gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-primary)]/5 via-transparent to-[var(--color-secondary)]/5 pointer-events-none" />
-            
+
             <div className="flex w-full items-center justify-between relative z-10">
                 {/* Left: logo + hamburger + breadcrumb */}
                 <div className="flex items-center gap-3">
                     {/* FlowGateX branding with enhanced animation */}
                     <Link to="/" className="flex items-center gap-2 group" aria-label="FlowGateX Home">
-                        <motion.div 
+                        <motion.div
                             whileHover={{ scale: 1.05, rotate: 5 }}
                             whileTap={{ scale: 0.95 }}
-                            className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-[#00A3DB] via-[#0091c4] to-[#A3D639] flex items-center justify-center shadow-lg shadow-[#00A3DB]/20 group-hover:shadow-[#00A3DB]/40 transition-all duration-300"
+                            className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 via-[#0091c4] to-secondary-500 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:shadow-primary-500/40 transition-all duration-300"
                         >
                             <span
                                 className="material-symbols-outlined text-[16px] text-white font-semibold"
@@ -156,10 +158,10 @@ export default function DashboardHeader({
                             >
                                 stream
                             </span>
-                            
+
                             {/* Floating particle effect */}
                             <motion.div
-                                className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#A3D639]"
+                                className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-secondary-500"
                                 animate={{
                                     scale: [1, 1.2, 1],
                                     opacity: [0.5, 1, 0.5],
@@ -171,7 +173,7 @@ export default function DashboardHeader({
                                 }}
                             />
                         </motion.div>
-                        <span className="hidden sm:inline text-base font-bold bg-gradient-to-r from-[#00A3DB] to-[#A3D639] bg-clip-text text-transparent">
+                        <span className="hidden sm:inline text-base font-bold bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">
                             FlowGateX
                         </span>
                     </Link>
@@ -190,8 +192,8 @@ export default function DashboardHeader({
                     {/* Breadcrumb trail with animations */}
                     <nav className="hidden md:flex items-center gap-1 text-sm" aria-label="Breadcrumb">
                         {breadcrumbs.map((crumb, i) => (
-                            <motion.span 
-                                key={crumb.href} 
+                            <motion.span
+                                key={crumb.href}
                                 className="flex items-center gap-1"
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -203,8 +205,8 @@ export default function DashboardHeader({
                                         {crumb.label}
                                     </span>
                                 ) : (
-                                    <Link 
-                                        to={crumb.href} 
+                                    <Link
+                                        to={crumb.href}
                                         className="text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] px-2 py-1 rounded-lg transition-all duration-200"
                                     >
                                         {crumb.label}
@@ -217,22 +219,20 @@ export default function DashboardHeader({
 
                 {/* Center: Enhanced search with real-time results */}
                 <div className="hidden sm:flex flex-1 max-w-md mx-4 relative">
-                    <motion.div 
+                    <motion.div
                         className={`relative w-full transition-all duration-300 ${searchFocused ? 'scale-105' : ''}`}
                         animate={searchFocused ? {
                             boxShadow: '0 0 0 3px rgba(0, 163, 219, 0.1)'
                         } : {}}
                     >
-                        <div className={`relative w-full rounded-xl border transition-all duration-300 ${
-                            searchFocused 
-                                ? 'border-[var(--color-primary)] bg-[var(--bg-card)] shadow-lg shadow-[var(--color-primary)]/10' 
-                                : 'border-[var(--border-primary)] bg-[var(--bg-surface)]'
-                        }`}>
-                            <Search 
-                                size={16} 
-                                className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
-                                    searchFocused ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)]'
-                                }`} 
+                        <div className={`relative w-full rounded-xl border transition-all duration-300 ${searchFocused
+                            ? 'border-[var(--color-primary)] bg-[var(--bg-card)] shadow-lg shadow-[var(--color-primary)]/10'
+                            : 'border-[var(--border-primary)] bg-[var(--bg-surface)]'
+                            }`}>
+                            <Search
+                                size={16}
+                                className={`absolute left-3 top-1/2 -translate-y-1/2 transition-colors duration-200 ${searchFocused ? 'text-[var(--color-primary)]' : 'text-[var(--text-muted)]'
+                                    }`}
                             />
                             <input
                                 ref={searchInputRef}
@@ -244,7 +244,7 @@ export default function DashboardHeader({
                                 onBlur={handleSearchBlur}
                                 className="w-full pl-9 pr-20 py-2.5 text-sm rounded-xl bg-transparent text-[var(--text-primary)] placeholder:text-[var(--text-muted)] outline-none transition"
                             />
-                            
+
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                 {searchQuery && (
                                     <motion.button
@@ -292,8 +292,8 @@ export default function DashboardHeader({
                                                         to={`/events/${result.id}`}
                                                         className="flex items-center gap-3 px-3 py-3 hover:bg-[var(--bg-surface)] transition-colors duration-150 group"
                                                     >
-                                                        <img 
-                                                            src={result.image} 
+                                                        <img
+                                                            src={result.image}
                                                             alt={result.title}
                                                             className="w-12 h-12 rounded-lg object-cover border border-[var(--border-primary)] group-hover:scale-105 transition-transform duration-200"
                                                         />
@@ -373,13 +373,15 @@ export default function DashboardHeader({
                         >
                             <ShoppingCart size={16} />
                             {/* Cart badge */}
-                            <motion.span
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="absolute -top-1 -right-1 w-4 h-4 bg-[var(--color-secondary)] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg"
-                            >
-                                2
-                            </motion.span>
+                            {totalItems > 0 && (
+                                <motion.span
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    className="absolute -top-1 -right-1 w-4 h-4 bg-[var(--color-secondary)] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-lg"
+                                >
+                                    {totalItems}
+                                </motion.span>
+                            )}
                             <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-md text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg">
                                 Cart
                             </span>
@@ -439,7 +441,7 @@ export default function DashboardHeader({
                                     className="absolute right-0 top-full mt-2 w-64 bg-[var(--bg-card)] border border-[var(--border-primary)] rounded-xl shadow-2xl z-50 overflow-hidden"
                                 >
                                     {/* User info header with gradient */}
-                                    <div className="px-4 py-3 border-b border-[var(--border-primary)] bg-gradient-to-br from-[var(--color-primary)]/10 to-transparent">
+                                    <div className="px-4 py-3 border-b border-[var(--border-primary)] bg-linear-to-br from-[var(--color-primary)]/10 to-transparent">
                                         <div className="flex items-center gap-3">
                                             <img
                                                 src={user?.photoURL || 'https://images.unsplash.com/photo-1659482633369-9fe69af50bfb?ixlib=rb-4.0.3&auto=format&fit=facearea&facepad=3&w=320&h=320&q=80'}

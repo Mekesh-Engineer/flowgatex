@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Star, Heart, Users, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { MapPin, Calendar, Star, Heart, Users, ChevronDown, ChevronUp, Ticket } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import type { ViewMode, EventItem } from './types';
+import { useCart } from '@/features/booking/hooks/useCart';
 
 interface Props {
     event: EventItem;
@@ -16,6 +17,16 @@ interface Props {
 export default function EventCardInner({
     event, index, viewMode, isExpanded, onToggleExpand, isSaved, onToggleSave,
 }: Props) {
+    const navigate = useNavigate();
+    const { addToCart } = useCart();
+
+    const handleBook = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Redirect to details page to fetch proper tiers
+        navigate(`/events/${event.id}`);
+    };
+
     if (viewMode === 'list') {
         return (
             <motion.div
@@ -54,9 +65,14 @@ export default function EventCardInner({
                             {event.originalPrice && <span className="text-xs text-[var(--text-muted)] line-through">${event.originalPrice}</span>}
                             <span className="text-lg font-bold text-[var(--text-primary)]">${event.price}</span>
                         </div>
-                        <Link to={`/events/${event.id}`} className="text-sm font-semibold text-[#00A3DB] hover:underline flex items-center gap-1">
-                            View Details <ExternalLink size={12} />
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <Link to={`/events/${event.id}`} className="px-3 py-1.5 rounded-lg border border-[var(--border-primary)] text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors">
+                                View Details
+                            </Link>
+                            <button onClick={handleBook} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-primary)] text-white text-xs font-bold shadow-sm hover:opacity-90 transition-opacity">
+                                <Ticket size={12} /> Book
+                            </button>
+                        </div>
                     </div>
                 </div>
             </motion.div>
@@ -111,16 +127,26 @@ export default function EventCardInner({
                     {isExpanded ? <><ChevronUp size={12} /> Less</> : <><ChevronDown size={12} /> More</>}
                 </button>
 
-                <div className="mt-auto pt-3 border-t border-[var(--border-primary)] flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        {event.originalPrice && (
-                            <span className="text-xs text-[var(--text-muted)] line-through">${event.originalPrice}</span>
-                        )}
-                        <span className="text-lg font-bold text-[var(--text-primary)]">${event.price}</span>
+                <div className="mt-auto pt-4 border-t border-[var(--border-primary)] flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wider">Starting from</span>
+                        <div className="flex items-center gap-2">
+                            {event.originalPrice && (
+                                <span className="text-xs text-[var(--text-muted)] line-through">${event.originalPrice}</span>
+                            )}
+                            <span className="text-lg font-bold text-[var(--text-primary)]">${event.price}</span>
+                        </div>
                     </div>
-                    <Link to={`/events/${event.id}`} className="text-sm font-semibold text-[#00A3DB] hover:underline">
-                        Book Now
-                    </Link>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <Link to={`/events/${event.id}`} className="flex items-center justify-center py-2.5 rounded-xl border border-[var(--border-primary)] text-[var(--text-primary)] text-sm font-semibold hover:bg-[var(--bg-surface)] hover:border-[var(--color-primary)] transition-all">
+                            View Details
+                        </Link>
+                        <button onClick={handleBook} className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all">
+                            <Ticket size={16} />
+                            Book
+                        </button>
+                    </div>
                 </div>
             </div>
         </motion.div>

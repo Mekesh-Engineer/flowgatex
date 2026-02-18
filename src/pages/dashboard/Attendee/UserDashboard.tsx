@@ -27,6 +27,7 @@ import { eventService } from '@/features/events/services/eventService';
 import { useEvents } from '@/features/events/hooks/useEvents';
 import { toEventItems } from '@/features/events/utils/eventMapper';
 import { fadeInUp, staggerContainer, FloatingElement } from '@/features/home/components/ui/SharedComponents';
+import { GridCanvas, ParticleCanvas } from '@/features/home/components/canvas/CanvasEffects';
 
 // Ensure styles are loaded
 import '@/styles/features/userdashboard.css';
@@ -74,7 +75,7 @@ interface BookingTableItem {
 // =============================================================================
 
 const MetricCard = ({ stat }: { stat: StatItem }) => (
-  <motion.div 
+  <motion.div
     variants={fadeInUp}
     whileHover={{ y: -5 }}
     className={`metric-card metric-card-${stat.variant} relative overflow-hidden group`}
@@ -96,7 +97,7 @@ const MetricCard = ({ stat }: { stat: StatItem }) => (
         {stat.trend}
       </span>
     </div>
-    
+
     <div className="relative z-10 mt-4">
       <h3 className="text-3xl font-bold tracking-tight text-[var(--text-primary)]">
         {stat.value}
@@ -107,7 +108,7 @@ const MetricCard = ({ stat }: { stat: StatItem }) => (
     </div>
 
     {/* Hover Glow Effect */}
-    <div 
+    <div
       className="absolute -inset-0.5 blur opacity-0 group-hover:opacity-20 transition duration-500"
       style={{ background: `linear-gradient(to right, ${stat.color}, transparent)` }}
     />
@@ -115,19 +116,19 @@ const MetricCard = ({ stat }: { stat: StatItem }) => (
 );
 
 const EventCard = ({ event, isBooked = false }: { event: DashboardEvent, isBooked?: boolean }) => (
-  <motion.div 
+  <motion.div
     variants={fadeInUp}
     whileHover={{ y: -8 }}
     className="group relative flex flex-col h-full min-w-[280px] md:min-w-[320px] rounded-2xl overflow-hidden bg-[var(--bg-card)] border border-[var(--border-primary)] hover:border-[var(--color-primary)] transition-all duration-300 shadow-lg hover:shadow-[var(--shadow-lg)] cursor-pointer snap-center"
   >
     <div className="relative h-48 overflow-hidden shrink-0">
-      <img 
-        src={event.image} 
-        alt={event.title} 
-        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+      <img
+        src={event.image}
+        alt={event.title}
+        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-card)] via-transparent to-transparent opacity-80" />
-      
+
       <div className="absolute top-3 left-3 flex gap-2">
         <span className="px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md text-white text-xs font-bold border border-white/20 shadow-lg">
           {event.category}
@@ -143,7 +144,7 @@ const EventCard = ({ event, isBooked = false }: { event: DashboardEvent, isBooke
         <Heart size={16} />
       </button>
     </div>
-    
+
     <div className="p-5 flex flex-col flex-grow relative">
       <div className="flex justify-between items-start mb-2 text-xs font-medium text-[var(--text-muted)]">
         <span className="flex items-center gap-1.5">
@@ -155,11 +156,11 @@ const EventCard = ({ event, isBooked = false }: { event: DashboardEvent, isBooke
           {event.time}
         </span>
       </div>
-      
+
       <h4 className="text-lg font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
         {event.title}
       </h4>
-      
+
       <div className="text-sm text-[var(--text-secondary)] flex items-center gap-2 mb-4">
         <MapPin size={14} className="shrink-0" />
         <span className="truncate">{event.location}</span>
@@ -172,22 +173,22 @@ const EventCard = ({ event, isBooked = false }: { event: DashboardEvent, isBooke
             <p className="text-lg font-bold text-[var(--text-primary)]">{event.price}</p>
           </div>
           {isBooked && (
-             <button className="btn btn-sm btn-secondary gap-1 group-hover:translate-x-1 transition-transform">
-               View Ticket <ArrowRight size={14} />
-             </button>
+            <button className="btn btn-sm btn-secondary gap-1 group-hover:translate-x-1 transition-transform">
+              View Ticket <ArrowRight size={14} />
+            </button>
           )}
         </div>
-        
+
         {!isBooked && (
           <div className="grid grid-cols-2 gap-2 w-full mt-1">
-            <Link 
-              to={`/events/${event.id}`} 
+            <Link
+              to={`/events/${event.id}`}
               className="btn btn-sm btn-outline border-[var(--border-primary)] hover:border-[var(--color-primary)] hover:bg-[var(--bg-secondary)] text-[var(--text-primary)] w-full justify-center"
             >
               Details
             </Link>
-            <Link 
-              to={`/booking/${event.id}`} 
+            <Link
+              to={`/booking/${event.id}`}
               className="btn btn-sm btn-primary shadow-md shadow-primary/20 w-full justify-center"
             >
               Book
@@ -210,7 +211,7 @@ export default function UserDashboard() {
     activeBookings: DashboardEvent[];
     recentBookings: BookingTableItem[];
   } | null>(null);
-  
+
   const [loading, setLoading] = useState(true);
 
   // Fetch Recommended Events
@@ -224,21 +225,21 @@ export default function UserDashboard() {
       try {
         setLoading(true);
         const bookings = await getUserBookings(user.uid);
-        
+
         // Process Bookings
         const bookingsWithEventData = await Promise.all(bookings.slice(0, 10).map(async (b) => {
-            try {
-                const event = await eventService.getEventById(b.eventId);
-                return { ...b, eventDetails: event };
-            } catch {
-                return { ...b, eventDetails: null };
-            }
+          try {
+            const event = await eventService.getEventById(b.eventId);
+            return { ...b, eventDetails: event };
+          } catch {
+            return { ...b, eventDetails: null };
+          }
         }));
 
         const totalSpent = bookings.reduce((sum, b) => sum + (b.finalAmount || 0), 0);
         const upcomingBookings = bookings.filter(b => {
-             const date = new Date(b.eventDate); 
-             return !isNaN(date.getTime()) && date > new Date();
+          const date = new Date(b.eventDate);
+          return !isNaN(date.getTime()) && date > new Date();
         });
 
         const stats: StatItem[] = [
@@ -246,7 +247,7 @@ export default function UserDashboard() {
             id: 1,
             label: 'Bookings',
             value: bookings.length.toString(),
-            trend: '+12%', 
+            trend: '+12%',
             trendUp: true,
             icon: Ticket,
             variant: 'primary',
@@ -285,45 +286,45 @@ export default function UserDashboard() {
         ];
 
         const activeBookingsUI: DashboardEvent[] = upcomingBookings.map(b => {
-            const detail = bookingsWithEventData.find(ebd => ebd.id === b.id)?.eventDetails;
-            const d = new Date(b.eventDate);
-            return {
-                id: b.eventId,
-                title: b.eventTitle,
-                category: detail?.category || 'Event',
-                date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-                location: detail?.venue?.city || 'Online',
-                image: detail?.coverImage || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80',
-                price: formatCurrency(b.finalAmount),
-                isBooked: true
-            };
+          const detail = bookingsWithEventData.find(ebd => ebd.id === b.id)?.eventDetails;
+          const d = new Date(b.eventDate);
+          return {
+            id: b.eventId,
+            title: b.eventTitle,
+            category: detail?.category || 'Event',
+            date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            location: detail?.venue?.city || 'Online',
+            image: detail?.coverImage || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80',
+            price: formatCurrency(b.finalAmount),
+            isBooked: true
+          };
         });
 
         const recentBookingsUI: BookingTableItem[] = bookingsWithEventData.slice(0, 5).map(b => {
-             let dateStr = 'Unknown';
-             if (b.bookingDate) {
-                 if (typeof b.bookingDate === 'string') {
-                     dateStr = new Date(b.bookingDate).toLocaleDateString();
-                 } else if (typeof b.bookingDate === 'object' && 'seconds' in b.bookingDate) {
-                     dateStr = new Date((b.bookingDate as any).seconds * 1000).toLocaleDateString();
-                 }
-             }
-             
-             return {
-                id: b.id,
-                event: b.eventTitle,
-                date: dateStr,
-                amount: formatCurrency(b.finalAmount),
-                status: (b.status.charAt(0).toUpperCase() + b.status.slice(1)) as any,
-                image: b.eventDetails?.coverImage || 'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=100'
-            };
+          let dateStr = 'Unknown';
+          if (b.bookingDate) {
+            if (typeof b.bookingDate === 'string') {
+              dateStr = new Date(b.bookingDate).toLocaleDateString();
+            } else if (typeof b.bookingDate === 'object' && 'seconds' in b.bookingDate) {
+              dateStr = new Date((b.bookingDate as any).seconds * 1000).toLocaleDateString();
+            }
+          }
+
+          return {
+            id: b.id,
+            event: b.eventTitle,
+            date: dateStr,
+            amount: formatCurrency(b.finalAmount),
+            status: (b.status.charAt(0).toUpperCase() + b.status.slice(1)) as any,
+            image: b.eventDetails?.coverImage || 'https://images.unsplash.com/photo-1540575467063-178a509371f7?auto=format&fit=crop&q=80&w=100'
+          };
         });
 
         setBookingsData({
-            stats,
-            activeBookings: activeBookingsUI,
-            recentBookings: recentBookingsUI
+          stats,
+          activeBookings: activeBookingsUI,
+          recentBookings: recentBookingsUI
         });
 
       } catch (error) {
@@ -346,22 +347,31 @@ export default function UserDashboard() {
   if (loading) return <DashboardSkeleton />;
 
   return (
+    <div className="min-h-screen bg-[var(--bg-base)] relative overflow-hidden">
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
+        <GridCanvas />
+        <ParticleCanvas />
+      </div>
+
     <motion.div
-      className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8"
+      className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 relative z-10"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
     >
       <div className="flex flex-col xl:flex-row gap-8">
-        
+
         {/* ─── Left Main Content Area ─── */}
         <div className="flex-1 flex flex-col gap-8 min-w-0">
-          
+
           {/* ─── Hero Section ─── */}
           <motion.div variants={fadeInUp} className="relative rounded-3xl overflow-hidden min-h-[280px] flex items-center shadow-2xl group text-left">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-700 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-transparent" />
-            
+
+            <div className="absolute inset-0 opacity-20"><GridCanvas /></div>
+            <div className="absolute inset-0 opacity-30"><ParticleCanvas /></div>
+
             <div className="relative z-10 p-8 md:p-12 w-full max-w-3xl">
               <FloatingElement duration={4}>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-primary)]/20 border border-[var(--color-primary)]/30 backdrop-blur-md mb-6">
@@ -374,12 +384,12 @@ export default function UserDashboard() {
               </FloatingElement>
 
               <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-4">
-                Welcome back, <br/>
+                Welcome back, <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">
                   {user?.displayName || 'Guest'}
                 </span>
               </h1>
-              
+
               <p className="text-gray-300 text-lg mb-8 max-w-lg leading-relaxed">
                 Discover the best events happening around you. You have <strong className="text-white font-medium">{bookingsData?.activeBookings.length} upcoming events</strong> on your schedule.
               </p>
@@ -419,7 +429,7 @@ export default function UserDashboard() {
                   </button>
                 </div>
               </div>
-              
+
               <div id="agenda-scroll" className="flex gap-6 overflow-x-auto pb-6 px-1 -mx-1 scrollbar-hide snap-x">
                 {bookingsData.activeBookings.map(event => (
                   <EventCard key={event.id} event={event} isBooked={true} />
@@ -444,8 +454,8 @@ export default function UserDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {recommendedEvents.slice(0, 6).map(event => (
-                <EventCard 
-                  key={event.id} 
+                <EventCard
+                  key={event.id}
                   event={{
                     id: event.id,
                     title: event.title,
@@ -455,7 +465,7 @@ export default function UserDashboard() {
                     location: event.venue,
                     image: event.image,
                     price: formatCurrency(event.price),
-                  }} 
+                  }}
                 />
               ))}
             </div>
@@ -492,13 +502,13 @@ export default function UserDashboard() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-[var(--text-muted)] font-medium">{booking.date}</td>
-                      <td className="px-6 py-4 text-xs font-mono text-[var(--text-muted)] hidden sm:table-cell">{booking.id.substring(0,8)}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-[var(--text-muted)] hidden sm:table-cell">{booking.id.substring(0, 8)}</td>
                       <td className="px-6 py-4 font-bold text-[var(--text-primary)]">{booking.amount}</td>
                       <td className="px-6 py-4">
                         <span className={cn(
                           "px-2.5 py-1 rounded-full text-xs font-bold",
-                          booking.status === 'Confirmed' ? "bg-green-500/10 text-green-500" : 
-                          booking.status === 'Cancelled' ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"
+                          booking.status === 'Confirmed' ? "bg-green-500/10 text-green-500" :
+                            booking.status === 'Cancelled' ? "bg-red-500/10 text-red-500" : "bg-yellow-500/10 text-yellow-500"
                         )}>
                           {booking.status}
                         </span>
@@ -523,22 +533,22 @@ export default function UserDashboard() {
         {/* ─── Right Sidebar ─── */}
         <motion.aside variants={fadeInUp} className="hidden xl:flex w-80 flex-col gap-6">
           <div className="sticky top-24 space-y-6">
-            
+
             {/* User Profile Summary */}
             <div className="card p-6 flex flex-col items-center text-center">
               <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[var(--color-primary)] to-[var(--color-secondary)] p-1 mb-4">
-                 <img 
-                   src={user?.photoURL || `https://ui-avatars.com/api/?name=${user?.displayName || 'User'}&background=random`} 
-                   alt="Profile" 
-                   className="w-full h-full rounded-full object-cover border-4 border-[var(--bg-card)]" 
-                 />
-                 <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-4 border-[var(--bg-card)] rounded-full"></div>
+                <img
+                  src={user?.photoURL || `https://ui-avatars.com/api/?name=${user?.displayName || 'User'}&background=random`}
+                  alt="Profile"
+                  className="w-full h-full rounded-full object-cover border-4 border-[var(--bg-card)]"
+                />
+                <div className="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-4 border-[var(--bg-card)] rounded-full"></div>
               </div>
               <h3 className="text-lg font-bold text-[var(--text-primary)]">{user?.displayName || 'User'}</h3>
               <p className="text-sm text-[var(--text-secondary)] mb-4">{user?.email}</p>
               <div className="flex gap-2 w-full">
                 <button className="btn btn-sm btn-outline flex-1 rounded-lg">Edit Profile</button>
-                <button className="btn btn-sm btn-ghost p-2 rounded-lg border border-[var(--border-primary)]"><Shield size={16}/></button>
+                <button className="btn btn-sm btn-ghost p-2 rounded-lg border border-[var(--border-primary)]"><Shield size={16} /></button>
               </div>
             </div>
 
@@ -577,6 +587,7 @@ export default function UserDashboard() {
 
       </div>
     </motion.div>
+    </div>
   );
 }
 

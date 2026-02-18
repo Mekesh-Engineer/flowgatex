@@ -1,8 +1,8 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import {
     Calendar,
-    MapPin,
     Search,
     QrCode,
     Download,
@@ -10,13 +10,13 @@ import {
     Ticket,
     Clock,
     FileText,
-    CalendarPlus,
     RotateCcw,
     ExternalLink,
     CreditCard,
     User,
     ChevronRight,
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import Button from '@/components/common/Button';
 import Badge from '@/components/common/Badge';
 import { Tabs } from '@/components/common/Tabs';
@@ -25,6 +25,12 @@ import { SkeletonCard } from '@/components/common/Skeleton';
 import Modal from '@/components/common/Modal';
 import Pagination from '@/components/common/Pagination';
 import { BookingStatus } from '@/lib/constants';
+import { useAuthStore } from '@/store/zustand/stores';
+import { getUserBookings } from '@/features/booking/services/bookingService';
+import { formatCurrency } from '@/lib/utils';
+import type { Booking } from '@/features/booking/types/booking.types';
+import { Timestamp } from 'firebase/firestore';
+import RefundDialog from '@/features/booking/components/RefundDialog';
 
 // =============================================================================
 // TYPES
@@ -47,51 +53,8 @@ interface BookingItem {
     attendeeEmail: string;
     paymentMethod: string;
     transactionId: string;
+    allQrCodes: string[]; // Added to support multiple QRs
 }
-
-// =============================================================================
-// MOCK DATA
-// =============================================================================
-
-const MOCK_BOOKINGS: BookingItem[] = Array.from({ length: 14 }, (_, i) => ({
-    id: `BK-${String(10000 + i).slice(1)}`,
-    eventId: `evt-${i + 1}`,
-    eventTitle: [
-        'Tech Summit 2026',
-        'Jazz Night Live',
-        'AI & ML Conference',
-        'Summer Music Festival',
-        'Design Thinking Workshop',
-        'Startup Pitch Day',
-        'Food & Wine Expo',
-        'Marathon 2026',
-        'Photography Masterclass',
-        'Blockchain Summit',
-        'Open Mic Night',
-        'Art Gallery Opening',
-        'Yoga Retreat',
-        'Game Dev Meetup',
-    ][i],
-    eventImage: `https://images.unsplash.com/photo-${1492684223066 + i * 333}-81342ee5ff30?auto=format&fit=crop&q=80&w=400`,
-    date: i < 6 ? `Apr ${5 + i * 3}, 2026` : `Feb ${1 + i}, 2026`,
-    time: `${10 + (i % 8)}:00`,
-    venue: ['Convention Center, SF', 'Blue Note, NY', 'Moscone Hall, SF', 'Central Park, NY'][i % 4],
-    ticketCount: 1 + (i % 3),
-    totalPaid: 49 + i * 25,
-    status: i < 6
-        ? BookingStatus.CONFIRMED
-        : i < 10
-            ? BookingStatus.CONFIRMED
-            : i < 12
-                ? BookingStatus.CANCELLED
-                : BookingStatus.REFUNDED,
-    bookingDate: `Jan ${10 + i}, 2026`,
-    qrCode: `QR-${10000 + i}`,
-    attendeeName: 'Alex Johnson',
-    attendeeEmail: 'alex@example.com',
-    paymentMethod: i % 2 === 0 ? 'Credit Card' : 'PayPal',
-    transactionId: `TXN-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
-}));
 
 const statusBadgeVariant = (status: string) => {
     switch (status) {
@@ -119,21 +82,54 @@ const itemVariants = {
 // =============================================================================
 
 export default function MyBookingsPage() {
-    const [loading, setLoading] = useState(true);
+    const { user } = useAuthStore();
     const [tab, setTab] = useState('all');
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [selectedBooking, setSelectedBooking] = useState<BookingItem | null>(null);
     const [qrBooking, setQrBooking] = useState<BookingItem | null>(null);
     const [actionMenuId, setActionMenuId] = useState<string | null>(null);
+    const [refundBooking, setRefundBooking] = useState<BookingItem | null>(null);
 
-    useEffect(() => {
-        const t = setTimeout(() => setLoading(false), 600);
-        return () => clearTimeout(t);
-    }, []);
+    const { data: bookings, isLoading: loading } = useQuery({
+        queryKey: ['my-bookings', user?.uid],
+        queryFn: () => getUserBookings(user?.uid || ''),
+        enabled: !!user?.uid,
+    });
+
+    const items = useMemo(() => {
+        if (!bookings) return [];
+        return bookings.map((b: Booking) => {
+            const dateObj = new Date(b.eventDate);
+            const bookingDateObj = b.bookingDate instanceof Timestamp ? b.bookingDate.toDate() : new Date(b.bookingDate);
+
+            const allQrs: string[] = [];
+            b.tickets.forEach(t => t.qrCodes?.forEach(q => allQrs.push(q)));
+
+            return {
+                id: b.id,
+                eventId: b.eventId,
+                eventTitle: b.eventTitle,
+                eventImage: b.eventImage || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=400',
+                date: dateObj.toLocaleDateString(),
+                time: dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                venue: b.venue || 'TBA',
+                ticketCount: b.tickets.reduce((sum, t) => sum + t.quantity, 0),
+                totalPaid: b.finalAmount,
+                status: b.status,
+                bookingDate: bookingDateObj.toLocaleDateString(),
+                qrCode: allQrs[0] || 'N/A',
+                allQrCodes: allQrs,
+                attendeeName: b.attendees[0]?.name || 'Unknown',
+                attendeeEmail: b.attendees[0]?.email || 'Unknown',
+                paymentMethod: 'Razorpay',
+                transactionId: b.paymentId || 'N/A',
+            };
+        });
+    }, [bookings]);
 
     const filtered = useMemo(() => {
-        let list = MOCK_BOOKINGS;
+        let list = items;
         if (tab === 'upcoming') list = list.filter((b) => b.status === BookingStatus.CONFIRMED && new Date(b.date) > new Date());
         else if (tab === 'past') list = list.filter((b) => b.status === BookingStatus.CONFIRMED && new Date(b.date) <= new Date());
         else if (tab === 'cancelled') list = list.filter((b) => [BookingStatus.CANCELLED, BookingStatus.REFUNDED].includes(b.status as BookingStatus));
@@ -141,17 +137,17 @@ export default function MyBookingsPage() {
         if (search.trim()) {
             const q = search.toLowerCase();
             list = list.filter(
-                (b) => b.eventTitle.toLowerCase().includes(q) || b.id.toLowerCase().includes(q) || b.venue.toLowerCase().includes(q)
+                (b) => b.eventTitle.toLowerCase().includes(q) || b.id.toLowerCase().includes(q)
             );
         }
         return list;
-    }, [tab, search]);
+    }, [items, tab, search]);
 
     const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
     const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
     const tabs = [
-        { id: 'all', label: 'All', badge: String(MOCK_BOOKINGS.length) },
+        { id: 'all', label: 'All', badge: String(items.length) },
         { id: 'upcoming', label: 'Upcoming' },
         { id: 'past', label: 'Past' },
         { id: 'cancelled', label: 'Cancelled' },
@@ -244,16 +240,15 @@ export default function MyBookingsPage() {
                                                                 <button onClick={() => { setSelectedBooking(booking); setActionMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700">
                                                                     <FileText size={14} /> View Details
                                                                 </button>
-                                                                <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700">
-                                                                    <Download size={14} /> Download Invoice
-                                                                </button>
-                                                                <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700">
-                                                                    <CalendarPlus size={14} /> Add to Calendar
-                                                                </button>
                                                                 {booking.status === BookingStatus.CONFIRMED && (
-                                                                    <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
-                                                                        <RotateCcw size={14} /> Request Refund
-                                                                    </button>
+                                                                    <>
+                                                                        <button onClick={() => { setQrBooking(booking); setActionMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-700">
+                                                                            <QrCode size={14} /> View QR Ticket
+                                                                        </button>
+                                                                        <button onClick={() => { setRefundBooking(booking); setActionMenuId(null); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">
+                                                                            <RotateCcw size={14} /> Request Refund
+                                                                        </button>
+                                                                    </>
                                                                 )}
                                                             </div>
                                                         )}
@@ -264,14 +259,13 @@ export default function MyBookingsPage() {
                                             <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-3 text-sm text-gray-500 dark:text-neutral-400">
                                                 <span className="flex items-center gap-1.5"><Calendar size={14} /> {booking.date}</span>
                                                 <span className="flex items-center gap-1.5"><Clock size={14} /> {booking.time}</span>
-                                                <span className="flex items-center gap-1.5"><MapPin size={14} /> {booking.venue}</span>
                                                 <span className="flex items-center gap-1.5"><Ticket size={14} /> {booking.ticketCount} ticket{booking.ticketCount > 1 ? 's' : ''}</span>
                                             </div>
                                         </div>
 
                                         <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-neutral-700">
                                             <p className="font-bold text-gray-900 dark:text-white">
-                                                ${booking.totalPaid.toFixed(2)}
+                                                {formatCurrency(booking.totalPaid)}
                                             </p>
                                             <div className="flex gap-2">
                                                 {booking.status === BookingStatus.CONFIRMED && (
@@ -321,7 +315,7 @@ export default function MyBookingsPage() {
                             <div><p className="text-gray-400 text-xs mb-1">Booking ID</p><p className="font-medium text-gray-900 dark:text-white">{selectedBooking.id}</p></div>
                             <div><p className="text-gray-400 text-xs mb-1">Booking Date</p><p className="font-medium text-gray-900 dark:text-white">{selectedBooking.bookingDate}</p></div>
                             <div><p className="text-gray-400 text-xs mb-1">Tickets</p><p className="font-medium text-gray-900 dark:text-white">{selectedBooking.ticketCount}</p></div>
-                            <div><p className="text-gray-400 text-xs mb-1">Total Paid</p><p className="font-bold text-gray-900 dark:text-white">${selectedBooking.totalPaid.toFixed(2)}</p></div>
+                            <div><p className="text-gray-400 text-xs mb-1">Total Paid</p><p className="font-bold text-gray-900 dark:text-white">{formatCurrency(selectedBooking.totalPaid)}</p></div>
                         </div>
 
                         <div>
@@ -338,11 +332,6 @@ export default function MyBookingsPage() {
                             </div>
                         </div>
 
-                        <div>
-                            <h4 className="font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2"><MapPin size={15} /> Venue</h4>
-                            <p className="text-gray-600 dark:text-neutral-300">{selectedBooking.venue}</p>
-                        </div>
-
                         <div className="flex gap-3 pt-2">
                             <Button variant="primary" className="flex-1" onClick={() => { setQrBooking(selectedBooking); setSelectedBooking(null); }}>
                                 <QrCode size={16} className="mr-2" /> View Ticket
@@ -355,23 +344,41 @@ export default function MyBookingsPage() {
                 )}
             </Modal>
 
+            {/* ── Refund Dialog ── */}
+            {refundBooking && (
+                <RefundDialog
+                    isOpen={!!refundBooking}
+                    onClose={() => setRefundBooking(null)}
+                    bookingId={refundBooking.id}
+                    eventTitle={refundBooking.eventTitle}
+                    amountPaid={refundBooking.totalPaid}
+                />
+            )}
+
             {/* ── QR Ticket Modal ── */}
             <Modal isOpen={!!qrBooking} onClose={() => setQrBooking(null)} title="Your Ticket" size="md">
                 {qrBooking && (
                     <div className="flex flex-col items-center text-center space-y-5 py-4">
-                        <div className="w-52 h-52 bg-white rounded-2xl border-2 border-dashed border-gray-200 dark:border-neutral-600 flex items-center justify-center">
-                            <QrCode size={120} className="text-gray-800 dark:text-neutral-200" />
+                        <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center">
+                            {/* Use the first QR code or handle multiple if needed. For now showing first. */}
+                            <QRCodeSVG value={JSON.stringify({ b: qrBooking.id, t: qrBooking.qrCode })} size={150} />
                         </div>
                         <div>
                             <p className="text-xs text-gray-400 uppercase tracking-wider">Ticket Number</p>
-                            <p className="font-mono font-bold text-lg text-gray-900 dark:text-white">{qrBooking.qrCode}</p>
+                            <p className="font-mono font-bold text-lg text-gray-900 dark:text-white break-all">{qrBooking.qrCode}</p>
                         </div>
                         <div>
                             <h3 className="font-bold text-gray-900 dark:text-white">{qrBooking.eventTitle}</h3>
                             <p className="text-sm text-gray-500 dark:text-neutral-400">{qrBooking.date} • {qrBooking.time}</p>
-                            <p className="text-sm text-gray-500 dark:text-neutral-400">{qrBooking.venue}</p>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-neutral-300">Attendee: {qrBooking.attendeeName}</p>
+
+                        {qrBooking.allQrCodes.length > 1 && (
+                            <p className="text-xs text-[var(--color-primary)] font-medium">
+                                + {qrBooking.allQrCodes.length - 1} more ticket(s). Check details for all QRs.
+                            </p>
+                        )}
+
                         <div className="flex gap-3 w-full">
                             <Button variant="primary" className="flex-1">
                                 <Download size={16} className="mr-2" /> Download PDF

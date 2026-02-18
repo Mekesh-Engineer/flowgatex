@@ -7,15 +7,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Mail, Lock, User, MapPin, Calendar, ArrowRight, ArrowLeft,
     AlertCircle, Loader2, Sparkles, Eye, EyeOff, ShieldCheck,
-    CheckCircle2, Sun, Moon, Activity, ChevronDown, RefreshCw,
+    CheckCircle2, Sun, Moon, Activity, ChevronDown, RefreshCw, Music, Trophy
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { sendEmailVerification } from 'firebase/auth';
 import confetti from 'canvas-confetti';
 
+import { GridCanvas, ParticleCanvas } from '@/features/home/components/canvas/CanvasEffects';
+import { FloatingElement } from '@/features/home/components/ui/SharedComponents';
+
 import { registerWithEmail } from '@/features/auth/services/authService';
-import { auth, firebaseEnabled } from '@/lib/firebase';
+import { auth, firebaseEnabled } from '@/services/firebase';
 import { logger } from '@/lib/logger';
 import { UserRole } from '@/lib/constants';
 import { useAuthStore, useThemeStore, type AuthUser } from '@/store/zustand/stores';
@@ -47,7 +50,7 @@ const step1Schema = z.object({
 });
 
 const step2Schema = z.object({
-    gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say'], {
+    gender: z.enum(['male', 'female', 'non-binary', 'prefer-not-to-say'] as const, {
         errorMap: () => ({ message: 'Select gender' }),
     }),
     dob: z.string().refine(
@@ -64,7 +67,7 @@ const step2Schema = z.object({
         'You must be at least 13 years old',
     ),
     location: z.string().min(3, 'City/Location is required'),
-    role: z.enum(['attendee', 'organizer'], {
+    role: z.enum(['attendee', 'organizer', 'admin', 'superadmin'] as const, {
         errorMap: () => ({ message: 'Select a role' }),
     }),
 });
@@ -95,6 +98,10 @@ type RegistrationFormData = z.infer<typeof registrationSchema>;
 
 function toUserRole(role: string): UserRole {
     switch (role) {
+        case 'superadmin':
+            return UserRole.SUPER_ADMIN;
+        case 'admin':
+            return UserRole.ADMIN;
         case 'organizer':
             return UserRole.ORGANIZER;
         case 'attendee':
@@ -438,6 +445,7 @@ export default function RegisterPage() {
             const timer = setTimeout(() => scrollToFirstError(formContainerRef), 100);
             return () => clearTimeout(timer);
         }
+        return undefined;
     }, [errors]);
 
     const nextStep = useCallback(async () => {
@@ -637,6 +645,19 @@ export default function RegisterPage() {
                 ref={formContainerRef}
                 className="w-full lg:w-1/2 bg-[var(--bg-surface)] min-h-screen flex flex-col px-6 pt-20 pb-6 sm:px-10 sm:pt-20 sm:pb-8 overflow-y-auto transition-colors duration-300 relative"
             >
+                {/* Background Effects */}
+                <GridCanvas className="opacity-20 pointer-events-none absolute inset-0 sm:opacity-30 z-0" />
+                <ParticleCanvas particleCount={30} className="pointer-events-none absolute inset-0 z-0" />
+
+                {/* Floating Decor */}
+                <FloatingElement className="absolute top-32 left-8 hidden xl:block opacity-50 pointer-events-none z-0" delay={0.5}>
+                    <Music className="text-[var(--color-primary)] opacity-40 rotate-12" size={32} />
+                </FloatingElement>
+
+                <FloatingElement className="absolute bottom-20 right-10 hidden xl:block opacity-50 pointer-events-none z-0" delay={1.2}>
+                    <Trophy className="text-[var(--color-secondary)] opacity-40 -rotate-6" size={28} />
+                </FloatingElement>
+
                 {/* Floating orbs */}
                 <div className="login-orb login-orb-1 pointer-events-none" aria-hidden="true" />
                 <div className="login-orb login-orb-2 pointer-events-none" aria-hidden="true" />
@@ -660,6 +681,16 @@ export default function RegisterPage() {
                             </span>
                         </div>
                     )}
+
+                    {/* Welcome Header */}
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]">
+                            Welcome to FlowGateX
+                        </h1>
+                        <p className="text-[var(--text-secondary)] mt-2">
+                            Join the future of event management
+                        </p>
+                    </div>
 
                     {/* Progress Bar */}
                     {!registrationComplete && (
@@ -965,6 +996,8 @@ export default function RegisterPage() {
                                                     options={[
                                                         { value: 'attendee', label: 'Attendee' },
                                                         { value: 'organizer', label: 'Event Organizer' },
+                                                        { value: 'admin', label: 'Administrator' },
+                                                        { value: 'superadmin', label: 'Super Admin' },
                                                     ]}
                                                     registration={register('role')}
                                                     error={errors.role}

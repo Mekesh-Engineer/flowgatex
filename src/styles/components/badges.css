@@ -4,102 +4,102 @@
 
 /* Base Badge */
 .badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.625rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1;
-    border-radius: var(--radius-full);
-    white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
 }
 
 /* Badge Variants */
 .badge-primary {
-    background: rgba(235, 22, 22, 0.15);
-    color: var(--primary);
+  background: rgba(235, 22, 22, 0.15);
+  color: var(--primary);
 }
 
 .badge-success {
-    background: rgba(16, 185, 129, 0.15);
-    color: var(--status-success);
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--status-success);
 }
 
 .badge-warning {
-    background: rgba(245, 158, 11, 0.15);
-    color: var(--status-warning);
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--status-warning);
 }
 
 .badge-error,
 .badge-danger {
-    background: rgba(239, 68, 68, 0.15);
-    color: var(--status-error);
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--status-error);
 }
 
 .badge-info {
-    background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
 }
 
 .badge-neutral {
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
 }
 
 /* Solid Badges */
 .badge-solid-primary {
-    background: var(--primary);
-    color: white;
+  background: var(--primary);
+  color: white;
 }
 
 .badge-solid-success {
-    background: var(--status-success);
-    color: white;
+  background: var(--status-success);
+  color: white;
 }
 
 .badge-solid-warning {
-    background: var(--status-warning);
-    color: white;
+  background: var(--status-warning);
+  color: white;
 }
 
 .badge-solid-error {
-    background: var(--status-error);
-    color: white;
+  background: var(--status-error);
+  color: white;
 }
 
 /* Outline Badges */
 .badge-outline {
-    background: transparent;
-    border: 1px solid currentColor;
+  background: transparent;
+  border: 1px solid currentColor;
 }
 
 /* Badge Sizes */
 .badge-sm {
-    padding: 0.125rem 0.375rem;
-    font-size: 0.625rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
 }
 
 .badge-lg {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
 }
 
 /* Badge with Icon */
 .badge-icon {
-    padding: 0.25rem;
-    width: 1.5rem;
-    height: 1.5rem;
+  padding: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 /* Badge with Dot */
 .badge-dot::before {
-    content: '';
-    width: 0.375rem;
-    height: 0.375rem;
-    border-radius: 50%;
-    background: currentColor;
+  content: '';
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 /* ============================================================================
@@ -107,67 +107,66 @@
    ============================================================================ */
 
 .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
 }
 
 .status-badge::before {
-    content: '';
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    background: currentColor;
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .status-badge-active {
-    background: rgba(16, 185, 129, 0.15);
-    color: var(--status-success);
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--status-success);
 }
 
 .status-badge-active::before {
-    animation: statusPulse 2s ease-in-out infinite;
+  animation: statusPulse 2s ease-in-out infinite;
 }
 
 @keyframes statusPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
 
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .status-badge-upcoming {
-    background: rgba(59, 130, 246, 0.15);
-    color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
 }
 
 .status-badge-ended {
-    background: var(--bg-tertiary);
-    color: var(--text-muted);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
 }
 
 .status-badge-draft {
-    background: rgba(245, 158, 11, 0.15);
-    color: var(--status-warning);
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--status-warning);
 }
 
 .status-badge-paused {
-    background: rgba(168, 85, 247, 0.15);
-    color: #a855f7;
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
 }
 
 .status-badge-cancelled {
-    background: rgba(239, 68, 68, 0.15);
-    color: var(--status-error);
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--status-error);
 }
 
 /* ============================================================================
@@ -175,32 +174,32 @@
    ============================================================================ */
 
 .device-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 
 .device-status::before {
-    content: '';
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
 }
 
 .device-status-online::before {
-    background: var(--status-success);
-    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+  background: var(--status-success);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
 }
 
 .device-status-offline::before {
-    background: var(--text-muted);
+  background: var(--text-muted);
 }
 
 .device-status-warning::before {
-    background: var(--status-warning);
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+  background: var(--status-warning);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
 }
 
 /* ============================================================================
@@ -208,27 +207,27 @@
    ============================================================================ */
 
 .alert-indicator {
-    margin-top: 0.25rem;
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 50%;
-    flex-shrink: 0;
+  margin-top: 0.25rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .alert-critical {
-    background: var(--status-error);
+  background: var(--status-error);
 }
 
 .alert-warning {
-    background: var(--status-warning);
+  background: var(--status-warning);
 }
 
 .alert-success {
-    background: var(--status-success);
+  background: var(--status-success);
 }
 
 .alert-info {
-    background: #3b82f6;
+  background: #3b82f6;
 }
 
 /* ============================================================================
@@ -236,37 +235,28 @@
    ============================================================================ */
 
 .live-indicator {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 0.75rem;
-    height: 0.75rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .live-indicator-ping {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: var(--status-success);
-    opacity: 0.75;
-    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--status-success);
+  opacity: 0.75;
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 .live-indicator-dot {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: var(--status-success);
-}
-
-@keyframes ping {
-
-    75%,
-    100% {
-        transform: scale(2);
-        opacity: 0;
-    }
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--status-success);
 }

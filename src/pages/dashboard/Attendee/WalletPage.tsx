@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     Wallet,
@@ -21,9 +21,13 @@ import EmptyState from '@/components/common/EmptyState';
 import { Skeleton, SkeletonCard } from '@/components/common/Skeleton';
 import DataTable, { type Column } from '@/components/common/DataTable';
 import StatsCard from '@/components/common/StatsCard';
+import { useTransactions } from '@/features/booking/hooks/useTransactions';
+import type { Transaction } from '@/features/booking/types/transaction.types';
+import type { TransactionFilter } from '@/features/booking/types/transaction.types';
+import { PaymentStatus } from '@/lib/constants';
 
 // =============================================================================
-// TYPES & MOCK DATA
+// TYPES & LOCAL DATA
 // =============================================================================
 
 interface PaymentMethod {
@@ -35,48 +39,11 @@ interface PaymentMethod {
     type: 'visa' | 'mastercard' | 'amex' | 'paypal';
 }
 
-interface Transaction {
-    id: string;
-    date: string;
-    description: string;
-    type: 'debit' | 'credit';
-    amount: number;
-    status: 'completed' | 'pending' | 'failed';
-    [key: string]: unknown;
-}
-
-const MOCK_CARDS: PaymentMethod[] = [
+const DEFAULT_CARDS: PaymentMethod[] = [
     { id: 'pm-1', brand: 'Visa', last4: '4242', expiry: '12/27', isDefault: true, type: 'visa' },
     { id: 'pm-2', brand: 'Mastercard', last4: '8888', expiry: '06/28', isDefault: false, type: 'mastercard' },
     { id: 'pm-3', brand: 'PayPal', last4: '3456', expiry: '—', isDefault: false, type: 'paypal' },
 ];
-
-const MOCK_TRANSACTIONS: Transaction[] = Array.from({ length: 15 }, (_, i) => ({
-    id: `txn-${i + 1}`,
-    date: `Jan ${28 - i}, 2026`,
-    description: [
-        'Tech Summit 2026 - Tickets',
-        'Wallet Top Up',
-        'Jazz Night Live - Tickets',
-        'Refund - Cancelled Event',
-        'Summer Festival - VIP Pass',
-        'Design Workshop Fee',
-        'Wallet Top Up',
-        'Food & Wine Expo',
-        'Refund - Photography Class',
-        'Marathon Registration',
-        'Art Gallery Entry',
-        'Blockchain Conference',
-        'Yoga Retreat Booking',
-        'Startup Pitch Day',
-        'Open Mic Night',
-    ][i],
-    type: [1, 3, 6, 8].includes(i) ? 'credit' as const : 'debit' as const,
-    amount: [49, 100, 35, 25, 120, 45, 200, 60, 30, 50, 20, 75, 80, 40, 15][i],
-    status: i === 4 ? 'pending' : i === 9 ? 'failed' : 'completed',
-}));
-
-const BALANCE = 342.5;
 
 const brandColors: Record<string, string> = {
     visa: 'bg-blue-500',
@@ -99,80 +66,94 @@ const itemVariants = {
 // =============================================================================
 
 export default function WalletPage() {
-    const [loading, setLoading] = useState(true);
     const [showBalance, setShowBalance] = useState(true);
     const [addCardOpen, setAddCardOpen] = useState(false);
-    const [cards, setCards] = useState(MOCK_CARDS);
+    const [cards, setCards] = useState(DEFAULT_CARDS);
+    const [filter, setFilter] = useState<TransactionFilter>('all');
 
-    useEffect(() => {
-        const t = setTimeout(() => setLoading(false), 600);
-        return () => clearTimeout(t);
-    }, []);
+    const {
+        transactions,
+        isLoading: loading,
+        totalSpent,
+        totalRefunds,
+        balance,
+    } = useTransactions(filter);
 
-    const totalSpent = MOCK_TRANSACTIONS
-        .filter((t) => t.type === 'debit' && t.status === 'completed')
-        .reduce((sum, t) => sum + t.amount, 0);
+    /** Format Firestore timestamp or date string */
+    const formatDate = (raw: any): string => {
+        if (!raw) return '—';
+        const d = raw?.toDate ? raw.toDate() : new Date(raw);
+        return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    };
 
-    const totalRefunds = MOCK_TRANSACTIONS
-        .filter((t) => t.type === 'credit' && t.status === 'completed')
-        .reduce((sum, t) => sum + t.amount, 0);
+    const formatCurrency = (v: number) =>
+        new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
+
+    const isCredit = (row: Transaction) => row.paymentStatus === PaymentStatus.REFUNDED;
 
     const columns: Column<Transaction>[] = [
         {
-            key: 'date',
+            key: 'createdAt' as any,
             header: 'Date',
             width: '120px',
-            render: (row) => <span className="text-gray-500 dark:text-neutral-400 text-xs">{row.date}</span>,
+            render: (row) => <span className="text-gray-500 dark:text-neutral-400 text-xs">{formatDate(row.createdAt)}</span>,
         },
         {
-            key: 'description',
+            key: 'eventTitle' as any,
             header: 'Description',
             render: (row) => (
                 <div className="flex items-center gap-2">
                     <div className={cn(
                         'w-8 h-8 rounded-lg flex items-center justify-center',
-                        row.type === 'credit'
+                        isCredit(row)
                             ? 'bg-green-50 dark:bg-green-500/10 text-green-600'
                             : 'bg-red-50 dark:bg-red-500/10 text-red-500'
                     )}>
-                        {row.type === 'credit' ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
+                        {isCredit(row) ? <ArrowDownLeft size={14} /> : <ArrowUpRight size={14} />}
                     </div>
-                    <span className="font-medium text-gray-900 dark:text-white text-sm">{row.description}</span>
+                    <div className="min-w-0">
+                        <span className="font-medium text-gray-900 dark:text-white text-sm block truncate">{row.eventTitle}</span>
+                        {row.promoCode && (
+                            <span className="text-[10px] text-primary-600 dark:text-primary-400">Promo: {row.promoCode}</span>
+                        )}
+                    </div>
                 </div>
             ),
         },
         {
-            key: 'type',
-            header: 'Type',
-            width: '80px',
+            key: 'paymentMethod' as any,
+            header: 'Method',
+            width: '100px',
             render: (row) => (
-                <Badge variant={row.type === 'credit' ? 'success' : 'default'}>
-                    {row.type === 'credit' ? 'Credit' : 'Debit'}
-                </Badge>
+                <span className="text-xs text-gray-500 dark:text-neutral-400 capitalize">{row.paymentMethod}</span>
             ),
         },
         {
-            key: 'amount',
+            key: 'amountPaid' as any,
             header: 'Amount',
-            width: '100px',
+            width: '110px',
             align: 'right',
             render: (row) => (
                 <span className={cn(
                     'font-semibold text-sm',
-                    row.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'
+                    isCredit(row) ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'
                 )}>
-                    {row.type === 'credit' ? '+' : '-'}${row.amount.toFixed(2)}
+                    {isCredit(row) ? '+' : '-'}{formatCurrency(row.amountPaid)}
                 </span>
             ),
         },
         {
-            key: 'status',
+            key: 'paymentStatus' as any,
             header: 'Status',
             width: '100px',
             align: 'center',
             render: (row) => {
-                const variant = row.status === 'completed' ? 'success' : row.status === 'pending' ? 'warning' : 'error';
-                return <Badge variant={variant}>{row.status}</Badge>;
+                const variant =
+                    row.paymentStatus === PaymentStatus.SUCCESS ? 'success'
+                        : row.paymentStatus === PaymentStatus.PENDING ? 'warning'
+                            : row.paymentStatus === PaymentStatus.REFUNDED ? 'info'
+                                : 'error';
+                return <Badge variant={variant}>{row.paymentStatus}</Badge>;
             },
         },
     ];
@@ -218,7 +199,7 @@ export default function WalletPage() {
                             </button>
                         </div>
                         <p className="text-3xl font-bold mb-6">
-                            {showBalance ? `$${BALANCE.toFixed(2)}` : '••••••'}
+                            {showBalance ? formatCurrency(balance) : '••••••'}
                         </p>
                         <Button
                             variant="ghost"
@@ -232,7 +213,7 @@ export default function WalletPage() {
 
                 <StatsCard
                     label="Total Spent"
-                    value={`$${totalSpent.toFixed(2)}`}
+                    value={formatCurrency(totalSpent)}
                     icon={<ArrowUpRight size={20} />}
                     color="text-red-600 dark:text-red-400"
                     bgColor="bg-red-50 dark:bg-red-500/10"
@@ -241,7 +222,7 @@ export default function WalletPage() {
                 />
                 <StatsCard
                     label="Total Refunds"
-                    value={`$${totalRefunds.toFixed(2)}`}
+                    value={formatCurrency(totalRefunds)}
                     icon={<ArrowDownLeft size={20} />}
                     color="text-green-600 dark:text-green-400"
                     bgColor="bg-green-50 dark:bg-green-500/10"
@@ -322,14 +303,32 @@ export default function WalletPage() {
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         <FileText size={18} /> Transaction History
                     </h2>
-                    <Button variant="ghost" size="sm">
-                        <Download size={14} className="mr-1.5" /> Export CSV
-                    </Button>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 rounded-lg border border-gray-200 dark:border-neutral-700 p-0.5">
+                            {(['all', 'active', 'refunded', 'failed'] as TransactionFilter[]).map((f) => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFilter(f)}
+                                    className={cn(
+                                        'px-2.5 py-1 text-xs font-medium rounded-md capitalize transition-colors',
+                                        filter === f
+                                            ? 'bg-primary-100 dark:bg-primary-500/20 text-primary-700 dark:text-primary-300'
+                                            : 'text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300'
+                                    )}
+                                >
+                                    {f}
+                                </button>
+                            ))}
+                        </div>
+                        <Button variant="ghost" size="sm">
+                            <Download size={14} className="mr-1.5" /> Export CSV
+                        </Button>
+                    </div>
                 </div>
 
                 <DataTable<Transaction>
                     columns={columns}
-                    data={MOCK_TRANSACTIONS}
+                    data={transactions}
                     keyExtractor={(row) => row.id}
                     pageSize={8}
                     emptyMessage="No transactions yet"

@@ -21,7 +21,7 @@ export const NewsletterSection = () => {
         <section className="py-20 bg-[var(--bg-secondary)] relative overflow-hidden">
             <ParticleCanvas particleCount={30} className="opacity-30" />
 
-            <div className="max-w-4xl mx-auto px-4 relative z-10">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
                 <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center">
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00A3DB]/10 border border-[#00A3DB]/20 mb-6">
                         <Bell className="text-[#00A3DB]" size={14} />

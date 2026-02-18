@@ -13,8 +13,8 @@ import { useAuthStore } from '@/store/zustand/stores';
 import {
   subscribePlatformSettings,
   subscribeOrganizationSettings,
-} from '@/lib/settingsService';
-import { firebaseEnabled } from '@/lib/firebase';
+} from '@/services/settingsService';
+import { firebaseEnabled } from '@/services/firebase';
 import { logger } from '@/lib/logger';
 import type { AuthUser } from '@/features/auth/types/auth.types';
 

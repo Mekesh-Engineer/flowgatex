@@ -1,15 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00A3DB;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#0091c4;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#A3D639;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  <rect width="100" height="100" rx="20" fill="url(#grad)" />
-  <!-- Material Symbols Stream Network Icon -->
-  <g transform="translate(50, 50) scale(0.08, -0.08) translate(-480, 480)">
-    <path fill="white"
-      d="M103.5-423.5Q80-447 80-480t23.5-56.5Q127-560 160-560t56.5 23.5Q240-513 240-480t-23.5 56.5Q193-400 160-400t-56.5-23.5ZM226-172l-56-56 174-174 56 56-174 174Zm120-388L172-734l56-56 174 174-56 56Zm77.5 456.5Q400-127 400-160t23.5-56.5Q447-240 480-240t56.5 23.5Q560-193 560-160t-23.5 56.5Q513-80 480-80t-56.5-23.5Zm0-640Q400-767 400-800t23.5-56.5Q447-880 480-880t56.5 23.5Q560-833 560-800t-23.5 56.5Q513-720 480-720t-56.5-23.5ZM614-558l-56-58 176-174 56 56-176 176Zm120 386L560-346l56-56 174 174-56 56Zm9.5-251.5Q720-447 720-480t23.5-56.5Q767-560 800-560t56.5 23.5Q880-513 880-480t-23.5 56.5Q833-400 800-400t-56.5-23.5Z" />
-  </g>
+  <rect width="100" height="100" rx="20" fill="#3b82f6"/>
+  <path d="M30 30 L70 50 L30 70 Z" fill="white"/>
 </svg>

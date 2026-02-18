@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Users, Star, ArrowLeft, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Calendar, Users, Star, ArrowLeft, Sparkles, ChevronLeft, ChevronRight, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { EVENT_CATEGORIES } from '@/lib/constants';
+import { GridCanvas, ParticleCanvas } from '@/features/home/components/canvas/CanvasEffects';
+import { FloatingElement } from '@/features/home/components/ui/SharedComponents';
 
 // =============================================================================
 // ANIMATION VARIANTS
@@ -129,10 +131,22 @@ export default function CategoryPage() {
                             'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=1600';
                     }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-black/50 to-transparent z-0" />
+
+                {/* Background Effects */}
+                <GridCanvas className="opacity-30 pointer-events-none z-0" />
+                <ParticleCanvas particleCount={40} className="pointer-events-none z-0" />
+
                 <div className="absolute inset-0 opacity-5 pointer-events-none">
                     <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, var(--text-muted) 1px, transparent 0)', backgroundSize: '40px 40px' }} />
                 </div>
+
+                <FloatingElement className="absolute top-10 right-10 hidden lg:block opacity-60 pointer-events-none z-10" delay={0.3}>
+                    <div className="p-3 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-sm rotate-12">
+                        <Music className="text-white" size={24} />
+                    </div>
+                </FloatingElement>
+
                 <div className="relative z-10 h-full flex flex-col justify-end max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
                         <Link

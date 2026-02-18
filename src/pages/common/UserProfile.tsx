@@ -19,11 +19,11 @@ import {
   deleteUserAccount,
   uploadFile
 } from '@/features/auth/services/authService';
-import { savePlatformSettings } from '@/lib/settingsService';
+import { savePlatformSettings } from '@/services/settingsService';
 import {
   getUserDocument,
   saveFullUserProfile,
-} from '@/lib/userService';
+} from '@/services/userService';
 import { logger } from '@/lib/logger';
 import Input from '@/components/forms/Input';
 import Select from '@/components/forms/Select';
@@ -84,13 +84,13 @@ const getRoleBadgeColor = (role: UserRole) => {
   switch (role) {
     case UserRole.ADMIN:
     case UserRole.SUPER_ADMIN:
-      return 'bg-gradient-to-r from-red-500 to-pink-600 text-white';
+      return 'bg-linear-to-r from-red-500 to-pink-600 text-white';
     case UserRole.ORG_ADMIN:
-      return 'bg-gradient-to-r from-amber-500 to-orange-600 text-white';
+      return 'bg-linear-to-r from-amber-500 to-orange-600 text-white';
     case UserRole.ORGANIZER:
-      return 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white';
+      return 'bg-linear-to-r from-purple-500 to-indigo-600 text-white';
     default:
-      return 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white';
+      return 'bg-linear-to-r from-blue-500 to-cyan-600 text-white';
   }
 };
 
@@ -926,7 +926,7 @@ export default function UserProfile() {
         className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
       >
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] bg-clip-text text-transparent tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-linear-to-r from-[var(--color-primary)] to-[var(--color-secondary)] bg-clip-text text-transparent tracking-tight">
             {showAdminSettings ? 'Platform Settings' : 'Account Settings'}
           </h1>
           <p className="text-[var(--text-muted)] text-base mt-2">
@@ -941,7 +941,7 @@ export default function UserProfile() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowAdminSettings(!showAdminSettings)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
+            className="flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all"
           >
             <Settings size={18} />
             {showAdminSettings ? 'User Settings' : 'Platform Settings'}
@@ -1028,11 +1028,11 @@ export default function UserProfile() {
             {/* Profile Card */}
             <div className="bg-[var(--bg-card)] rounded-2xl p-6 shadow-lg border border-[var(--border-primary)] text-center relative overflow-hidden">
               {/* Gradient Background */}
-              <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] opacity-10"></div>
+              <div className="absolute top-0 left-0 w-full h-32 bg-linear-to-br from-[var(--color-primary)] to-[var(--color-secondary)] opacity-10"></div>
 
               {/* Profile Picture */}
               <div className="relative mt-4 mb-6 inline-block group">
-                <div className="w-32 h-32 rounded-full p-1 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-secondary)] mx-auto shadow-xl">
+                <div className="w-32 h-32 rounded-full p-1 bg-linear-to-br from-[var(--color-primary)] to-[var(--color-secondary)] mx-auto shadow-xl">
                   <img
                     className="w-full h-full rounded-full object-cover border-4 border-[var(--bg-card)]"
                     src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'User')}&background=00A3DB&color=fff&size=256`}
@@ -1050,7 +1050,7 @@ export default function UserProfile() {
                 </label>
                 <button
                   type="button"
-                  className="absolute bottom-1 right-1 p-3 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white rounded-full shadow-lg hover:scale-110 transition-transform"
+                  className="absolute bottom-1 right-1 p-3 bg-linear-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white rounded-full shadow-lg hover:scale-110 transition-transform"
                   onClick={() => document.querySelector<HTMLInputElement>('input[type="file"]')?.click()}
                 >
                   <Camera size={18} />
@@ -1073,7 +1073,7 @@ export default function UserProfile() {
                   {user.role}
                 </span>
                 {user.emailVerified && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md">
+                  <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold bg-linear-to-r from-green-500 to-emerald-600 text-white shadow-md">
                     <CheckCircle2 size={12} />
                     Verified
                   </span>
@@ -1103,7 +1103,7 @@ export default function UserProfile() {
             {!isAdmin && !isOrganizer && (
                 <motion.div
                 whileHover={{ y: -5 }}
-                className="bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden"
+                className="bg-linear-to-br from-purple-600 via-blue-600 to-cyan-600 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden"
                 >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl"></div>
                 <div className="relative z-10">
@@ -1142,7 +1142,7 @@ export default function UserProfile() {
                     className="p-6 md:p-8 space-y-8"
                   >
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-600 text-white rounded-xl">
+                      <div className="p-3 bg-linear-to-br from-blue-500 to-cyan-600 text-white rounded-xl">
                         <User size={24} />
                       </div>
                       <div>
@@ -1279,7 +1279,7 @@ export default function UserProfile() {
                     {isOrganizer && (
                         <div className="pt-8 border-t border-[var(--border-primary)]">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-xl">
+                                <div className="p-3 bg-linear-to-br from-purple-500 to-indigo-600 text-white rounded-xl">
                                     <Briefcase size={24} />
                                 </div>
                                 <div>
@@ -1478,7 +1478,7 @@ export default function UserProfile() {
                     className="p-6 md:p-8 space-y-8"
                   >
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl">
+                      <div className="p-3 bg-linear-to-br from-purple-500 to-pink-600 text-white rounded-xl">
                         <Globe size={24} />
                       </div>
                       <div>
@@ -1503,7 +1503,7 @@ export default function UserProfile() {
                             className={cn(
                               "cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center gap-3 transition-all",
                               formData.theme === theme
-                                ? "border-[var(--color-primary)] bg-gradient-to-br from-[var(--color-primary)]/10 to-transparent shadow-lg"
+                                ? "border-[var(--color-primary)] bg-linear-to-br from-[var(--color-primary)]/10 to-transparent shadow-lg"
                                 : "border-[var(--border-primary)] hover:border-[var(--color-primary)]/50 hover:bg-[var(--bg-surface)]"
                             )}
                           >
@@ -1597,7 +1597,7 @@ export default function UserProfile() {
                                 checked={formData.notifications[notif.key as keyof NotificationSettings]} 
                                 onChange={() => handleToggle('notifications', notif.key)} 
                               />
-                              <div className="w-9 h-5 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-primary)] peer-checked:border-transparent"></div>
+                              <div className="w-9 h-5 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-primary)] peer-checked:border-transparent"></div>
                             </label>
                           </motion.div>
                         ))}
@@ -1629,7 +1629,7 @@ export default function UserProfile() {
                                             checked={formData.smartPreferences[pref.key as keyof SmartPreferences]} 
                                             onChange={() => handleToggle('smartPreferences', pref.key)} 
                                         />
-                                        <div className="w-9 h-5 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-primary)] peer-checked:border-transparent"></div>
+                                        <div className="w-9 h-5 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--color-primary)] peer-checked:border-transparent"></div>
                                     </label>
                                 </div>
                             ))}
@@ -1649,7 +1649,7 @@ export default function UserProfile() {
                     className="p-6 md:p-8 space-y-8"
                   >
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="p-3 bg-gradient-to-br from-red-500 to-orange-600 text-white rounded-xl">
+                      <div className="p-3 bg-linear-to-br from-red-500 to-orange-600 text-white rounded-xl">
                         <Lock size={24} />
                       </div>
                       <div>
@@ -1741,7 +1741,7 @@ export default function UserProfile() {
                       </h3>
                       {platformSettings.securityPolicies?.enforce2FA && !formData.twoFactor && (
                         <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-300 dark:border-amber-700 rounded-xl">
-                          <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 flex-shrink-0" />
+                          <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 shrink-0" />
                           <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
                             Two-factor authentication is required by platform security policy. Please enable 2FA to continue using your account.
                           </p>
@@ -1749,7 +1749,7 @@ export default function UserProfile() {
                       )}
                       <motion.div
                         whileHover={{ scale: 1.02 }}
-                        className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/10 dark:to-cyan-900/10 border border-blue-200 dark:border-blue-900/30 rounded-xl"
+                        className="flex items-center justify-between p-6 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-900/10 dark:to-cyan-900/10 border border-blue-200 dark:border-blue-900/30 rounded-xl"
                       >
                         <div className="flex gap-4">
                           <div className="p-3 bg-white dark:bg-[var(--bg-card)] rounded-xl shadow-md">
@@ -1924,7 +1924,7 @@ export default function UserProfile() {
                     className="p-6 md:p-8 space-y-8"
                   >
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="p-3 bg-gradient-to-br from-green-500 to-teal-600 text-white rounded-xl">
+                      <div className="p-3 bg-linear-to-br from-green-500 to-teal-600 text-white rounded-xl">
                         <Shield size={24} />
                       </div>
                       <div>
@@ -1949,7 +1949,7 @@ export default function UserProfile() {
                             className={cn(
                               "cursor-pointer rounded-xl border-2 p-6 flex flex-col items-center gap-3 transition-all relative",
                               formData.privacy.profileVisibility === visibility
-                                ? "border-[var(--color-primary)] bg-gradient-to-br from-[var(--color-primary)]/10 to-transparent shadow-lg"
+                                ? "border-[var(--color-primary)] bg-linear-to-br from-[var(--color-primary)]/10 to-transparent shadow-lg"
                                 : "border-[var(--border-primary)] hover:border-[var(--color-primary)]/50 hover:bg-[var(--bg-surface)]"
                             )}
                           >
@@ -2007,7 +2007,7 @@ export default function UserProfile() {
                                     checked={formData.privacy[setting.key as keyof PrivacySettings] === true} 
                                     onChange={() => handleToggle('privacy', setting.key)} 
                                 />
-                                <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
+                                <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-linear-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
                                 </label>
                             </motion.div>
                         ))}
@@ -2022,7 +2022,7 @@ export default function UserProfile() {
                       </h3>
                       <motion.div
                         whileHover={{ scale: 1.02 }}
-                        className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 border border-blue-200 dark:border-blue-900/30 rounded-xl"
+                        className="p-6 bg-linear-to-r from-blue-50 to-purple-50 dark:from-blue-900/10 dark:to-purple-900/10 border border-blue-200 dark:border-blue-900/30 rounded-xl"
                       >
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                           <div>
@@ -2113,7 +2113,7 @@ export default function UserProfile() {
                 className="p-6 md:p-8 space-y-8"
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl">
+                  <div className="p-3 bg-linear-to-br from-blue-500 to-indigo-600 text-white rounded-xl">
                     <Settings size={24} />
                   </div>
                   <div>
@@ -2179,7 +2179,7 @@ export default function UserProfile() {
                 className="p-6 md:p-8 space-y-8"
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-600 text-white rounded-xl">
+                  <div className="p-3 bg-linear-to-br from-green-500 to-emerald-600 text-white rounded-xl">
                     <CreditCard size={24} />
                   </div>
                   <div>
@@ -2207,7 +2207,7 @@ export default function UserProfile() {
                         checked={adminSettings.razorpayEnabled} 
                         onChange={() => setAdminSettings(prev => ({ ...prev, razorpayEnabled: !prev.razorpayEnabled }))} 
                       />
-                      <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
+                      <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-linear-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
                     </label>
                   </div>
 
@@ -2229,7 +2229,7 @@ export default function UserProfile() {
                         checked={adminSettings.cashfreeEnabled} 
                         onChange={() => setAdminSettings(prev => ({ ...prev, cashfreeEnabled: !prev.cashfreeEnabled }))} 
                       />
-                      <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
+                      <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-linear-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
                     </label>
                   </div>
 
@@ -2273,7 +2273,7 @@ export default function UserProfile() {
                 className="p-6 md:p-8 space-y-8"
               >
                  <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-yellow-500 to-orange-600 text-white rounded-xl">
+                  <div className="p-3 bg-linear-to-br from-yellow-500 to-orange-600 text-white rounded-xl">
                     <Mail size={24} />
                   </div>
                   <div>
@@ -2328,7 +2328,7 @@ export default function UserProfile() {
                 className="p-6 md:p-8 space-y-8"
               >
                   <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 text-white rounded-xl">
+                  <div className="p-3 bg-linear-to-br from-purple-500 to-pink-600 text-white rounded-xl">
                     <Zap size={24} />
                   </div>
                   <div>
@@ -2364,7 +2364,7 @@ export default function UserProfile() {
                           checked={adminSettings.features[feature.key as keyof typeof adminSettings.features]} 
                           onChange={() => handleToggle('features', feature.key)} 
                         />
-                        <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
+                        <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-linear-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
                       </label>
                     </motion.div>
                   ))}
@@ -2383,7 +2383,7 @@ export default function UserProfile() {
                 className="p-6 md:p-8 space-y-8"
               >
                  <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-xl">
+                  <div className="p-3 bg-linear-to-br from-cyan-500 to-blue-600 text-white rounded-xl">
                     <TrendingUp size={24} />
                   </div>
                   <div>
@@ -2442,7 +2442,7 @@ export default function UserProfile() {
                 className="p-6 md:p-8 space-y-8"
               >
                   <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-gradient-to-br from-red-500 to-rose-600 text-white rounded-xl">
+                  <div className="p-3 bg-linear-to-br from-red-500 to-rose-600 text-white rounded-xl">
                     <Shield size={24} />
                   </div>
                   <div>
@@ -2469,7 +2469,7 @@ export default function UserProfile() {
                         checked={adminSettings.enforce2FA} 
                         onChange={() => setAdminSettings(prev => ({ ...prev, enforce2FA: !prev.enforce2FA }))} 
                       />
-                      <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
+                      <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-linear-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
                     </label>
                   </div>
 
@@ -2499,7 +2499,7 @@ export default function UserProfile() {
                         checked={adminSettings.requireSpecialChar} 
                         onChange={() => setAdminSettings(prev => ({ ...prev, requireSpecialChar: !prev.requireSpecialChar }))} 
                       />
-                      <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
+                      <div className="w-11 h-6 bg-[var(--bg-card)] peer-focus:outline-none rounded-full peer border-2 border-[var(--border-primary)] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-linear-to-r peer-checked:from-[var(--color-primary)] peer-checked:to-[var(--color-secondary)] peer-checked:border-transparent shadow-inner"></div>
                     </label>
                   </div>
                 </div>

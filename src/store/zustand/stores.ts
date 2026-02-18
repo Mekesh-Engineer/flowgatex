@@ -90,21 +90,32 @@ export const useSidebarStore = create<SidebarState>()((set) => ({
 }));
 
 // Cart store for ticket purchases
-interface CartItem {
+export interface CartItem {
   eventId: string;
   eventTitle: string;
+  eventDate: string;
+  eventImage?: string;
+  venue?: string;
   tierId: string;
   tierName: string;
   price: number;
   quantity: number;
+  addedAt: number; // timestamp for cart expiration
+  availableCount?: number; // for low-stock warnings
+  originalPrice?: number; // for price-change detection
 }
 
 interface CartState {
   items: CartItem[];
+  promoCode?: string;
+  discountAmount: number;
+  taxAmount: number;
+  totalFinal: number;
   addItem: (item: CartItem) => void;
   removeItem: (eventId: string, tierId: string) => void;
   updateQuantity: (eventId: string, tierId: string, quantity: number) => void;
   clearCart: () => void;
+  setPromoCode: (code: string | undefined, discount: number) => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
 }
@@ -113,17 +124,23 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      promoCode: undefined,
+      discountAmount: 0,
+      taxAmount: 0,
+      totalFinal: 0,
       addItem: (item) =>
         set((state) => {
           const existingIndex = state.items.findIndex(
             (i) => i.eventId === item.eventId && i.tierId === item.tierId
           );
+          let newItems;
           if (existingIndex > -1) {
-            const updatedItems = [...state.items];
-            updatedItems[existingIndex].quantity += item.quantity;
-            return { items: updatedItems };
+            newItems = [...state.items];
+            newItems[existingIndex].quantity += item.quantity;
+          } else {
+            newItems = [...state.items, { ...item, addedAt: item.addedAt || Date.now() }];
           }
-          return { items: [...state.items, item] };
+          return { items: newItems };
         }),
       removeItem: (eventId, tierId) =>
         set((state) => ({
@@ -139,13 +156,19 @@ export const useCartStore = create<CartState>()(
               : item
           ),
         })),
-      clearCart: () => set({ items: [] }),
+      clearCart: () => set({ items: [], promoCode: undefined, discountAmount: 0, taxAmount: 0, totalFinal: 0 }),
+      setPromoCode: (code, discount) => set({ promoCode: code, discountAmount: discount }),
       getTotalItems: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
       getTotalPrice: () =>
         get().items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     }),
     {
       name: 'flowgatex-cart',
+      partialize: (state) => ({
+        items: state.items,
+        promoCode: state.promoCode,
+        discountAmount: state.discountAmount,
+      }),
     }
   )
 );
