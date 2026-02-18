@@ -6,7 +6,7 @@
 // =============================================================================
 
 import { useNavigate } from 'react-router-dom';
-import { useOrganizerStore } from '@/store/zustand/organizerStore';
+import { useOrganizerData, useOrganizerActions } from '@/store/zustand/organizerStore';
 import { useScanner } from '@/features/scanner/hooks/useScanner';
 import { useScannerKeyboard } from '@/features/scanner/hooks/useScannerKeyboard';
 import { ScannerHeader } from '@/features/scanner/components/ScannerHeader';
@@ -32,7 +32,8 @@ import '@/styles/features/qr-scanner.css';
 export default function ScannerPage() {
     const navigate = useNavigate();
     const s = useScanner();
-    const store = useOrganizerStore();
+    const store = useOrganizerData();
+    const actions = useOrganizerActions();
 
     // Keyboard shortcuts
     useScannerKeyboard({
@@ -86,7 +87,7 @@ export default function ScannerPage() {
                     searchTerm={s.searchTerm}
                     onSearchChange={s.setSearchTerm}
                     onClearHistory={s.handleClearHistory}
-                    onSettingsChange={store.updateScannerSettings}
+                    onSettingsChange={actions.updateScannerSettings}
                     onExport={s.handleExport}
                     onSelectScan={s.selectScan}
                 />
@@ -114,7 +115,7 @@ export default function ScannerPage() {
                     showSystemLog={store.scannerSettings.showSystemLog}
                     logContainerRef={s.logContainerRef}
                     onToggleLogExpanded={() => s.setIsLogExpanded(!s.isLogExpanded)}
-                    onClearLogs={store.clearLogs}
+                    onClearLogs={actions.clearLogs}
                     onStartScanning={s.handleStartScanning}
                     onOpenOverride={() => s.setIsOverrideModalOpen(true)}
                     onSelectScan={s.selectScan}
@@ -166,7 +167,7 @@ export default function ScannerPage() {
                 isOpen={s.isSettingsModalOpen}
                 onClose={() => s.setIsSettingsModalOpen(false)}
                 settings={store.scannerSettings}
-                onSettingsChange={store.updateScannerSettings}
+                onSettingsChange={actions.updateScannerSettings}
                 iotDevices={store.iotDevices}
                 onExport={s.handleExport}
             />

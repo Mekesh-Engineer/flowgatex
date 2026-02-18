@@ -7,8 +7,16 @@
 // =============================================================================
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useAuthStore } from '@/store/zustand/stores';
-import { useOrganizerStore, selectOnlineDeviceCount, selectCapacityPercent, selectStatPercents } from '@/store/zustand/organizerStore';
+import {
+  useOrganizerStore,
+  useOrganizerActions,
+  useOrganizerData,
+  selectOnlineDeviceCount,
+  selectCapacityPercent,
+  selectStatPercents,
+} from '@/store/zustand/organizerStore';
 import { useDebounce } from '@/hooks/useDebounce';
 import { subscribeToDevices } from '@/features/iot/services/iotService';
 import { showSuccess, showError, showInfo } from '@/components/common/Toast';
@@ -101,8 +109,7 @@ export interface UseScannerReturn {
 export function useScanner(): UseScannerReturn {
   const { user } = useAuthStore();
 
-  // ── Store bindings ──────────────────────────────────────────────────────
-  const store = useOrganizerStore();
+  // ── Store bindings (shallow-compared to avoid infinite re-render loops) ─
   const {
     activeEventId,
     scanStats,
@@ -111,6 +118,9 @@ export function useScanner(): UseScannerReturn {
     scannerSettings: settings,
     logs,
     isOnline,
+  } = useOrganizerData();
+
+  const {
     addScanResult,
     clearRecentScans,
     setIoTDevices,
@@ -121,11 +131,11 @@ export function useScanner(): UseScannerReturn {
     setOnline,
     incrementStat,
     decrementStat,
-  } = store;
+  } = useOrganizerActions();
 
   const onlineDevices = useOrganizerStore(selectOnlineDeviceCount);
   const capacityPercent = useOrganizerStore(selectCapacityPercent);
-  const statPercents = useOrganizerStore(selectStatPercents);
+  const statPercents = useOrganizerStore(useShallow(selectStatPercents));
 
   // ── Local state (not shared across pages) ───────────────────────────────
   const [scannerState, setScannerState] = useState<ScannerState>('idle');

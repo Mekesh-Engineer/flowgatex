@@ -9,6 +9,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import type { IoTDevice } from '@/features/iot/types/iot.types';
 import type { ScanResult, ScanStats, ScannerSettings, LogEntry } from '@/features/scanner/types/scanner.types';
 import {
@@ -174,7 +175,7 @@ export const selectCapacityPercent = (state: OrganizerState): string =>
     ? ((state.scanStats.total / state.scanStats.capacity) * 100).toFixed(0)
     : '0';
 
-/** Valid / Invalid / Duplicate percentages */
+/** Valid / Invalid / Duplicate percentages — use with useShallow to avoid infinite loops */
 export const selectStatPercents = (state: OrganizerState) => {
   const { total, valid, invalid, duplicates } = state.scanStats;
   return {
@@ -183,3 +184,41 @@ export const selectStatPercents = (state: OrganizerState) => {
     duplicate: total > 0 ? ((duplicates / total) * 100).toFixed(1) : '0.0',
   };
 };
+
+// ─── Shallow hooks (prevent infinite re-renders from object selectors) ──────
+
+/** Pick only the action functions (stable references — no re-render) */
+export function useOrganizerActions() {
+  return useOrganizerStore(
+    useShallow((s) => ({
+      setActiveEvent: s.setActiveEvent,
+      clearActiveEvent: s.clearActiveEvent,
+      setScanStats: s.setScanStats,
+      incrementStat: s.incrementStat,
+      decrementStat: s.decrementStat,
+      addScanResult: s.addScanResult,
+      clearRecentScans: s.clearRecentScans,
+      setIoTDevices: s.setIoTDevices,
+      updateScannerSettings: s.updateScannerSettings,
+      addLog: s.addLog,
+      clearLogs: s.clearLogs,
+      setOnline: s.setOnline,
+    }))
+  );
+}
+
+/** Pick only the data fields (shallow-compared to avoid spurious re-renders) */
+export function useOrganizerData() {
+  return useOrganizerStore(
+    useShallow((s) => ({
+      activeEventId: s.activeEventId,
+      activeEventTitle: s.activeEventTitle,
+      scanStats: s.scanStats,
+      recentScans: s.recentScans,
+      iotDevices: s.iotDevices,
+      scannerSettings: s.scannerSettings,
+      logs: s.logs,
+      isOnline: s.isOnline,
+    }))
+  );
+}
