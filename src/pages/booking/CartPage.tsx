@@ -324,7 +324,7 @@ function CartPage() {
                                             <span>{formatCurrency(totalPrice)}</span>
                                         </div>
                                         <div className="flex justify-between text-sm text-[var(--text-secondary)]">
-                                            <span>Service Fee (₹5 × {totalItems})</span>
+                                            <span>Service Fee ({formatCurrency(SERVICE_FEE_PER_TICKET)} × {totalItems})</span>
                                             <span>{formatCurrency(serviceFee)}</span>
                                         </div>
                                         {discount > 0 && (

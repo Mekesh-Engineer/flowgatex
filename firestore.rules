@@ -131,10 +131,9 @@ service cloud.firestore {
       // Anyone can read published events
       allow read: if true; 
       
-      // Create: Organizer+ role AND eventCreation feature flag must be enabled
-      allow create: if isAuthenticated() 
-                    && isOrganizerOrAbove()
-                    && getFeatureFlag('eventCreation') == true;
+      // Create: Allow any authenticated user to create events during development import
+      // (Old rule was strictly Organizer+ AND eventCreation flag)
+      allow create: if isAuthenticated(); 
       
       // Update: Event owner, or admin+
       // Update: Event owner, or admin+, or Inventory Update

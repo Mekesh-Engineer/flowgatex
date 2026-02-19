@@ -55,6 +55,9 @@ export const ROUTES = {
   ADMIN_SETTINGS: '/admin/settings',
   ADMIN_REPORTS: '/admin/reports',
   ADMIN_PROMO_CODES: '/admin/promo-codes',
+  ADMIN_ATTENDEES: '/admin/attendees',
+  ADMIN_TRANSACTIONS: '/admin/transactions',
+  ADMIN_AUDIT_LOGS: '/admin/audit-logs',
 
   // Super Admin
   SUPER_ADMIN: '/superadmin',

@@ -8,6 +8,7 @@ import {
   Home, Info, Mail, Wallet, Heart,
   Shield, Building2, DollarSign, FileText, Lock,
   PlusCircle, Megaphone, ScanLine, UserCheck,
+  CreditCard, ClipboardList,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -37,6 +38,8 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Megaphone,
   ScanLine,
   UserCheck,
+  CreditCard,
+  ClipboardList,
 };
 
 /**

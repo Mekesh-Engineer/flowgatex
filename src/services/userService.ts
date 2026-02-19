@@ -17,6 +17,7 @@ import {
   query,
   where,
   getDocs,
+  orderBy,
 } from 'firebase/firestore';
 
 import type { DocumentData } from 'firebase/firestore';
@@ -515,6 +516,24 @@ export async function updateUserRole(
     updatedAt: serverTimestamp(),
   });
   logger.log(`✅ User role updated to "${role}" for user:`, uid);
+}
+
+/**
+ * Subscribe to all users (admin only)
+ */
+export function subscribeToAllUsers(callback: (users: FirestoreUser[]) => void): () => void {
+  requireFirestore();
+  const usersRef = collection(db!, 'users');
+  // Order by createdAt desc is good but requires index. If index missing, it will throw.
+  // We can try without orderBy first or catch the error.
+  const q = query(usersRef, orderBy('createdAt', 'desc'));
+
+  return onSnapshot(q, (snapshot) => {
+    const users = snapshot.docs.map((d) => d.data() as FirestoreUser);
+    callback(users);
+  }, (error) => {
+    logger.error('Failed to subscribe to users:', error);
+  });
 }
 
 /**

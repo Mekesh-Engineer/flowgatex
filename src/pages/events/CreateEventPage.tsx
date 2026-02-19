@@ -113,23 +113,37 @@ export default function CreateEventPage() {
     setBulkPublishDone(false);
     setError(null);
 
-    try {
-      for (let i = 0; i < importedEvents.length; i++) {
+    const failed: number[] = [];
+
+    for (let i = 0; i < importedEvents.length; i++) {
+      try {
         await eventService.publishEvent(importedEvents[i], user.uid);
-        setPublishProgress(i + 1);
+      } catch (err) {
+        console.error(`Failed to publish event #${i + 1}:`, importedEvents[i], err);
+        failed.push(i + 1); // track 1-indexed event number
       }
+      setPublishProgress(i + 1);
+    }
 
-      // Also publish the form data if the user has filled anything meaningful
-      if (formData.title.trim()) {
+    // Also publish the form data if the user has filled anything meaningful
+    if (formData.title.trim()) {
+      try {
         await eventService.publishEvent(formData, user.uid);
+      } catch {
+        // form-data publish failure is non-critical for bulk flow
       }
+    }
 
-      // Clear localStorage after success
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-      setBulkPublishDone(true);
-    } catch {
-      setError('Some events failed to publish. Please try again.');
+    // Clear localStorage after finishing (even if some failed)
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+
+    if (failed.length > 0) {
+      setError(
+        `${failed.length} of ${importedEvents.length} event(s) failed to publish (event #${failed.join(', #')}). The rest were published successfully.`
+      );
       setIsBulkPublishing(false);
+    } else {
+      setBulkPublishDone(true);
     }
   };
 
@@ -425,8 +439,8 @@ export default function CreateEventPage() {
                 {/* Before publish info */}
                 {!isBulkPublishing && !bulkPublishDone && (
                   <p className="ce-modal-info">
-                    Click <strong>Publish All</strong> to push all {importedEvents.length} event{importedEvents.length !== 1 ? 's' : ''} 
-                    {formData.title.trim() ? ' (plus your form data)' : ''} into the Firebase "events" collection, 
+                    Click <strong>Publish All</strong> to push all {importedEvents.length} event{importedEvents.length !== 1 ? 's' : ''}
+                    {formData.title.trim() ? ' (plus your form data)' : ''} into the Firebase "events" collection,
                     or <strong>Clear</strong> to remove the imported data from local storage.
                   </p>
                 )}

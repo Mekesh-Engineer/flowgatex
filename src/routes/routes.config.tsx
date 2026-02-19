@@ -73,6 +73,9 @@ const EventModerationPage = lazy(() => import('@/pages/dashboard/Admin/EventMode
 const PlatformSettingsPage = lazy(() => import('@/pages/dashboard/Admin/PlatformSettingsPage'));
 const ReportsPage = lazy(() => import('@/pages/dashboard/Admin/ReportsPage'));
 const PromoCodesPage = lazy(() => import('@/pages/dashboard/Admin/PromoCodesPage'));
+const AttendeeManagementAdminPage = lazy(() => import('@/pages/dashboard/Admin/AttendeeManagementPage'));
+const TransactionMonitoringPage = lazy(() => import('@/pages/dashboard/Admin/TransactionsPage'));
+const AuditLogsPage = lazy(() => import('@/pages/dashboard/Admin/AuditLogsPage'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SUPER ADMIN DASHBOARD PAGES
@@ -222,6 +225,9 @@ export const adminRoutes: RouteObject[] = [
   { path: ROUTES.ADMIN_PROMO_CODES, element: <PromoCodesPage /> },
   { path: ROUTES.ADMIN_SETTINGS, element: <PlatformSettingsPage /> },
   { path: ROUTES.ADMIN_REPORTS, element: <ReportsPage /> },
+  { path: ROUTES.ADMIN_ATTENDEES, element: <AttendeeManagementAdminPage /> },
+  { path: ROUTES.ADMIN_TRANSACTIONS, element: <TransactionMonitoringPage /> },
+  { path: ROUTES.ADMIN_AUDIT_LOGS, element: <AuditLogsPage /> },
 ];
 
 // =============================================================================

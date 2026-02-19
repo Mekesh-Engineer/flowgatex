@@ -9,10 +9,11 @@
  * All filtering is applied client-side on data already fetched from Firebase.
  */
 
-import { type Dispatch, type SetStateAction, useMemo } from 'react';
+import { type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 import {
   Search, X, Calendar,
   SlidersHorizontal, ArrowUpDown, Wifi, WifiOff, Globe,
+  ChevronDown, ChevronUp, Filter
 } from 'lucide-react';
 import { EVENT_CATEGORIES } from '@/lib/constants';
 import type { FilterState } from './events-page/types';
@@ -102,208 +103,238 @@ export default function EventFilters({
     if (e.key === 'Enter') onSearchSubmit?.();
   };
 
+  // State for mobile collapse
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Count active filters for mobile badge
+  const activeCount =
+    (filters.categories.length) +
+    (filters.dateRange ? 1 : 0) +
+    (filters.eventType !== 'all' ? 1 : 0) +
+    ((filters.priceRange[0] !== DEFAULT_FILTER_STATE.priceRange[0] || filters.priceRange[1] !== DEFAULT_FILTER_STATE.priceRange[1]) ? 1 : 0);
+
   return (
     <div className="w-full bg-[var(--bg-card)] rounded-2xl border border-[var(--border-primary)] shadow-sm mb-6 animate-in fade-in slide-in-from-top-4 duration-500 overflow-hidden">
-      {/* ── Row 1: Search + Sort + Reset ── */}
-      <div className="p-4 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-          />
-          <input
-            type="text"
-            placeholder="Search events, venues, cities..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange?.(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            disabled={isLoading}
-            className="w-full h-11 pl-10 pr-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all disabled:opacity-50"
-          />
-        </div>
 
-        {/* Sort dropdown */}
-        <div className="relative min-w-[170px]">
-          <ArrowUpDown
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-          />
-          <select
-            value={filters.sortBy}
-            onChange={(e) => update({ sortBy: e.target.value as FilterState['sortBy'] })}
-            className="w-full h-11 pl-10 pr-8 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-primary)] text-[var(--text-primary)] appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all text-sm"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
-            <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 1L5 5L9 1" />
-            </svg>
+      {/* ── Mobile Filter Toggle Header ── */}
+      <div className="lg:hidden flex items-center justify-between p-4 border-b border-[var(--border-primary)] bg-[var(--bg-surface)]/50">
+        <div className="flex items-center gap-2 font-bold text-[var(--text-primary)]">
+          <Filter size={18} className="text-[var(--color-primary)]" />
+          <span>Filter Events</span>
+          {activeCount > 0 && (
+            <span className="flex items-center justify-center size-5 rounded-full bg-[var(--color-primary)] text-white text-[10px] ml-1">
+              {activeCount}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="p-2 -mr-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+          aria-label={isExpanded ? 'Collapse filters' : 'Expand filters'}
+        >
+          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </button>
+      </div>
+
+      {/* ── Collapsible Content Container ── */}
+      <div className={`${isExpanded ? 'block' : 'hidden'} lg:block transition-all duration-300 ease-in-out`}>
+        {/* ── Row 1: Search + Sort + Reset ── */}
+        <div className="p-4 flex flex-col lg:flex-row gap-3 items-stretch lg:items-center">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px]">
+            <Search
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            />
+            <input
+              type="text"
+              placeholder="Search events, venues, cities..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              disabled={isLoading}
+              className="w-full h-11 pl-10 pr-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-primary)] text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all disabled:opacity-50"
+            />
           </div>
-        </div>
 
-        {/* Event type toggle */}
-        <div className="flex items-center bg-[var(--bg-surface)] border border-[var(--border-primary)] rounded-xl p-1 gap-0.5 min-w-fit">
-          {([
-            { value: 'all' as const, icon: <Globe size={14} />, label: 'All' },
-            { value: 'online' as const, icon: <Wifi size={14} />, label: 'Online' },
-            { value: 'offline' as const, icon: <WifiOff size={14} />, label: 'Offline' },
-          ]).map(({ value, icon, label }) => (
-            <button
-              key={value}
-              onClick={() => update({ eventType: value })}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                filters.eventType === value
+          {/* Sort dropdown */}
+          <div className="relative min-w-[170px]">
+            <ArrowUpDown
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+            />
+            <select
+              value={filters.sortBy}
+              onChange={(e) => update({ sortBy: e.target.value as FilterState['sortBy'] })}
+              className="w-full h-11 pl-10 pr-8 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-primary)] text-[var(--text-primary)] appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all text-sm"
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">
+              <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 1L5 5L9 1" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Event type toggle */}
+          <div className="flex items-center bg-[var(--bg-surface)] border border-[var(--border-primary)] rounded-xl p-1 gap-0.5 min-w-fit">
+            {([
+              { value: 'all' as const, icon: <Globe size={14} />, label: 'All' },
+              { value: 'online' as const, icon: <Wifi size={14} />, label: 'Online' },
+              { value: 'offline' as const, icon: <WifiOff size={14} />, label: 'Offline' },
+            ]).map(({ value, icon, label }) => (
+              <button
+                key={value}
+                onClick={() => update({ eventType: value })}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${filters.eventType === value
                   ? 'bg-[var(--color-primary)] text-white shadow-sm'
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-hover)]'
-              }`}
+                  }`}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Reset */}
+          {hasActive && (
+            <button
+              onClick={resetAll}
+              className="h-11 px-4 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-all flex items-center gap-2 font-semibold text-sm whitespace-nowrap"
             >
-              {icon} {label}
+              <X size={16} /> Clear All
             </button>
-          ))}
+          )}
         </div>
 
-        {/* Reset */}
-        {hasActive && (
-          <button
-            onClick={resetAll}
-            className="h-11 px-4 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 transition-all flex items-center gap-2 font-semibold text-sm whitespace-nowrap"
-          >
-            <X size={16} /> Clear All
-          </button>
-        )}
-      </div>
-
-      {/* ── Row 2: Category chips + Date presets + Price ranges ── */}
-      <div className="px-4 pb-4 flex flex-wrap items-center gap-2 border-t border-[var(--border-primary)] pt-3">
-        {/* Category chips (from constants) */}
-        {EVENT_CATEGORIES.map((cat) => {
-          const active = filters.categories.includes(cat.id);
-          const count = categoryCounts[cat.id] || 0;
-          return (
-            <button
-              key={cat.id}
-              onClick={() => toggleCategory(cat.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                active
+        {/* ── Row 2: Category chips + Date presets + Price ranges ── */}
+        <div className="px-4 pb-4 flex flex-wrap items-center gap-2 border-t border-[var(--border-primary)] pt-3">
+          {/* Category chips (from constants) */}
+          {EVENT_CATEGORIES.map((cat) => {
+            const active = filters.categories.includes(cat.id);
+            const count = categoryCounts[cat.id] || 0;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => toggleCategory(cat.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${active
                   ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-sm'
                   : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-primary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]'
-              }`}
-            >
-              {cat.label}
-              {count > 0 && (
-                <span className={`ml-1.5 text-[10px] ${active ? 'text-white/70' : 'text-[var(--text-muted)]'}`}>
-                  ({count})
-                </span>
-              )}
-            </button>
-          );
-        })}
+                  }`}
+              >
+                {cat.label}
+                {count > 0 && (
+                  <span className={`ml-1.5 text-[10px] ${active ? 'text-white/70' : 'text-[var(--text-muted)]'}`}>
+                    ({count})
+                  </span>
+                )}
+              </button>
+            );
+          })}
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-[var(--border-primary)] mx-1 hidden sm:block" />
+          {/* Divider */}
+          <div className="w-px h-6 bg-[var(--border-primary)] mx-1 hidden sm:block" />
 
-        {/* Date presets */}
-        {DATE_PRESETS.filter(d => d.value !== '').map((preset) => (
-          <button
-            key={preset.value}
-            onClick={() =>
-              update({ dateRange: filters.dateRange === preset.value ? '' : preset.value })
-            }
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1 ${
-              filters.dateRange === preset.value
+          {/* Date presets */}
+          {DATE_PRESETS.filter(d => d.value !== '').map((preset) => (
+            <button
+              key={preset.value}
+              onClick={() =>
+                update({ dateRange: filters.dateRange === preset.value ? '' : preset.value })
+              }
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all flex items-center gap-1 ${filters.dateRange === preset.value
                 ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
                 : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-primary)] hover:border-[var(--color-primary)]'
-            }`}
-          >
-            <Calendar size={12} /> {preset.label}
-          </button>
-        ))}
+                }`}
+            >
+              <Calendar size={12} /> {preset.label}
+            </button>
+          ))}
 
-        {/* Divider */}
-        <div className="w-px h-6 bg-[var(--border-primary)] mx-1 hidden sm:block" />
+          {/* Divider */}
+          <div className="w-px h-6 bg-[var(--border-primary)] mx-1 hidden sm:block" />
 
-        {/* Price quick-picks */}
-        {PRICE_RANGES.slice(0, 3).map((pr) => {
-          const active =
-            filters.priceRange[0] === pr.min && filters.priceRange[1] === pr.max;
-          return (
-            <button
-              key={pr.label}
-              onClick={() =>
-                update({
-                  priceRange: active
-                    ? DEFAULT_FILTER_STATE.priceRange
-                    : [pr.min, pr.max],
-                })
-              }
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                active
+          {/* Price quick-picks */}
+          {PRICE_RANGES.slice(0, 3).map((pr) => {
+            const active =
+              filters.priceRange[0] === pr.min && filters.priceRange[1] === pr.max;
+            return (
+              <button
+                key={pr.label}
+                onClick={() =>
+                  update({
+                    priceRange: active
+                      ? DEFAULT_FILTER_STATE.priceRange
+                      : [pr.min, pr.max],
+                  })
+                }
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${active
                   ? 'bg-[var(--color-secondary)] text-white border-[var(--color-secondary)]'
                   : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] border-[var(--border-primary)] hover:border-[var(--color-secondary)]'
-              }`}
-            >
-              {pr.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Active filter summary tags ── */}
-      {hasActive && (
-        <div className="px-4 pb-3 flex flex-wrap items-center gap-1.5">
-          <SlidersHorizontal size={14} className="text-[var(--text-muted)] mr-1" />
-          {filters.categories.map((catId) => {
-            const label = EVENT_CATEGORIES.find((c) => c.id === catId)?.label || catId;
-            return (
-              <span
-                key={`tag-${catId}`}
-                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[11px] font-semibold"
+                  }`}
               >
-                {label}
-                <button onClick={() => toggleCategory(catId)} aria-label={`Remove ${label}`}>
+                {pr.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Active filter summary tags ── */}
+        {hasActive && (
+          <div className="px-4 pb-3 flex flex-wrap items-center gap-1.5 border-t border-[var(--border-primary)] lg:border-t-0 pt-3 lg:pt-0">
+            <SlidersHorizontal size={14} className="text-[var(--text-muted)] mr-1" />
+            {filters.categories.map((catId) => {
+              const label = EVENT_CATEGORIES.find((c) => c.id === catId)?.label || catId;
+              return (
+                <span
+                  key={`tag-${catId}`}
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] text-[11px] font-semibold"
+                >
+                  {label}
+                  <button onClick={() => toggleCategory(catId)} aria-label={`Remove ${label}`}>
+                    <X size={10} />
+                  </button>
+                </span>
+              );
+            })}
+            {filters.dateRange && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[11px] font-semibold">
+                {DATE_PRESETS.find((d) => d.value === filters.dateRange)?.label || filters.dateRange}
+                <button onClick={() => update({ dateRange: '' })} aria-label="Clear date filter">
                   <X size={10} />
                 </button>
               </span>
-            );
-          })}
-          {filters.dateRange && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-500 text-[11px] font-semibold">
-              {DATE_PRESETS.find((d) => d.value === filters.dateRange)?.label || filters.dateRange}
-              <button onClick={() => update({ dateRange: '' })} aria-label="Clear date filter">
-                <X size={10} />
-              </button>
-            </span>
-          )}
-          {(filters.priceRange[0] !== DEFAULT_FILTER_STATE.priceRange[0] ||
-            filters.priceRange[1] !== DEFAULT_FILTER_STATE.priceRange[1]) && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[11px] font-semibold">
-              {PRICE_RANGES.find(
-                (p) => p.min === filters.priceRange[0] && p.max === filters.priceRange[1]
-              )?.label || `₹${filters.priceRange[0]}–₹${filters.priceRange[1]}`}
-              <button
-                onClick={() => update({ priceRange: DEFAULT_FILTER_STATE.priceRange })}
-                aria-label="Clear price filter"
-              >
-                <X size={10} />
-              </button>
-            </span>
-          )}
-          {filters.eventType !== 'all' && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-violet-500/10 text-violet-500 text-[11px] font-semibold capitalize">
-              {filters.eventType}
-              <button onClick={() => update({ eventType: 'all' })} aria-label="Clear event type filter">
-                <X size={10} />
-              </button>
-            </span>
-          )}
-        </div>
-      )}
+            )}
+            {(filters.priceRange[0] !== DEFAULT_FILTER_STATE.priceRange[0] ||
+              filters.priceRange[1] !== DEFAULT_FILTER_STATE.priceRange[1]) && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[11px] font-semibold">
+                  {PRICE_RANGES.find(
+                    (p) => p.min === filters.priceRange[0] && p.max === filters.priceRange[1]
+                  )?.label || `₹${filters.priceRange[0]}–₹${filters.priceRange[1]}`}
+                  <button
+                    onClick={() => update({ priceRange: DEFAULT_FILTER_STATE.priceRange })}
+                    aria-label="Clear price filter"
+                  >
+                    <X size={10} />
+                  </button>
+                </span>
+              )}
+            {filters.eventType !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-violet-500/10 text-violet-500 text-[11px] font-semibold capitalize">
+                {filters.eventType}
+                <button onClick={() => update({ eventType: 'all' })} aria-label="Clear event type filter">
+                  <X size={10} />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,0 +1,887 @@
+[
+  {
+    "title": "Kerala Hackathon 2026",
+    "subtitle": "Building for the Next Billion",
+    "category": "tech",
+    "type": "in-person",
+    "language": ["English", "Malayalam"],
+    "ageRestriction": "all",
+    "format": "multi-day",
+    "startDate": "2026-03-14T04:30:00.000Z",
+    "endDate": "2026-03-15T12:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-10T23:59:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Technopark Phase 3",
+      "address": "Kazhakkoottam",
+      "city": "Thiruvananthapuram",
+      "state": "Kerala",
+      "zipCode": "695581",
+      "country": "India",
+      "capacity": 800,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-hack-16",
+        "name": "Hacker Pass",
+        "price": 0,
+        "quantity": 500,
+        "sold": 0,
+        "description": "Free entry for shortlisted teams. Includes meals and swags.",
+        "benefits": ["24hr Access", "Meals", "Cloud Credits", "T-shirt"],
+        "minPerOrder": 1,
+        "maxPerOrder": 4,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "Join Kerala's premier 36-hour hackathon focused on solving grassroot challenges in healthcare, education, and public transport using AI, IoT, and mobile technologies.",
+    "highlights": ["₹2 Lakh Prize Pool", "Mentorship from Tech Giants", "Midnight Gaming Zone"],
+    "agenda": ["Day 1: Idea Pitch & Coding Begins", "Day 2: Final Presentations & Awards"],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Trivandrum Tech Society",
+      "email": "hello@keralahack.in",
+      "socials": {
+        "website": "https://keralahack.in",
+        "instagram": "@keralahackathon"
+      }
+    },
+    "refundPolicy": "none",
+    "hasTerms": true,
+    "tags": ["tech", "hackathon", "trivandrum"],
+    "isPrivate": false,
+    "isFeatured": true
+  },
+  {
+    "title": "Madras Indie Film Fest",
+    "subtitle": "Unfiltered Storytelling",
+    "category": "arts",
+    "type": "in-person",
+    "language": ["Tamil", "English"],
+    "ageRestriction": "16+",
+    "format": "multi-day",
+    "startDate": "2026-03-06T04:30:00.000Z",
+    "endDate": "2026-03-08T16:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-05T18:00:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Anna Centenary Library Auditorium",
+      "address": "Kotturpuram",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "zipCode": "600085",
+      "country": "India",
+      "capacity": 1200,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-film-17",
+        "name": "Festival Pass",
+        "price": 800,
+        "quantity": 1000,
+        "sold": 0,
+        "description": "Access to all screenings and panel discussions over 3 days.",
+        "benefits": ["All Screenings", "Q&A Access", "Souvenir Booklet"],
+        "minPerOrder": 1,
+        "maxPerOrder": 6,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "A celebration of independent cinema in the heart of Kollywood. Watch award-winning short films, documentaries, and feature films from emerging regional filmmakers.",
+    "highlights": ["Director Q&A Sessions", "Screenwriting Masterclass", "Red Carpet Gala"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Madras Film Society",
+      "email": "contact@madrasfilmfest.org",
+      "socials": {
+        "website": "https://madrasfilmfest.org",
+        "instagram": "@madrasfilmfest"
+      }
+    },
+    "refundPolicy": "partial",
+    "hasTerms": true,
+    "tags": ["arts", "film", "chennai"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Clay & Canvas Retreat",
+    "subtitle": "Find Your Inner Artist",
+    "category": "workshop",
+    "type": "in-person",
+    "language": ["English", "Kannada"],
+    "ageRestriction": "all",
+    "format": "single",
+    "startDate": "2026-03-21T04:30:00.000Z",
+    "endDate": "2026-03-21T11:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-19T23:59:00.000Z",
+    "isRecurring": false,
+    "locationType": "physical",
+    "venue": {
+      "name": "Lahe Lahe",
+      "address": "Indiranagar",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "zipCode": "560038",
+      "country": "India",
+      "capacity": 40,
+      "hasParking": false
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-art-18",
+        "name": "Workshop Ticket",
+        "price": 1499,
+        "quantity": 40,
+        "sold": 0,
+        "description": "Includes all materials (clay, paints, canvas) and refreshments.",
+        "benefits": ["Take-home artwork", "High Tea", "Guided Instruction"],
+        "minPerOrder": 1,
+        "maxPerOrder": 4,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "A therapeutic full-day workshop covering wheel pottery basics in the morning and acrylic canvas painting in the afternoon. Perfect for beginners looking to destress.",
+    "highlights": ["Wheel Pottery Setup", "Live Acoustic Music", "Expert Instructors"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Bangalore Arts Collective",
+      "email": "create@blrarts.in",
+      "socials": {
+        "website": "https://blrarts.in",
+        "instagram": "@blr_arts_collective"
+      }
+    },
+    "refundPolicy": "full",
+    "hasTerms": true,
+    "tags": ["workshop", "pottery", "painting"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Mysore Palace Classical Eve",
+    "subtitle": "Echoes of Royalty",
+    "category": "music",
+    "type": "in-person",
+    "language": ["Kannada", "English"],
+    "ageRestriction": "all",
+    "format": "single",
+    "startDate": "2026-03-28T12:30:00.000Z",
+    "endDate": "2026-03-28T16:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-27T23:59:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Mysore Palace Grounds",
+      "address": "Sayyaji Rao Road",
+      "city": "Mysuru",
+      "state": "Karnataka",
+      "zipCode": "570001",
+      "country": "India",
+      "capacity": 3000,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-music-19",
+        "name": "VIP Seating",
+        "price": 1200,
+        "quantity": 500,
+        "sold": 0,
+        "description": "Front row seating under the illuminated palace.",
+        "benefits": ["Reserved Seat", "Express Entry"],
+        "minPerOrder": 1,
+        "maxPerOrder": 10,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "Experience the magic of Carnatic vocal music and instrumental jugalbandi under the starry sky, with the magnificently illuminated Mysore Palace as the backdrop.",
+    "highlights": ["Violin Duet", "Palace Illumination", "Renowned Maestros"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Heritage Cultural Trust",
+      "email": "events@mysoreheritage.org",
+      "socials": {
+        "website": "https://mysoreheritage.org",
+        "instagram": "@mysore_heritage"
+      }
+    },
+    "refundPolicy": "none",
+    "hasTerms": false,
+    "tags": ["music", "classical", "mysuru"],
+    "isPrivate": false,
+    "isFeatured": true
+  },
+  {
+    "title": "Varkala Surf & Spike",
+    "subtitle": "Beach Volleyball Championship",
+    "category": "sports",
+    "type": "in-person",
+    "language": ["English", "Malayalam"],
+    "ageRestriction": "12+",
+    "format": "multi-day",
+    "startDate": "2026-03-07T02:30:00.000Z",
+    "endDate": "2026-03-08T12:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-04T23:59:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Varkala Cliff Beach",
+      "address": "North Cliff",
+      "city": "Varkala",
+      "state": "Kerala",
+      "zipCode": "695141",
+      "country": "India",
+      "capacity": 1000,
+      "hasParking": false
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-sports-20",
+        "name": "Spectator Pass",
+        "price": 200,
+        "quantity": 800,
+        "sold": 0,
+        "description": "Weekend pass to watch all tournament matches.",
+        "benefits": ["Bleacher Access", "1 Sunbed Coupon"],
+        "minPerOrder": 1,
+        "maxPerOrder": 5,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "Sun, sand, and spikes! Watch top regional teams compete in a high-energy beach volleyball tournament right beneath the famous Varkala cliffs.",
+    "highlights": ["Pro-Amateur Matches", "Live DJ", "Sunset Surf Demos"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Kerala Coastal Sports",
+      "email": "info@coastalsports.in",
+      "socials": {
+        "website": "https://coastalsports.in",
+        "instagram": "@varkala_surf"
+      }
+    },
+    "refundPolicy": "full",
+    "hasTerms": false,
+    "tags": ["sports", "volleyball", "beach"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Kovai Women in Business",
+    "subtitle": "Breaking the Glass Ceiling",
+    "category": "business",
+    "type": "in-person",
+    "language": ["English", "Tamil"],
+    "ageRestriction": "18+",
+    "format": "single",
+    "startDate": "2026-03-11T03:30:00.000Z",
+    "endDate": "2026-03-11T11:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-09T23:59:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Codissia Trade Fair Complex",
+      "address": "Avinashi Road",
+      "city": "Coimbatore",
+      "state": "Tamil Nadu",
+      "zipCode": "641014",
+      "country": "India",
+      "capacity": 500,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-biz-21",
+        "name": "Standard Access",
+        "price": 999,
+        "quantity": 450,
+        "sold": 0,
+        "description": "Entry to keynotes, panel discussions, and networking lunch.",
+        "benefits": ["Networking Directory", "Lunch Buffet", "Goodie Bag"],
+        "minPerOrder": 1,
+        "maxPerOrder": 5,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "A dedicated summit for women entrepreneurs and corporate leaders in the manufacturing and IT sectors of Kongu Nadu. Focuses on funding, leadership, and scaling strategies.",
+    "highlights": ["Angel Investor Pitch", "Mentorship Circles", "Success Stories Panel"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Coimbatore Women Entrepreneurs",
+      "email": "contact@cwe.org.in",
+      "socials": {
+        "website": "https://cwe.org.in",
+        "instagram": "@kovai_women"
+      }
+    },
+    "refundPolicy": "partial",
+    "hasTerms": true,
+    "tags": ["business", "women", "coimbatore"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Namma Web3 Summit",
+    "subtitle": "Decentralizing the Future",
+    "category": "tech",
+    "type": "in-person",
+    "language": ["English"],
+    "ageRestriction": "all",
+    "format": "multi-day",
+    "startDate": "2026-03-26T03:30:00.000Z",
+    "endDate": "2026-03-27T12:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-24T23:59:00.000Z",
+    "isRecurring": false,
+    "locationType": "physical",
+    "venue": {
+      "name": "Sheraton Grand",
+      "address": "Brigade Gateway, Rajajinagar",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "zipCode": "560055",
+      "country": "India",
+      "capacity": 1500,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-tech-22",
+        "name": "Builder Pass",
+        "price": 2500,
+        "quantity": 1000,
+        "sold": 0,
+        "description": "2-day access to developer stages and exhibition.",
+        "benefits": ["Workshops", "After-party Access", "Token AirDrops"],
+        "minPerOrder": 1,
+        "maxPerOrder": 3,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "India's largest gathering of blockchain developers, crypto founders, and Web3 enthusiasts. Deep dive into smart contracts, zero-knowledge proofs, and DeFi ecosystems.",
+    "highlights": ["Solana Bootcamp", "Ethereum Core Devs Q&A", "NFT Gallery"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Web3 India",
+      "email": "hello@nammaweb3.in",
+      "socials": {
+        "website": "https://nammaweb3.in",
+        "instagram": "@namma_web3"
+      }
+    },
+    "refundPolicy": "partial",
+    "hasTerms": true,
+    "tags": ["tech", "blockchain", "web3"],
+    "isPrivate": false,
+    "isFeatured": true
+  },
+  {
+    "title": "Karavali Seafood Festival",
+    "subtitle": "Flavors of the Arabian Sea",
+    "category": "other",
+    "type": "in-person",
+    "language": ["Tulu", "Kannada", "English"],
+    "ageRestriction": "all",
+    "format": "multi-day",
+    "startDate": "2026-03-13T10:30:00.000Z",
+    "endDate": "2026-03-15T17:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-15T15:00:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Panambur Beach",
+      "address": "Panambur",
+      "city": "Mangaluru",
+      "state": "Karnataka",
+      "zipCode": "575010",
+      "country": "India",
+      "capacity": 5000,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-food-23",
+        "name": "Entry Pass",
+        "price": 100,
+        "quantity": 5000,
+        "sold": 0,
+        "description": "General admission. Food items sold separately at stalls.",
+        "benefits": ["Live Music", "Kite Show Access"],
+        "minPerOrder": 1,
+        "maxPerOrder": 15,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "A culinary extravaganza celebrating authentic Mangalorean, Udupi, and Goan coastal cuisines. Enjoy fish curries, ghee roasts, and sweet delicacies right on the beach.",
+    "highlights": ["Seafood Cooking Masterclass", "Sand Art Display", "Evening Folk Dance"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Mangaluru Tourism Dept",
+      "email": "festivals@mangaluru.gov.in",
+      "socials": {
+        "website": "https://mangalurutourism.in",
+        "instagram": "@karavali_fest"
+      }
+    },
+    "refundPolicy": "none",
+    "hasTerms": false,
+    "tags": ["food", "festival", "mangaluru"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Tamil Contemporary Theatre",
+    "subtitle": "Drama Redefined",
+    "category": "arts",
+    "type": "in-person",
+    "language": ["Tamil"],
+    "ageRestriction": "10+",
+    "format": "single",
+    "startDate": "2026-03-22T13:00:00.000Z",
+    "endDate": "2026-03-22T16:00:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-21T23:59:00.000Z",
+    "isRecurring": false,
+    "locationType": "physical",
+    "venue": {
+      "name": "Kalaiarangam",
+      "address": "Cantonment",
+      "city": "Tiruchirappalli",
+      "state": "Tamil Nadu",
+      "zipCode": "620001",
+      "country": "India",
+      "capacity": 800,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-arts-24",
+        "name": "Balcony Seat",
+        "price": 300,
+        "quantity": 300,
+        "sold": 0,
+        "description": "Great view of the stage from the upper deck.",
+        "benefits": ["Play Synopsis Printout"],
+        "minPerOrder": 1,
+        "maxPerOrder": 6,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "An avant-garde Tamil theatrical play that bridges historical literature with modern socio-political themes. Features immersive lighting and acoustic design.",
+    "highlights": ["Award-winning Script", "Post-play Actor Interaction", "Live Orchestral Score"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Trichy Drama Club",
+      "email": "plays@trichyarts.in",
+      "socials": {
+        "website": "https://trichyarts.in",
+        "instagram": "@trichy_theatre"
+      }
+    },
+    "refundPolicy": "full",
+    "hasTerms": false,
+    "tags": ["arts", "theatre", "drama"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Ayurveda & Herbology Masterclass",
+    "subtitle": "Nature's Healing Touch",
+    "category": "workshop",
+    "type": "in-person",
+    "language": ["English", "Malayalam"],
+    "ageRestriction": "18+",
+    "format": "multi-day",
+    "startDate": "2026-03-18T03:30:00.000Z",
+    "endDate": "2026-03-19T11:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-15T23:59:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Kairali Ayurvedic Village",
+      "address": "Olasery",
+      "city": "Palakkad",
+      "state": "Kerala",
+      "zipCode": "678551",
+      "country": "India",
+      "capacity": 50,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-ws-25",
+        "name": "Workshop & Stay",
+        "price": 7500,
+        "quantity": 30,
+        "sold": 0,
+        "description": "2-day workshop including herbal walks, medicine preparation, and cottage stay.",
+        "benefits": ["Accommodation", "Ayurvedic Meals", "Herb Kit"],
+        "minPerOrder": 1,
+        "maxPerOrder": 2,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "Discover the ancient science of Ayurveda. Participants will learn how to identify medicinal plants, understand their doshas, and prepare basic homemade herbal remedies.",
+    "highlights": ["Guided Forest Walk", "Oil Blending Session", "Personalized Dosha Check"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Kerala Ayurveda Society",
+      "email": "learn@ayurvedakerala.org",
+      "socials": {
+        "website": "https://ayurvedakerala.org",
+        "instagram": "@kerala_ayurveda_life"
+      }
+    },
+    "refundPolicy": "partial",
+    "hasTerms": true,
+    "tags": ["workshop", "ayurveda", "wellness"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Bangalore Open Air",
+    "subtitle": "Heavy Metal Edition",
+    "category": "music",
+    "type": "in-person",
+    "language": ["English"],
+    "ageRestriction": "18+",
+    "format": "single",
+    "startDate": "2026-03-29T09:30:00.000Z",
+    "endDate": "2026-03-29T17:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-28T23:59:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Royal Orchid Resort",
+      "address": "Yelahanka",
+      "city": "Bengaluru",
+      "state": "Karnataka",
+      "zipCode": "560064",
+      "country": "India",
+      "capacity": 6000,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-music-26",
+        "name": "Headbanger Pass",
+        "price": 2999,
+        "quantity": 4000,
+        "sold": 0,
+        "description": "General admission to the main arena.",
+        "benefits": ["Arena Access", "F&B Area Access"],
+        "minPerOrder": 1,
+        "maxPerOrder": 8,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "India's biggest hard rock and heavy metal festival returns! Featuring 3 international headliners and the best homegrown metal bands shredding the stage.",
+    "highlights": ["International Headliners", "Merchandise Village", "Craft Beer Counters"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Infinite Dreams",
+      "email": "tickets@bangaloreopenair.com",
+      "socials": {
+        "website": "https://bangaloreopenair.com",
+        "instagram": "@blr_openair"
+      }
+    },
+    "refundPolicy": "none",
+    "hasTerms": true,
+    "tags": ["music", "metal", "concert"],
+    "isPrivate": false,
+    "isFeatured": true
+  },
+  {
+    "title": "Nilgiris MTB Challenge",
+    "subtitle": "Conquer the Mountains",
+    "category": "sports",
+    "type": "in-person",
+    "language": ["English", "Tamil"],
+    "ageRestriction": "16+",
+    "format": "multi-day",
+    "startDate": "2026-03-21T00:30:00.000Z",
+    "endDate": "2026-03-22T08:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-15T23:59:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Ooty Lake Boathouse (Start Point)",
+      "address": "North Lake Road",
+      "city": "Ooty",
+      "state": "Tamil Nadu",
+      "zipCode": "643001",
+      "country": "India",
+      "capacity": 300,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-sports-27",
+        "name": "Rider Registration",
+        "price": 2000,
+        "quantity": 250,
+        "sold": 0,
+        "description": "Entry fee for the 2-stage mountain biking race.",
+        "benefits": ["Timing Chip", "Jersey", "Medical Support", "Post-race Meal"],
+        "minPerOrder": 1,
+        "maxPerOrder": 2,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "A grueling yet scenic Mountain Biking (MTB) race through the tea estates, pine forests, and steep inclines of the Nilgiri Biosphere Reserve.",
+    "highlights": ["Elevation Gain of 1500m", "Off-road Trails", "Pro & Amateur Categories"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Tamil Nadu Cycling Club",
+      "email": "race@tncc.in",
+      "socials": {
+        "website": "https://tncc.in",
+        "instagram": "@nilgiris_mtb"
+      }
+    },
+    "refundPolicy": "partial",
+    "hasTerms": true,
+    "tags": ["sports", "cycling", "ooty"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Madurai AgriTech Expo",
+    "subtitle": "Farming the Future",
+    "category": "business",
+    "type": "in-person",
+    "language": ["Tamil", "English"],
+    "ageRestriction": "all",
+    "format": "multi-day",
+    "startDate": "2026-03-04T03:30:00.000Z",
+    "endDate": "2026-03-05T12:30:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-03T18:00:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "IDA Scudder Trade Centre",
+      "address": "Ring Road",
+      "city": "Madurai",
+      "state": "Tamil Nadu",
+      "zipCode": "625020",
+      "country": "India",
+      "capacity": 4000,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-biz-28",
+        "name": "Farmer/Visitor Pass",
+        "price": 50,
+        "quantity": 3000,
+        "sold": 0,
+        "description": "Access to exhibition stalls and demo fields.",
+        "benefits": ["Seed Packets", "Advisory Sessions"],
+        "minPerOrder": 1,
+        "maxPerOrder": 10,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "A B2B and B2C expo focusing on smart agriculture. Explore innovations in drip irrigation, drone spraying, soil health sensors, and organic farming techniques.",
+    "highlights": ["Drone Spraying Demo", "Govt Subsidy Desk", "Organic Marketplace"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Agro India Expo",
+      "email": "madurai@agroexpo.in",
+      "socials": {
+        "website": "https://agroexpo.in",
+        "instagram": "@madurai_agritech"
+      }
+    },
+    "refundPolicy": "none",
+    "hasTerms": false,
+    "tags": ["business", "agritech", "madurai"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Kochi GameDev Conclave",
+    "subtitle": "Pixels to Play",
+    "category": "tech",
+    "type": "in-person",
+    "language": ["English"],
+    "ageRestriction": "all",
+    "format": "single",
+    "startDate": "2026-03-14T04:00:00.000Z",
+    "endDate": "2026-03-14T12:00:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-12T23:59:00.000Z",
+    "isRecurring": false,
+    "locationType": "physical",
+    "venue": {
+      "name": "KINFRA Hi-Tech Park",
+      "address": "Kalamassery",
+      "city": "Kochi",
+      "state": "Kerala",
+      "zipCode": "683503",
+      "country": "India",
+      "capacity": 500,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-tech-29",
+        "name": "Developer Ticket",
+        "price": 600,
+        "quantity": 400,
+        "sold": 0,
+        "description": "Entry to talks, networking, and the indie game showcase area.",
+        "benefits": ["Unity/Unreal Workshops", "Lunch", "Sticker Pack"],
+        "minPerOrder": 1,
+        "maxPerOrder": 4,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "Kerala's largest meetup for game developers, 3D artists, and narrative designers. Learn about the latest in game engines, AR/VR integration, and indie studio funding.",
+    "highlights": ["Indie Game Pitching", "VR Testing Zone", "Portfolio Reviews"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Kerala Game Developers Network",
+      "email": "contact@kgdn.in",
+      "socials": {
+        "website": "https://kgdn.in",
+        "instagram": "@kochi_gamedev"
+      }
+    },
+    "refundPolicy": "partial",
+    "hasTerms": true,
+    "tags": ["tech", "gaming", "gamedev"],
+    "isPrivate": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Madras Salsa Congress",
+    "subtitle": "Rhythm & Romance",
+    "category": "workshop",
+    "type": "in-person",
+    "language": ["English"],
+    "ageRestriction": "16+",
+    "format": "multi-day",
+    "startDate": "2026-03-27T12:30:00.000Z",
+    "endDate": "2026-03-29T18:00:00.000Z",
+    "timezone": "Asia/Kolkata",
+    "registrationDeadline": "2026-03-25T23:59:00.000Z",
+    "isRecurring": true,
+    "locationType": "physical",
+    "venue": {
+      "name": "Taj Coromandel",
+      "address": "Nungambakkam",
+      "city": "Chennai",
+      "state": "Tamil Nadu",
+      "zipCode": "600034",
+      "country": "India",
+      "capacity": 600,
+      "hasParking": true
+    },
+    "ticketTiers": [
+      {
+        "id": "tier-ws-30",
+        "name": "Full Congress Pass",
+        "price": 4500,
+        "quantity": 300,
+        "sold": 0,
+        "description": "Access to all daytime workshops and evening social parties.",
+        "benefits": ["20+ Workshops", "3 Night Parties", "Showcase Entry"],
+        "minPerOrder": 1,
+        "maxPerOrder": 2,
+        "visibility": "public"
+      }
+    ],
+    "promoCodes": [],
+    "description": "A 3-day dance extravaganza bringing international instructors to Chennai. Intensive workshops in Salsa, Bachata, and Kizomba, followed by glamorous themed social dancing nights.",
+    "highlights": ["International Artists", "Bootcamps for Beginners", "Live Afro-Latin Band"],
+    "agenda": [],
+    "coverImage": "",
+    "gallery": [],
+    "videoUrl": "",
+    "organizer": {
+      "name": "Chennai Latin Dance Scene",
+      "email": "info@madrassalsa.com",
+      "socials": {
+        "website": "https://madrassalsa.com",
+        "instagram": "@madras_salsa_congress"
+      }
+    },
+    "refundPolicy": "none",
+    "hasTerms": true,
+    "tags": ["workshop", "dance", "salsa"],
+    "isPrivate": false,
+    "isFeatured": true
+  }
+]

@@ -34,7 +34,7 @@ export default function SidebarFilters({ filters, setFilters }: Props) {
         filters.priceRange[0] === min && filters.priceRange[1] === max;
 
     return (
-        <aside className="space-y-6">
+        <aside className="hidden lg:block w-64 xl:w-72 shrink-0 space-y-6 sticky top-8 self-start max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--border-primary)] scrollbar-track-transparent pr-1">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

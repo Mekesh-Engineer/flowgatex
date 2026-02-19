@@ -165,21 +165,21 @@ const EventsPage: React.FC = () => {
   return (
     <div className="bg-[var(--bg-base)] font-sans text-[var(--text-primary)] min-h-screen flex flex-col transition-colors duration-300">
       {/* ═══ HERO SEARCH SECTION ═══ */}
-      <section className="relative bg-gradient-to-br from-[var(--bg-surface)] via-[var(--bg-base)] to-[var(--bg-surface)] border-b border-[var(--border-primary)] pt-14 pb-12 px-4 lg:px-8 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-[var(--bg-surface)] via-[var(--bg-base)] to-[var(--bg-surface)] border-b border-[var(--border-primary)] pt-8 pb-6 md:pt-14 md:pb-12 px-4 lg:px-8 overflow-hidden">
         {/* Animated Backgrounds */}
         <GridCanvas className="opacity-30 pointer-events-none" />
         <ParticleCanvas particleCount={40} className="pointer-events-none" />
 
-        {/* Floating Decor */}
-        <FloatingElement className="absolute top-10 left-10 hidden lg:block opacity-50 pointer-events-none" delay={0}>
-            <div className="p-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-sm rotate-12">
-                <Music className="text-[var(--color-primary)]" size={20} />
-            </div>
+        {/* Floating Decor — desktop only */}
+        <FloatingElement className="absolute top-10 left-10 hidden xl:block opacity-50 pointer-events-none" delay={0}>
+          <div className="p-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-sm rotate-12">
+            <Music className="text-[var(--color-primary)]" size={20} />
+          </div>
         </FloatingElement>
-        <FloatingElement className="absolute top-20 right-20 hidden lg:block opacity-50 pointer-events-none" delay={0.5}>
-            <div className="p-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-sm -rotate-6">
-                <Trophy className="text-[var(--color-secondary)]" size={20} />
-            </div>
+        <FloatingElement className="absolute top-20 right-20 hidden xl:block opacity-50 pointer-events-none" delay={0.5}>
+          <div className="p-3 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-primary)] shadow-sm -rotate-6">
+            <Trophy className="text-[var(--color-secondary)]" size={20} />
+          </div>
         </FloatingElement>
 
         <div className="max-w-[1440px] mx-auto w-full relative z-10">
@@ -193,14 +193,14 @@ const EventsPage: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div className="relative">
                 <div className="absolute -left-6 top-1 text-[var(--color-primary)] opacity-50"><Sparkles size={20} /></div>
-                <h1 className="text-4xl md:text-5xl font-black text-[var(--text-primary)] tracking-tight leading-none">
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tight leading-none">
                   Discover <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-secondary)] to-[var(--color-primary)] animate-shimmer bg-[length:200%_100%]">Events</span>
                 </h1>
                 <p className="text-[var(--text-muted)] text-lg mt-2 font-medium max-w-xl">
                   Find concerts, festivals, workshops, and more happening in your city.
                 </p>
               </div>
-              
+
               <div className="flex items-center gap-3 text-sm bg-[var(--bg-card)] p-1.5 rounded-xl border border-[var(--border-primary)] shadow-sm">
                 <span className="text-[var(--text-muted)] pl-2 font-bold text-xs uppercase tracking-wide">View:</span>
                 {([
@@ -228,32 +228,40 @@ const EventsPage: React.FC = () => {
               <SearchAutocomplete value={searchQuery} onChange={setSearchQuery} onSearch={handleSearch} events={allEvents} />
             </div>
 
-            {/* Filter chips */}
-            <FilterChipsBar
-              filters={filters}
-              onToggleCategory={toggleCategory}
-              onSetDate={(d) => { setFilters((f) => ({ ...f, dateRange: d })); setCurrentPage(1); }}
-              onClearAll={handleClearAll}
-            />
+            {/* Filter chips — hidden on mobile since we use the drawer */}
+            <div className="hidden md:block">
+              <FilterChipsBar
+                filters={filters}
+                onToggleCategory={toggleCategory}
+                onSetDate={(d) => { setFilters((f) => ({ ...f, dateRange: d })); setCurrentPage(1); }}
+                onClearAll={handleClearAll}
+              />
+            </div>
           </motion.div>
         </div>
       </section>
 
       {/* ═══ MAIN CONTENT ═══ */}
       <main className="flex-grow w-full flex flex-col" role="main">
-        <div className="flex-grow px-4 lg:px-8 py-8 w-full max-w-[1440px] mx-auto flex gap-8">
+        <div className="flex-grow px-3 sm:px-4 lg:px-8 py-4 md:py-8 w-full max-w-[1440px] mx-auto flex gap-8">
           <SidebarFilters filters={filters} setFilters={setFilters} />
 
           <div className="flex-1 min-w-0">
             {/* Mobile filter trigger + result count */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-4 md:mb-5">
               <div className="flex items-center gap-3 lg:hidden">
                 <button
                   onClick={() => setMobileFiltersOpen(true)}
                   aria-label="Open filters"
-                  className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)] bg-[var(--bg-card)] border border-[var(--border-primary)] hover:border-[var(--color-primary)] px-3 py-2 rounded-lg transition-colors"
+                  className="relative flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)] bg-[var(--bg-card)] border border-[var(--border-primary)] hover:border-[var(--color-primary)] px-4 py-2.5 rounded-xl transition-colors shadow-sm"
                 >
-                  <Filter size={16} /> Filters
+                  <Filter size={16} className="text-[var(--color-primary)]" />
+                  <span>Filters</span>
+                  {(filters.categories.length > 0 || filters.dateRange !== '' || filters.eventType !== 'all' || filters.priceRange[0] !== DEFAULT_FILTER_STATE.priceRange[0] || filters.priceRange[1] !== DEFAULT_FILTER_STATE.priceRange[1]) && (
+                    <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center size-5 rounded-full bg-[var(--color-primary)] text-white text-[10px] font-bold shadow-md">
+                      {filters.categories.length + (filters.dateRange ? 1 : 0) + (filters.eventType !== 'all' ? 1 : 0) + ((filters.priceRange[0] !== DEFAULT_FILTER_STATE.priceRange[0] || filters.priceRange[1] !== DEFAULT_FILTER_STATE.priceRange[1]) ? 1 : 0)}
+                    </span>
+                  )}
                 </button>
               </div>
               <p className="text-sm text-[var(--text-muted)]">
@@ -331,8 +339,8 @@ const EventsPage: React.FC = () => {
                     layout
                     className={
                       viewMode === 'grid'
-                        ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
-                        : 'flex flex-col gap-5'
+                        ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6'
+                        : 'flex flex-col gap-4 sm:gap-5'
                     }
                   >
                     {paginatedEvents.map((event, i) => (

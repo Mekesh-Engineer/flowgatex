@@ -20,6 +20,15 @@ export default function EventCardInner({
     const navigate = useNavigate();
     const { addToCart } = useCart();
 
+    const formatPrice = (price: number) => {
+        if (price === 0) return 'Free';
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
+        }).format(price).replace('₹', '₹ ');
+    };
+
     const handleBook = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -62,8 +71,8 @@ export default function EventCardInner({
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--border-primary)]">
                         <div className="flex items-center gap-2">
-                            {event.originalPrice && <span className="text-xs text-[var(--text-muted)] line-through">${event.originalPrice}</span>}
-                            <span className="text-lg font-bold text-[var(--text-primary)]">${event.price}</span>
+                            {event.originalPrice && <span className="text-xs text-[var(--text-muted)] line-through">{formatPrice(event.originalPrice)}</span>}
+                            <span className="text-lg font-bold text-[var(--text-primary)]">{formatPrice(event.price)}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Link to={`/events/${event.id}`} className="px-3 py-1.5 rounded-lg border border-[var(--border-primary)] text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] transition-colors">
@@ -132,9 +141,9 @@ export default function EventCardInner({
                         <span className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wider">Starting from</span>
                         <div className="flex items-center gap-2">
                             {event.originalPrice && (
-                                <span className="text-xs text-[var(--text-muted)] line-through">${event.originalPrice}</span>
+                                <span className="text-xs text-[var(--text-muted)] line-through">{formatPrice(event.originalPrice)}</span>
                             )}
-                            <span className="text-lg font-bold text-[var(--text-primary)]">${event.price}</span>
+                            <span className="text-lg font-bold text-[var(--text-primary)]">{formatPrice(event.price)}</span>
                         </div>
                     </div>
 

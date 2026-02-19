@@ -91,20 +91,22 @@ export const NAV_ITEMS = {
   organizer: [
     { label: 'Dashboard', path: '/organizer', icon: 'LayoutDashboard' },
     { label: 'My Events', path: '/organizer/events', icon: 'Calendar' },
-    { label: 'Event Analytics', path: '/organizer/analytics', icon: 'BarChart3' },
-    { label: 'Attendees', path: '/organizer/attendees', icon: 'Users' },
     { label: 'Payouts', path: '/organizer/payouts', icon: 'DollarSign' },
     { label: 'IoT Devices', path: '/organizer/devices', icon: 'Cpu' },
     { label: 'Marketing', path: '/organizer/marketing', icon: 'Megaphone' },
     { label: 'Scanner', path: '/organizer/scan', icon: 'ScanLine' },
   ],
+  
   admin: [
     { label: 'Dashboard', path: '/admin', icon: 'LayoutDashboard' },
     { label: 'Users', path: '/admin/users', icon: 'Users' },
     { label: 'Organizers', path: '/admin/organizers', icon: 'UserCheck' },
     { label: 'Events', path: '/admin/events', icon: 'Calendar' },
+    { label: 'Attendees', path: '/admin/attendees', icon: 'ClipboardList' },
+    { label: 'Transactions', path: '/admin/transactions', icon: 'CreditCard' },
     { label: 'Reports', path: '/admin/reports', icon: 'TrendingUp' },
     { label: 'Promo Codes', path: '/admin/promo-codes', icon: 'Ticket' },
+    { label: 'Audit Logs', path: '/admin/audit-logs', icon: 'FileText' },
     { label: 'Settings', path: '/admin/settings', icon: 'Settings' },
   ],
   superadmin: [

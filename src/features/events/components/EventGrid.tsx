@@ -82,8 +82,8 @@ export default function EventGrid({
       <div
         className={
           viewMode === 'grid'
-            ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
-            : 'flex flex-col gap-5'
+            ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6'
+            : 'flex flex-col gap-4 sm:gap-5'
         }
       >
         {[...Array(6)].map((_, i) => (
@@ -132,8 +132,8 @@ export default function EventGrid({
         layout
         className={
           viewMode === 'grid'
-            ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
-            : 'flex flex-col gap-5'
+            ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 lg:gap-6'
+            : 'flex flex-col gap-4 sm:gap-5'
         }
       >
         <AnimatePresence mode="popLayout">

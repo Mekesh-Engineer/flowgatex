@@ -106,9 +106,12 @@ export default function DashboardHeader({
             }, 200);
             return () => window.clearTimeout(timer);
         }
-        setSearchResults([]);
-        setShowSearchDropdown(false);
-        return undefined;
+        // Clear results when search is empty — use timeout to avoid synchronous setState
+        const clearTimer: number = window.setTimeout(() => {
+            setSearchResults([]);
+            setShowSearchDropdown(false);
+        }, 0);
+        return () => window.clearTimeout(clearTimer);
     }, [searchQuery]);
 
     const handleSearchFocus = () => {
@@ -153,8 +156,7 @@ export default function DashboardHeader({
                             className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 via-[#0091c4] to-secondary-500 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:shadow-primary-500/40 transition-all duration-300"
                         >
                             <span
-                                className="material-symbols-outlined text-[16px] text-white font-semibold"
-                                style={{ fontVariationSettings: "'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24" }}
+                                className="material-symbols-outlined material-symbols-filled text-[16px] text-white font-semibold"
                             >
                                 stream
                             </span>

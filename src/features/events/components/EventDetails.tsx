@@ -524,8 +524,8 @@ export default function EventDetailsPage() {
                       >
                         <div className="shrink-0 w-full md:w-32 flex flex-col items-center justify-center p-4 bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-primary)]">
                           <Clock size={24} className="mb-2 text-[var(--color-primary)]" />
-                          <span className="font-black text-xl text-[var(--text-primary)]">{item.time.split(' ')[0]}</span>
-                          <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">{item.time.split(' ')[1] || 'AM'}</span>
+                          <span className="font-black text-xl text-[var(--text-primary)]">{item.time ? item.time.split(' ')[0] : 'TBD'}</span>
+                          <span className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">{item.time ? (item.time.split(' ')[1] || 'AM') : ''}</span>
                         </div>
 
                         <div className="grow flex flex-col justify-center">

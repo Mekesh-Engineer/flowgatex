@@ -15,9 +15,9 @@ function EventCard({ event }: EventCardProps) {
     ? 'Free'
     : new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: event.currency || 'INR',
+      currency: 'INR',
       maximumFractionDigits: 0
-    }).format(event.price);
+    }).format(event.price).replace('₹', '₹ '); // Ensure space for readability
 
   // Compute capacity ratio
   const capacityRatio = event.capacity > 0 ? event.attendees / event.capacity : 0;
@@ -36,7 +36,7 @@ function EventCard({ event }: EventCardProps) {
         )}
 
         {/* Image Section */}
-        <div className="relative h-48 overflow-hidden shrink-0">
+        <div className="relative h-44 sm:h-48 overflow-hidden shrink-0">
           <img
             src={event.image}
             alt={event.title}
@@ -77,7 +77,7 @@ function EventCard({ event }: EventCardProps) {
         </div>
 
         {/* Content Section */}
-        <div className="p-5 flex flex-col gap-3 flex-grow">
+        <div className="p-4 sm:p-5 flex flex-col gap-2.5 sm:gap-3 flex-grow">
           <Link to={`/events/${event.id}`} className="group/title">
             <h3 className="text-lg font-bold text-[var(--text-primary)] group-hover/title:text-[var(--color-primary)] transition-colors line-clamp-1" title={event.title}>
               {event.title}
@@ -123,25 +123,25 @@ function EventCard({ event }: EventCardProps) {
           <div className="my-auto pt-4 border-t border-[var(--border-primary)] border-dashed opacity-50" />
 
           {/* Footer: Price + Actions */}
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1 sm:mb-2">
             <div>
               <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">Starting from</p>
-              <p className="text-xl font-bold text-[var(--text-primary)]">{formattedPrice}</p>
+              <p className="text-lg sm:text-xl font-bold text-[var(--text-primary)]">{formattedPrice}</p>
             </div>
           </div>
 
           {/* Buttons Grid */}
-          <div className="grid grid-cols-2 gap-3 mt-1">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-1">
             <Link
               to={`/events/${event.id}`}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-[var(--border-primary)] text-[var(--text-primary)] text-sm font-semibold hover:bg-[var(--bg-surface)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all"
+              className="flex items-center justify-center gap-2 py-2.5 sm:py-2.5 rounded-xl border border-[var(--border-primary)] text-[var(--text-primary)] text-sm font-semibold hover:bg-[var(--bg-surface)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] transition-all active:scale-[0.97]"
             >
               View Details
             </Link>
 
             <Link
               to={`/events/${event.id}`}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center justify-center gap-2 py-2.5 sm:py-2.5 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)] text-white text-sm font-bold shadow-lg hover:shadow-xl hover:translate-y-[-1px] transition-all active:scale-[0.97]"
             >
               <Ticket size={16} />
               Book Now
@@ -154,3 +154,4 @@ function EventCard({ event }: EventCardProps) {
 }
 
 export default EventCard;
+

@@ -10,7 +10,6 @@ export default tseslint.config(
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,
-      reactHooks.configs['recommended-latest'],
     ],
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
@@ -18,9 +17,11 @@ export default tseslint.config(
       globals: globals.browser,
     },
     plugins: {
+      'react-hooks': reactHooks, // Fix: Use object format
       'react-refresh': reactRefresh,
     },
     rules: {
+      ...reactHooks.configs.recommended.rules, // Fix: Apply rules manually
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
