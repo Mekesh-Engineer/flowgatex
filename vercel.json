@@ -6,7 +6,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
-  "regions": ["bom1", "sin1", "hnd1"],
   "build": {
     "env": {
       "NODE_ENV": "production"
