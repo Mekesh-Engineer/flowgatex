@@ -46,6 +46,6 @@
     "incremental": true,
     "assumeChangesOnlyAffectDirectDependencies": true
   },
-  "exclude": ["node_modules", "src/**/*.test.tsx", "src/test/**/*", "**/*.test.ts"],
-
+  "include": ["src", "src/vite-env.d.ts", "src/types/*.d.ts"],
+  "exclude": ["node_modules", "src/**/*.test.tsx", "src/**/*.test.ts", "src/test/**/*"]
 }
