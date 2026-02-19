@@ -19,7 +19,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "clean": "node cleanup.cjs",
     "clean:all": "node cleanup.cjs --all",
     "clean:cache": "node cleanup.cjs --cache",
