@@ -1,6 +1,12 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  // Built-in Vite variables
+  readonly MODE: string;
+  readonly DEV: boolean;
+  readonly PROD: boolean;
+  readonly SSR: boolean;
+
   // Firebase
   readonly VITE_FIREBASE_API_KEY: string;
   readonly VITE_FIREBASE_AUTH_DOMAIN: string;
@@ -25,7 +31,10 @@ interface ImportMetaEnv {
   readonly VITE_APP_NAME: string;
   readonly VITE_APP_URL: string;
   readonly VITE_API_BASE_URL: string;
+  readonly VITE_ENV: 'development' | 'production' | 'staging';
   readonly VITE_MOCK_MODE?: string;
+  readonly VITE_USE_EMULATORS?: string;
+  readonly VITE_EMULATE_FUNCTIONS_ONLY?: string;
 
   // Feature flags
   readonly VITE_ENABLE_ANALYTICS?: string;

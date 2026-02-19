@@ -46,6 +46,6 @@
     "incremental": true,
     "assumeChangesOnlyAffectDirectDependencies": true
   },
-  "include": ["src"],
+  "include": ["src", "vite-env.d.ts", "src/types/*.d.ts"],
 
 }
