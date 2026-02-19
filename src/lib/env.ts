@@ -102,7 +102,8 @@ export function validateEnv(): Env | null {
  * @returns The environment variable value
  */
 export function getEnv<K extends keyof Env>(key: K): Env[K] {
-  return import.meta.env[key] as Env[K];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (import.meta.env as any)[key] as Env[K];
 }
 
 /**
