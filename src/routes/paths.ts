@@ -44,6 +44,8 @@ export const ROUTES = {
   ATTENDEE_MANAGEMENT_OVERVIEW: '/organizer/attendees',
   PAYOUTS: '/organizer/payouts',
   IOT_DEVICES: '/organizer/devices',
+  GATEWAY: '/organizer/gateway',
+  AI_HEATMAP: '/organizer/ai-heatmap',
   MARKETING: '/organizer/marketing',
   SCANNER: '/organizer/scan',
 

@@ -91,8 +91,12 @@ export const NAV_ITEMS = {
   organizer: [
     { label: 'Dashboard', path: '/organizer', icon: 'LayoutDashboard' },
     { label: 'My Events', path: '/organizer/events', icon: 'Calendar' },
+    { label: 'Attendees', path: '/organizer/attendees', icon: 'Users' },
+    { label: 'Analytics', path: '/organizer/analytics', icon: 'BarChart3' },
     { label: 'Payouts', path: '/organizer/payouts', icon: 'DollarSign' },
     { label: 'IoT Devices', path: '/organizer/devices', icon: 'Cpu' },
+    { label: 'Gateway', path: '/organizer/gateway', icon: 'Router' },
+    { label: 'AI Heatmap', path: '/organizer/ai-heatmap', icon: 'Flame' },
     { label: 'Marketing', path: '/organizer/marketing', icon: 'Megaphone' },
     { label: 'Scanner', path: '/organizer/scan', icon: 'ScanLine' },
   ],

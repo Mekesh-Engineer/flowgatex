@@ -62,6 +62,8 @@ const EventAnalyticsPage = lazy(() => import('@/pages/dashboard/Organizer/EventA
 const AttendeeManagementPage = lazy(() => import('@/pages/dashboard/Organizer/AttendeeManagementPage'));
 const PayoutsPage = lazy(() => import('@/pages/dashboard/Organizer/PayoutsPage'));
 const IoTDevicesPage = lazy(() => import('@/pages/dashboard/Organizer/IoTDevicesPage'));
+const GatewayPage = lazy(() => import('@/pages/dashboard/Organizer/GatewayPage'));
+const AiHeatmapPage = lazy(() => import('@/pages/dashboard/Organizer/AiHeatmapPage'));
 const MarketingToolsPage = lazy(() => import('@/pages/dashboard/Organizer/MarketingToolsPage'));
 
 const ScannerPage = lazy(() => import('@/pages/dashboard/Organizer/ScannerPage'));
@@ -199,6 +201,8 @@ export const organizerRoutes: RouteObject[] = [
   { path: ROUTES.ATTENDEE_MANAGEMENT_OVERVIEW, element: <AttendeeManagementPage /> },
   { path: ROUTES.PAYOUTS, element: <PayoutsPage /> },
   { path: ROUTES.IOT_DEVICES, element: <IoTDevicesPage /> },
+  { path: ROUTES.GATEWAY, element: <GatewayPage /> },
+  { path: ROUTES.AI_HEATMAP, element: <AiHeatmapPage /> },
   { path: ROUTES.MARKETING, element: <MarketingToolsPage /> },
   { path: ROUTES.SCANNER, element: <ScannerPage /> },
 ];

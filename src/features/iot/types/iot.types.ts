@@ -1,5 +1,5 @@
 export type DeviceStatus = 'online' | 'offline' | 'maintenance';
-export type DeviceType = 'scanner' | 'turnstile' | 'display';
+export type DeviceType = 'scanner' | 'turnstile' | 'display' | 'camera' | 'access_gate';
 
 export interface IoTDevice {
   id: string;
@@ -12,6 +12,10 @@ export interface IoTDevice {
   batteryLevel?: number;
   firmwareVersion?: string;
   scansToday?: number;
+  /** Local IP address of the ESP32 device (e.g. "192.168.4.1") */
+  ipAddress?: string;
+  /** WebSocket port for real-time push (default: 81) */
+  wsPort?: number;
 }
 
 export interface ScanResult {

@@ -424,20 +424,63 @@ export async function processOverride(
 
 /**
  * Send a gate-open command to all online turnstile devices.
+ * Two-pronged approach:
+ *   1. Direct HTTP POST to ESP32 `/qr` endpoint for live hardware response
+ *      (motor opens, buzzer sounds, LCD shows result — instant)
+ *   2. Firestore command write as audit trail & fallback for cloud-based devices
  */
 export async function sendGateCommand(
   devices: IoTDevice[],
   ticketId: string,
   accessLevel: number,
-  onLog: (type: 'INFO' | 'SUCCESS' | 'ERROR' | 'WARNING' | 'SYS', message: string) => void
+  onLog: (type: 'INFO' | 'SUCCESS' | 'ERROR' | 'WARNING' | 'SYS', message: string) => void,
+  valid: boolean = true
 ): Promise<void> {
   const gates = devices.filter((d) => d.type === 'turnstile' && d.status === 'online');
   if (gates.length === 0) return;
 
   for (const gate of gates) {
+    // ── 1. Direct HTTP POST to ESP32 hardware ────────────────────────────
+    if (gate.ipAddress) {
+      try {
+        const espUrl = `http://${gate.ipAddress}/qr`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
+        const response = await fetch(espUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userID: ticketId,
+            valid: valid,
+            accessLevel: accessLevel,
+            gate: 1,           // Default to Gate 1 (entry)
+            duration: 5000,    // Auto-close after 5s
+          }),
+          signal: controller.signal,
+        });
+
+        clearTimeout(timeout);
+
+        if (response.ok) {
+          const result = await response.json();
+          onLog('SYS', `⚡ ESP32 gate ${gate.name}: ${result.result || 'command sent'} (direct HTTP)`);
+        } else {
+          onLog('WARNING', `ESP32 ${gate.name} returned ${response.status} — falling back to Firestore.`);
+        }
+      } catch (err: unknown) {
+        // Network error (device unreachable) — fall through to Firestore
+        const reason = err instanceof Error
+          ? (err.name === 'AbortError' ? 'timeout' : err.message)
+          : 'unknown error';
+        onLog('WARNING', `ESP32 ${gate.name} unreachable (${reason}) — using Firestore fallback.`);
+      }
+    }
+
+    // ── 2. Firestore command write (audit trail + cloud fallback) ────────
     try {
       await updateDoc(doc(getDb(), COLLECTIONS.DEVICES, gate.id), {
-        lastCommand: 'open',
+        lastCommand: valid ? 'open' : 'deny',
         lastCommandTicket: ticketId,
         lastCommandAccess: accessLevel,
         lastCommandAt: serverTimestamp(),

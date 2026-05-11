@@ -10,8 +10,7 @@ build
 *.local
 
 # Environment files
-.env
-.env.local
+
 .env.development.local
 .env.test.local
 .env.production.local
@@ -44,7 +43,6 @@ coverage
 .tmp
 
 # Firebase
-.firebase
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
@@ -53,11 +51,11 @@ ui-debug.log
 *.tsbuildinfo
 
 # Stitch design files (keep in repo but exclude from build)
-stitch_organizer_dashboard_overview/
-*.zip
 
 # Large media assets (host on CDN instead)
-*.mp4
-*.mov
+
 *.avi
 .vercel
+functions/.env
+*.env
+.env*

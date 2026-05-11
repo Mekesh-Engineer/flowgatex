@@ -44,17 +44,34 @@ export function useSettingsSync() {
       return;
     }
 
+    let hasResponded = false;
+
+    // Safety Timeout: If Firestore completely hangs (network), finish loading after 5s
+    const fallbackTimeoutId = setTimeout(() => {
+      if (!hasResponded) {
+        logger.warn('Platform settings listener timed out. Using default settings.');
+        setPlatformError('Platform settings listener timed out.');
+        hasResponded = true;
+      }
+    }, 5000);
+
     try {
       unsubPlatformRef.current = subscribePlatformSettings((settings) => {
+        if (!hasResponded) {
+           clearTimeout(fallbackTimeoutId);
+           hasResponded = true;
+        }
         setPlatformSettings(settings);
         logger.log('⚙️ Platform settings synced from Firestore');
       });
     } catch (error) {
+      if (!hasResponded) clearTimeout(fallbackTimeoutId);
       logger.error('Failed to subscribe to platform settings:', error);
       setPlatformError('Failed to load platform settings');
     }
 
     return () => {
+      clearTimeout(fallbackTimeoutId);
       unsubPlatformRef.current?.();
       unsubPlatformRef.current = null;
     };

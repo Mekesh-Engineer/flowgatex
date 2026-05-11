@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/zustand/stores';
 import { UserRole } from '@/lib/constants';
 import { useSettingsStore } from '@/store/zustand/settingsStore';
@@ -43,8 +43,21 @@ function RoleRoute({ children, allowedRoles, requiredPermissions, redirectTo }: 
   // Check first required permission (additional ones checked below)
   const firstPermGranted = usePermission(requiredPermissions?.[0] ?? 'event:read');
 
+  const [forceLoad, setForceLoad] = useState(false);
+
+  // Safety net: don't let the permission check spin forever
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    if (!platformLoaded && !isLoading) {
+      timeoutId = setTimeout(() => {
+        setForceLoad(true);
+      }, 5000);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [platformLoaded, isLoading]);
+
   // Show loading spinner while checking authentication, role, and settings
-  if (isLoading || !platformLoaded) {
+  if (isLoading || (!platformLoaded && !forceLoad)) {
     return <LoadingSpinner fullScreen message="Checking permissions..." />;
   }
 
